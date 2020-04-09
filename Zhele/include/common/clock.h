@@ -692,98 +692,98 @@ namespace Zhele
 		#endif
 
 		#if defined (RCC_APB1ENR_CAN1EN)
-			using Can1Clock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_CAN1EN, Apb1Clock>;
+			using Can1Clock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_CAN1EN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_CAN2EN)
-			using Can2Clock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_CAN2EN, Apb1Clock>;
+			using Can2Clock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_CAN2EN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_CECEN)
-			using CecClock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_CECEN, Apb1Clock>;
+			using CecClock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_CECEN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_DACEN)
-			using DacClock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_DACEN, Apb1Clock>;
+			using DacClock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_DACEN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_I2C2EN)
-			using I2c2Clock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_I2C2EN, Apb1Clock>;
+			using I2c2Clock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_I2C2EN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_SPI2EN)
-			using Spi2Clock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_SPI2EN, Apb1Clock>;
+			using Spi2Clock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_SPI2EN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_SPI3EN)
-			using Spi3Clock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_SPI3EN, Apb1Clock>;
+			using Spi3Clock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_SPI3EN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_TIM4EN)
-			using Tim4Clock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_TIM4EN, Apb1Clock>;
+			using Tim4Clock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_TIM4EN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_TIM5EN)
-			using Tim5Clock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_TIM5EN, Apb1Clock>;
+			using Tim5Clock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_TIM5EN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_TIM6EN)
-			using Tim6Clock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_TIM6EN, Apb1Clock>;
+			using Tim6Clock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_TIM6EN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_TIM7EN)
-			using Tim7Clock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_TIM7EN, Apb1Clock>;
+			using Tim7Clock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_TIM7EN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_TIM12EN)
-			using Tim12Clock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_TIM12EN, Apb1Clock>;
+			using Tim12Clock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_TIM12EN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_TIM13EN)
-			using Tim13Clock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_TIM13EN, Apb1Clock>;
+			using Tim13Clock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_TIM13EN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_TIM14EN)
-			using Tim14Clock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_TIM14EN, Apb1Clock>;
+			using Tim14Clock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_TIM14EN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_USART3EN)
-			using Usart3Clock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_USART3EN, Apb1Clock>;
+			using Usart3Clock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_USART3EN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_UART4EN)
-			using Uart4Clock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_UART4EN, Apb1Clock>;
+			using Uart4Clock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_UART4EN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_UART5EN)
-			using Uart5Clock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_UART5EN, Apb1Clock>;
+			using Uart5Clock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_UART5EN, Apb1Clock>;
 		#endif
 		#if defined (RCC_APB1ENR_USBEN)
-			using UsbClock = ClockControl<AhbClockEnableReg, RCC_APB1ENR_USBEN, Apb1Clock>;
+			using UsbClock = ClockControl<PeriphClockEnable1, RCC_APB1ENR_USBEN, Apb1Clock>;
 		#endif
 
 		#if defined (RCC_APB2ENR_ADC2EN)
-			using Adc2Clock = ClockControl<AhbClockEnableReg, RCC_APB2ENR_ADC2EN, Apb2Clock>;
+			using Adc2Clock = ClockControl<PeriphClockEnable2, RCC_APB2ENR_ADC2EN, Apb2Clock>;
 		#endif
 		#if defined (RCC_APB2ENR_ADC3EN)
-			using Adc3Clock = ClockControl<AhbClockEnableReg, RCC_APB2ENR_ADC3EN, Apb2Clock>;
+			using Adc3Clock = ClockControl<PeriphClockEnable2, RCC_APB2ENR_ADC3EN, Apb2Clock>;
 		#endif
 		#if defined (RCC_APB2ENR_ADC3EN)
-			using Adc3Clock = ClockControl<AhbClockEnableReg, RCC_APB2ENR_ADC3EN, Apb2Clock>;
+			using Adc3Clock = ClockControl<PeriphClockEnable2, RCC_APB2ENR_ADC3EN, Apb2Clock>;
 		#endif
 		#if defined (RCC_APB2ENR_IOPEEN)
-			using PorteClock = ClockControl<AhbClockEnableReg, RCC_APB2ENR_IOPEEN, Apb2Clock>;
+			using PorteClock = ClockControl<PeriphClockEnable2, RCC_APB2ENR_IOPEEN, Apb2Clock>;
 		#endif
 		#if defined (RCC_APB2ENR_IOPFEN)
-			using PortfClock = ClockControl<AhbClockEnableReg, RCC_APB2ENR_IOPFEN, Apb2Clock>;
+			using PortfClock = ClockControl<PeriphClockEnable2, RCC_APB2ENR_IOPFEN, Apb2Clock>;
 		#endif
 		#if defined (RCC_APB2ENR_IOPGEN)
-			using PortgClock = ClockControl<AhbClockEnableReg, RCC_APB2ENR_IOPGEN, Apb2Clock>;
+			using PortgClock = ClockControl<PeriphClockEnable2, RCC_APB2ENR_IOPGEN, Apb2Clock>;
 		#endif
 		#if defined (RCC_APB2ENR_TIM8EN)
-			using Tim8Clock = ClockControl<AhbClockEnableReg, RCC_APB2ENR_TIM8EN, Apb2Clock>;
+			using Tim8Clock = ClockControl<PeriphClockEnable2, RCC_APB2ENR_TIM8EN, Apb2Clock>;
 		#endif
 		#if defined (RCC_APB2ENR_TIM9EN)
-			using Tim9Clock = ClockControl<AhbClockEnableReg, RCC_APB2ENR_TIM9EN, Apb2Clock>;
+			using Tim9Clock = ClockControl<PeriphClockEnable2, RCC_APB2ENR_TIM9EN, Apb2Clock>;
 		#endif
 		#if defined (RCC_APB2ENR_TIM10EN)
-			using Tim10Clock = ClockControl<AhbClockEnableReg, RCC_APB2ENR_TIM10EN, Apb2Clock>;
+			using Tim10Clock = ClockControl<PeriphClockEnable2, RCC_APB2ENR_TIM10EN, Apb2Clock>;
 		#endif
 		#if defined (RCC_APB2ENR_TIM11EN)
-			using Tim11Clock = ClockControl<AhbClockEnableReg, RCC_APB2ENR_TIM11EN, Apb2Clock>;
+			using Tim11Clock = ClockControl<PeriphClockEnable2, RCC_APB2ENR_TIM11EN, Apb2Clock>;
 		#endif
 		#if defined (RCC_APB2ENR_TIM15EN)
-			using Tim15Clock = ClockControl<AhbClockEnableReg, RCC_APB2ENR_TIM15EN, Apb2Clock>;
+			using Tim15Clock = ClockControl<PeriphClockEnable2, RCC_APB2ENR_TIM15EN, Apb2Clock>;
 		#endif
 		#if defined (RCC_APB2ENR_TIM16EN)
-			using Tim16Clock = ClockControl<AhbClockEnableReg, RCC_APB2ENR_TIM16EN, Apb2Clock>;
+			using Tim16Clock = ClockControl<PeriphClockEnable2, RCC_APB2ENR_TIM16EN, Apb2Clock>;
 		#endif
 		#if defined (RCC_APB2ENR_TIM17EN)
-			using Tim17Clock = ClockControl<AhbClockEnableReg, RCC_APB2ENR_TIM17EN, Apb2Clock>;
+			using Tim17Clock = ClockControl<PeriphClockEnable2, RCC_APB2ENR_TIM17EN, Apb2Clock>;
 		#endif
 	}
 }
