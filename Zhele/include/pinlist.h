@@ -1,0 +1,12 @@
+ /**
+ * @file
+ * United header for pinlist
+ * 
+ * @author Aleksei Zhelonkin
+ * @date 2019
+ * @licence FreeBSD
+ */
+
+#if defined(STM32F1)
+    #include <f1/pinlist.h>
+#endif
