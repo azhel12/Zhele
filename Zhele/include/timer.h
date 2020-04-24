@@ -1,0 +1,10 @@
+/**
+ * @file
+ * United header for timers
+ * @author Alexey Zhelonkin
+ * @date 2019
+ * @license FreeBSD
+ */
+#if defined(STM32F1)
+    #include <f1/timer.h>
+#endif

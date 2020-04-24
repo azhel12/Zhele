@@ -78,7 +78,7 @@ namespace Zhele
 			/**
 			 * @brief Implement GPIO port
 			 */
-			template<class Regs, class ClkEnReg, int ID>
+			template<class _Regs, class ClkEnReg, int ID>
 			class PortImplementation :public NativePortBase
 			{
 			public:
@@ -91,7 +91,7 @@ namespace Zhele
 				 */
 				static DataType Read()
 				{
-					return Regs()->ODR;
+					return _Regs()->ODR;
 				}
 
 				/**
@@ -104,7 +104,7 @@ namespace Zhele
 				 */
 				static void Write(DataType value)
 				{
-					Regs()->ODR = value;
+					_Regs()->ODR = value;
 				}
 
 				/**
@@ -120,7 +120,7 @@ namespace Zhele
 				 */
 				static void ClearAndSet(DataType clearMask, DataType setMask)
 				{
-					Regs()->BSRR = (setMask | static_cast<uint32_t>(clearMask << 16));
+					_Regs()->BSRR = (setMask | static_cast<uint32_t>(clearMask << 16));
 				}
 
 				/**
@@ -133,7 +133,7 @@ namespace Zhele
 				 */
 				static void Set(DataType value)
 				{
-					Regs()->BSRR = value;
+					_Regs()->BSRR = value;
 				}
 
 				/**
@@ -146,7 +146,7 @@ namespace Zhele
 				 */
 				static void Clear(DataType value)
 				{
-					Regs()->BSRR = (static_cast<uint32_t>(value) << 16);
+					_Regs()->BSRR = (static_cast<uint32_t>(value) << 16);
 				}
 
 				/**
@@ -161,7 +161,7 @@ namespace Zhele
 				 */
 				static void Toggle(DataType value)
 				{
-					Regs()->ODR ^= value;
+					_Regs()->ODR ^= value;
 				}
 
 				/**
@@ -173,7 +173,7 @@ namespace Zhele
 				 */
 				static DataType PinRead()
 				{
-					return Regs()->IDR;
+					return _Regs()->IDR;
 				}
 
 				/**
@@ -192,7 +192,7 @@ namespace Zhele
 				template<DataType clearMask, DataType setMask>
 				static void ClearAndSet()
 				{
-					Regs()->BSRR = (setMask | static_cast<uint32_t>(clearMask) << 16);
+					_Regs()->BSRR = (setMask | static_cast<uint32_t>(clearMask) << 16);
 				}
 
 				/**
@@ -206,7 +206,7 @@ namespace Zhele
 				template<DataType value>
 				static void Toggle()
 				{
-					Regs()->ODR ^= value;
+					_Regs()->ODR ^= value;
 				}
 
 				/**
@@ -220,7 +220,7 @@ namespace Zhele
 				template<DataType value>
 				static void Set()
 				{
-					Regs()->BSRR = value;
+					_Regs()->BSRR = value;
 				}
 
 
@@ -235,7 +235,7 @@ namespace Zhele
 				template<DataType value>
 				static void Clear()
 				{
-					Regs()->BSRR = (static_cast<uint32_t>(value) << 16);
+					_Regs()->BSRR = (static_cast<uint32_t>(value) << 16);
 				}
 
 				/**
@@ -251,13 +251,13 @@ namespace Zhele
 				template<unsigned pin>
 				static std::enable_if_t<pin < 8> SetPinConfiguration(Configuration configuration)
 				{					
-					Regs()->CRL = (Regs()->CRL & ~(0x0fu << pin * 4)) | (static_cast<unsigned int>(configuration) << pin * 4);
+					_Regs()->CRL = (_Regs()->CRL & ~(0x0fu << pin * 4)) | (static_cast<unsigned int>(configuration) << pin * 4);
 				}
 				template<unsigned pin>
 				static std::enable_if_t<pin >= 8> SetPinConfiguration(Configuration configuration)
 				{
 					static_assert(pin < 16);
-					Regs()->CRH = (Regs()->CRH & ~(0x0fu << (pin - 8) * 4)) | static_cast<unsigned int>(configuration) << (pin - 8) * 4;
+					_Regs()->CRH = (_Regs()->CRH & ~(0x0fu << (pin - 8) * 4)) | static_cast<unsigned int>(configuration) << (pin - 8) * 4;
 				}
 
 
@@ -272,8 +272,8 @@ namespace Zhele
 				 */
 				static void SetConfiguration(DataType mask, Configuration configuration)
 				{
-					Regs()->CRL = UnpackConfig(mask, Regs()->CRL, configuration, 0x0f);
-					Regs()->CRH = UnpackConfig((mask >> 8), Regs()->CRH, configuration, 0x0f);
+					_Regs()->CRL = UnpackConfig(mask, _Regs()->CRL, configuration, 0x0f);
+					_Regs()->CRH = UnpackConfig((mask >> 8), _Regs()->CRH, configuration, 0x0f);
 				}
 
 				/**
@@ -291,8 +291,8 @@ namespace Zhele
 					constexpr unsigned lowMaskPart = ConfigurationMask(mask);
 					constexpr unsigned highMaskPart = ConfigurationMask(mask >> 8);
 
-					Regs()->CRL = (Regs()->CRL & ~(lowMaskPart * 0x0f)) | lowMaskPart * configuration;
-					Regs()->CRH = (Regs()->CRH & ~(highMaskPart * 0x0f)) | highMaskPart * configuration;
+					_Regs()->CRL = (_Regs()->CRL & ~(lowMaskPart * 0x0f)) | lowMaskPart * configuration;
+					_Regs()->CRH = (_Regs()->CRH & ~(highMaskPart * 0x0f)) | highMaskPart * configuration;
 				}
 
 				/**
@@ -306,8 +306,8 @@ namespace Zhele
 				 */
 				static void SetSpeed(DataType mask, Speed speed)
 				{
-					Regs()->CRL = NativePortBase::UnpackConfig(mask, Regs()->CRL, speed, 0x03);
-					Regs()->CRH = NativePortBase::UnpackConfig((mask >> 8), Regs()->CRH, speed, 0x03);
+					_Regs()->CRL = NativePortBase::UnpackConfig(mask, _Regs()->CRL, speed, 0x03);
+					_Regs()->CRH = NativePortBase::UnpackConfig((mask >> 8), _Regs()->CRH, speed, 0x03);
 				}
 
 				/**
@@ -323,8 +323,8 @@ namespace Zhele
 				{
 					constexpr unsigned lowMaskPart = ConfigurationMask(mask);
 					constexpr unsigned highMaskPart = ConfigurationMask(mask);
-					Regs()->CRL = (Regs()->CRL & ~(lowMaskPart * 0x03)) | lowMaskPart * speed;
-					Regs()->CRH = (Regs()->CRH & ~(highMaskPart * 0x03)) | highMaskPart * speed;
+					_Regs()->CRL = (_Regs()->CRL & ~(lowMaskPart * 0x03)) | lowMaskPart * speed;
+					_Regs()->CRH = (_Regs()->CRH & ~(highMaskPart * 0x03)) | highMaskPart * speed;
 				}
 
 				/**
@@ -338,8 +338,8 @@ namespace Zhele
 				 */
 				static void SetPullUp(DataType mask, PullMode mode)
 				{
-					Regs()->CRL = NativePortBase::UnpackConfig(mask, Regs()->CRL, mode & 0x08, 0x0f);
-					Regs()->CRH = NativePortBase::UnpackConfig((mask >> 8), Regs()->CRH, mode & 0x08, 0x0f);
+					_Regs()->CRL = NativePortBase::UnpackConfig(mask, _Regs()->CRL, mode & 0x08, 0x0f);
+					_Regs()->CRH = NativePortBase::UnpackConfig((mask >> 8), _Regs()->CRH, mode & 0x08, 0x0f);
 					if (mode & 0x10) // pulldown
 					{
 						Set(mask);
@@ -364,8 +364,8 @@ namespace Zhele
 				{
 					constexpr unsigned lowMaskPart = ConfigurationMask(mask);
 					constexpr unsigned highMaskPart = ConfigurationMask(mask);
-					Regs()->CRL = (Regs()->CRL & ~(lowMaskPart * 0x0f)) | lowMaskPart * (mode & 0x08);
-					Regs()->CRH = (Regs()->CRH & ~(highMaskPart * 0x0f)) | highMaskPart * (mode & 0x08);
+					_Regs()->CRL = (_Regs()->CRL & ~(lowMaskPart * 0x0f)) | lowMaskPart * (mode & 0x08);
+					_Regs()->CRH = (_Regs()->CRH & ~(highMaskPart * 0x0f)) | highMaskPart * (mode & 0x08);
 
 					if (mode & 0x10) // pulldown
 					{
@@ -388,8 +388,8 @@ namespace Zhele
 				 */
 				static void SetDriverType(DataType mask, DriverType driver)
 				{
-					Regs()->CRL = NativePortBase::UnpackConfig(mask, Regs()->CRL, driver, 0x04);
-					Regs()->CRH = NativePortBase::UnpackConfig((mask >> 8), Regs()->CRH, driver, 0x04);
+					_Regs()->CRL = NativePortBase::UnpackConfig(mask, _Regs()->CRL, driver, 0x04);
+					_Regs()->CRH = NativePortBase::UnpackConfig((mask >> 8), _Regs()->CRH, driver, 0x04);
 				}
 
 				/**
@@ -406,8 +406,8 @@ namespace Zhele
 				{
 					constexpr unsigned lowMaskPart = ConfigurationMask(mask);
 					constexpr unsigned highMaskPart = ConfigurationMask(mask);
-					Regs()->CRL = (Regs()->CRL & ~(lowMaskPart * 0x04)) | lowMaskPart * driver;
-					Regs()->CRH = (Regs()->CRH & ~(highMaskPart * 0x04)) | highMaskPart * driver;
+					_Regs()->CRL = (_Regs()->CRL & ~(lowMaskPart * 0x04)) | lowMaskPart * driver;
+					_Regs()->CRH = (_Regs()->CRH & ~(highMaskPart * 0x04)) | highMaskPart * driver;
 				}
 
 				/**
@@ -454,10 +454,10 @@ namespace Zhele
 			 * @details
 			 * It is more effective to split port on two parts
 			 */
-			template<class Regs, class ClkEnReg, int ID>
-			class PortImplementationL :public PortImplementation<Regs, ClkEnReg, ID>
+			template<class _Regs, class ClkEnReg, int ID>
+			class PortImplementationL :public PortImplementation<_Regs, ClkEnReg, ID>
 			{
-				typedef PortImplementation<Regs, ClkEnReg, ID> Base;
+				typedef PortImplementation<_Regs, ClkEnReg, ID> Base;
 			public:
 				typedef typename Base::Configuration Configuration;
 				typedef typename Base::DataType DataT;
@@ -475,7 +475,7 @@ namespace Zhele
 				static void SetPinConfiguration(Configuration configuration)
 				{
 					static_assert(pin < 8);
-					Regs()->CRL = (Regs()->CRL & ~(0x0fu << pin * 4)) | (static_cast<unsigned int>(configuration) << pin * 4);
+					_Regs()->CRL = (_Regs()->CRL & ~(0x0fu << pin * 4)) | (static_cast<unsigned int>(configuration) << pin * 4);
 				}
 
 				/**
@@ -489,7 +489,7 @@ namespace Zhele
 				 */
 				static void SetConfiguration(DataT mask, Configuration configuration)
 				{
-					Regs()->CRL = NativePortBase::UnpackConfig(mask, Regs()->CRL, configuration, 0x0f);
+					_Regs()->CRL = NativePortBase::UnpackConfig(mask, _Regs()->CRL, configuration, 0x0f);
 				}
 
 				/**
@@ -505,17 +505,17 @@ namespace Zhele
 				static void SetConfiguration()
 				{
 					constexpr unsigned configMask = NativePortBase::ConfigurationMask(mask);
-					Regs()->CRL = (Regs()->CRL & ~(configMask * 0x0f)) | configMask * configuration;
+					_Regs()->CRL = (_Regs()->CRL & ~(configMask * 0x0f)) | configMask * configuration;
 				}
 			};
 
 			/**
 			 * @brief High part of port
 			 */
-			template<class Regs, class ClkEnReg, int ID>
-			class PortImplementationH :public PortImplementation<Regs, ClkEnReg, ID>
+			template<class _Regs, class ClkEnReg, int ID>
+			class PortImplementationH :public PortImplementation<_Regs, ClkEnReg, ID>
 			{
-				typedef PortImplementation<Regs, ClkEnReg, ID> Base;
+				typedef PortImplementation<_Regs, ClkEnReg, ID> Base;
 			public:
 				typedef typename Base::Configuration Configuration;
 				typedef typename Base::DataType DataT;
@@ -533,7 +533,7 @@ namespace Zhele
 				static void SetPinConfiguration(Configuration configuration)
 				{
 					static_assert(pin >= 8 && pin < 16);
-					Regs()->CRH = (Regs()->CRH & ~(0x0fu << (pin - 8) * 4)) | (static_cast<unsigned int>(configuration) << (pin - 8) * 4);
+					_Regs()->CRH = (_Regs()->CRH & ~(0x0fu << (pin - 8) * 4)) | (static_cast<unsigned int>(configuration) << (pin - 8) * 4);
 				}
 
 				/**
@@ -547,7 +547,7 @@ namespace Zhele
 				*/
 				static void SetConfiguration(DataT mask, Configuration configuration)
 				{
-					Regs()->CRH = NativePortBase::UnpackConfig((mask >> 8), Regs()->CRH, configuration, 0x0f);
+					_Regs()->CRH = NativePortBase::UnpackConfig((mask >> 8), _Regs()->CRH, configuration, 0x0f);
 				}
 
 
@@ -564,7 +564,7 @@ namespace Zhele
 				static void SetConfiguration()
 				{
 					constexpr unsigned configMask = NativePortBase::ConfigurationMask(mask);
-					Regs()->CRH = (Regs()->CRH & ~(configMask * 0x0f)) | configMask * configuration;
+					_Regs()->CRH = (_Regs()->CRH & ~(configMask * 0x0f)) | configMask * configuration;
 				}
 			};
 		}
