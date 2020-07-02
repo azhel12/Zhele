@@ -249,17 +249,18 @@ namespace Zhele
 				 *	Nothings
 				 */
 				template<unsigned pin>
-				static std::enable_if_t<pin < 8> SetPinConfiguration(Configuration configuration)
-				{					
-					_Regs()->CRL = (_Regs()->CRL & ~(0x0fu << pin * 4)) | (static_cast<unsigned int>(configuration) << pin * 4);
-				}
-				template<unsigned pin>
-				static std::enable_if_t<pin >= 8> SetPinConfiguration(Configuration configuration)
+				static void SetPinConfiguration(Configuration configuration)
 				{
-					static_assert(pin < 16);
-					_Regs()->CRH = (_Regs()->CRH & ~(0x0fu << (pin - 8) * 4)) | static_cast<unsigned int>(configuration) << (pin - 8) * 4;
+					if constexpr (pin < 8)
+					{			
+						_Regs()->CRL = (_Regs()->CRL & ~(0x0fu << pin * 4)) | (static_cast<unsigned int>(configuration) << pin * 4);
+					}
+					else
+					{
+						static_assert(pin < 16);
+						_Regs()->CRH = (_Regs()->CRH & ~(0x0fu << (pin - 8) * 4)) | static_cast<unsigned int>(configuration) << (pin - 8) * 4;	
+					}
 				}
-
 
 				/**
 				 * @brief Set port configuration

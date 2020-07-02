@@ -102,7 +102,7 @@ namespace Zhele
 			{
 
 				/**
-				 * @brief Writes value to port when it is whole port
+				 * @brief Writes value to port
 				 * 
 				 * @tparam [in] _Port Port
 				 * @tparam [in] _DataType Pinlist data type
@@ -111,24 +111,16 @@ namespace Zhele
 				 * 	Nothing
 				 */
 				template<typename _Port, typename _DataType>
-				static std::enable_if_t<Length<PinsForPort<_Port, _PinList>>::value == 16> WriteToOnePort(_DataType value)
+				static void WriteToOnePort(_DataType value)
 				{
-					_Port::Send(Private::GetPinlistValueForPort<_Port, _PinList>(value));
-				}
-
-				/**
-				 * @brief Writes value to port when it is part of port
-				 * 
-				 * @tparam [in] _Port Port
-				 * @tparam [in] _DataType Pinlist data type
-				 * 
-				 * @par Returns
-				 * 	Nothing
-				 */
-				template<typename _Port, typename _DataType>
-				static std::enable_if_t<Length<PinsForPort<_Port, _PinList>>::value != 16> WriteToOnePort(_DataType value)
-				{
-					_Port::ClearAndSet(PortMask<PinsForPort<_Port, _PinList>>::value, Private::GetPinlistValueForPort<_Port, _PinList>(value));
+					if constexpr (Length<PinsForPort<_Port, _PinList>>::value == 16)
+					{
+						_Port::Send(Private::GetPinlistValueForPort<_Port, _PinList>(value));
+					}
+					else
+					{
+						_Port::ClearAndSet(PortMask<PinsForPort<_Port, _PinList>>::value, Private::GetPinlistValueForPort<_Port, _PinList>(value));
+					}
 				}
 			public:
 				/**
