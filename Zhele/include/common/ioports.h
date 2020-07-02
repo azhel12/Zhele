@@ -249,7 +249,8 @@ namespace Zhele
 				 *	Nothings
 				 */
 				template<unsigned pin>
-				{
+				static std::enable_if_t<pin < 8> SetPinConfiguration(Configuration configuration)
+				{					
 					_Regs()->CRL = (_Regs()->CRL & ~(0x0fu << pin * 4)) | (static_cast<unsigned int>(configuration) << pin * 4);
 				}
 				template<unsigned pin>
