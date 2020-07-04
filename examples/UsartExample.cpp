@@ -15,11 +15,11 @@ using UsartConnection = Usart1;
 // If "off" has been received LED will be turn off and controller transmits "LED is turn off\r\n".
 int main()
 {
-	// Configure led (I have stm32f103c8t6-based board. It has led on C13)
-	Pc13::Port::Enable();
-	Pc13::SetConfiguration(Pc13::Configuration::Out);
-	Pc13::SetDriverType(Pc13::DriverType::PushPull);
-	Pc13::Clear();
+    // Configure led (I have stm32f103c8t6-based board. It has led on C13)
+    Pc13::Port::Enable();
+    Pc13::SetConfiguration(Pc13::Configuration::Out);
+    Pc13::SetDriverType(Pc13::DriverType::PushPull);
+    Pc13::Clear();
 
     // Init usart1, baud = 9600
     UsartConnection::Init(9600);
@@ -30,9 +30,9 @@ int main()
     // Write sync "Hello\r\n"
     UsartConnection::Write("Hello\r\n", 7);
 
-	for (;;)
-	{
-	}
+    for (;;)
+    {
+    }
 }
 
 char Buffer[8];
