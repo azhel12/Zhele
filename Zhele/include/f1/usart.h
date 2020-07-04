@@ -30,9 +30,9 @@ namespace Zhele
 		typedef IO::PinList<IO::Pb10, IO::Pc10, IO::Pd8> Usart3TxPins;
 		typedef IO::PinList<IO::Pb11, IO::Pc11, IO::Pd9> Usart3RxPins;
 
-		IO_BITFIELD_WRAPPER(AFIO->MAPR, Usart1Remap, uint32_t, 2, 1);
-		IO_BITFIELD_WRAPPER(AFIO->MAPR, Usart2Remap, uint32_t, 3, 1);
-		IO_BITFIELD_WRAPPER(AFIO->MAPR, Usart3Remap, uint32_t, 4, 2);
+		IO_BITFIELD_WRAPPER(AFIO->MAPR, Usart1Remap, uint32_t, AFIO_MAPR_USART1_REMAP_Pos, 1);
+		IO_BITFIELD_WRAPPER(AFIO->MAPR, Usart2Remap, uint32_t, AFIO_MAPR_USART2_REMAP_Pos, 1);
+		IO_BITFIELD_WRAPPER(AFIO->MAPR, Usart3Remap, uint32_t, AFIO_MAPR_USART3_REMAP_Pos, 2);
     }
 
     DECLARE_USART(USART1, USART1_IRQn, Clock::Usart1Clock, Usart1, Dma1Channel4, Dma1Channel5);
