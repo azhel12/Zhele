@@ -8,11 +8,11 @@
 
 #ifndef ZHELE_TIMER_H
 #define ZHELE_TIMER_H
-#include "mcuheader.h"
+
+#include "iopins.h"
 
 #include "../common/timer.h"
 
-#include "iopins.h"
 namespace Zhele::Timers
 {
     namespace Private
