@@ -11,49 +11,11 @@
 #define ZHELE_IOPINS_COMMON_H
 
 #include "iopin.h"
-#include "ioports.h"
+
+#include <ioports.h>
 
 namespace Zhele::IO
 {
-
-#if USE_SPLIT_PORT_CONFIGURATION == 8 
-#define DECLARE_PORT_PINS(PORT_TYPE_NAME, PIN_NAME_PREFIX) \
-	typedef Zhele::IO::TPin<PORT_TYPE_NAME, 0, PORT_TYPE_NAME ## L> PIN_NAME_PREFIX ## 0;\
-	typedef Zhele::IO::TPin<PORT_TYPE_NAME, 1, PORT_TYPE_NAME ## L> PIN_NAME_PREFIX ## 1;\
-	typedef Zhele::IO::TPin<PORT_TYPE_NAME, 2, PORT_TYPE_NAME ## L> PIN_NAME_PREFIX ## 2;\
-	typedef Zhele::IO::TPin<PORT_TYPE_NAME, 3, PORT_TYPE_NAME ## L> PIN_NAME_PREFIX ## 3;\
-	typedef Zhele::IO::TPin<PORT_TYPE_NAME, 4, PORT_TYPE_NAME ## L> PIN_NAME_PREFIX ## 4;\
-	typedef Zhele::IO::TPin<PORT_TYPE_NAME, 5, PORT_TYPE_NAME ## L> PIN_NAME_PREFIX ## 5;\
-	typedef Zhele::IO::TPin<PORT_TYPE_NAME, 6, PORT_TYPE_NAME ## L> PIN_NAME_PREFIX ## 6;\
-	typedef Zhele::IO::TPin<PORT_TYPE_NAME, 7, PORT_TYPE_NAME ## L> PIN_NAME_PREFIX ## 7;\
-	typedef Zhele::IO::TPin<PORT_TYPE_NAME, 8, PORT_TYPE_NAME ## H> PIN_NAME_PREFIX ## 8;\
-	typedef Zhele::IO::TPin<PORT_TYPE_NAME, 9, PORT_TYPE_NAME ## H> PIN_NAME_PREFIX ## 9;\
-	typedef Zhele::IO::TPin<PORT_TYPE_NAME, 10, PORT_TYPE_NAME ## H> PIN_NAME_PREFIX ## 10;\
-	typedef Zhele::IO::TPin<PORT_TYPE_NAME, 11, PORT_TYPE_NAME ## H> PIN_NAME_PREFIX ## 11;\
-	typedef Zhele::IO::TPin<PORT_TYPE_NAME, 12, PORT_TYPE_NAME ## H> PIN_NAME_PREFIX ## 12;\
-	typedef Zhele::IO::TPin<PORT_TYPE_NAME, 13, PORT_TYPE_NAME ## H> PIN_NAME_PREFIX ## 13;\
-	typedef Zhele::IO::TPin<PORT_TYPE_NAME, 14, PORT_TYPE_NAME ## H> PIN_NAME_PREFIX ## 14;\
-	typedef Zhele::IO::TPin<PORT_TYPE_NAME, 15, PORT_TYPE_NAME ## H> PIN_NAME_PREFIX ## 15;\
-\
-	typedef Zhele::IO::InvertedPin<PORT_TYPE_NAME, 0, PORT_TYPE_NAME ## L> PIN_NAME_PREFIX ## 0 ## Inv;\
-	typedef Zhele::IO::InvertedPin<PORT_TYPE_NAME, 1, PORT_TYPE_NAME ## L> PIN_NAME_PREFIX ## 1 ## Inv;\
-	typedef Zhele::IO::InvertedPin<PORT_TYPE_NAME, 2, PORT_TYPE_NAME ## L> PIN_NAME_PREFIX ## 2 ## Inv;\
-	typedef Zhele::IO::InvertedPin<PORT_TYPE_NAME, 3, PORT_TYPE_NAME ## L> PIN_NAME_PREFIX ## 3 ## Inv;\
-	typedef Zhele::IO::InvertedPin<PORT_TYPE_NAME, 4, PORT_TYPE_NAME ## L> PIN_NAME_PREFIX ## 4 ## Inv;\
-	typedef Zhele::IO::InvertedPin<PORT_TYPE_NAME, 5, PORT_TYPE_NAME ## L> PIN_NAME_PREFIX ## 5 ## Inv;\
-	typedef Zhele::IO::InvertedPin<PORT_TYPE_NAME, 6, PORT_TYPE_NAME ## L> PIN_NAME_PREFIX ## 6 ## Inv;\
-	typedef Zhele::IO::InvertedPin<PORT_TYPE_NAME, 7, PORT_TYPE_NAME ## L> PIN_NAME_PREFIX ## 7 ## Inv;\
-	typedef Zhele::IO::InvertedPin<PORT_TYPE_NAME, 8, PORT_TYPE_NAME ## H> PIN_NAME_PREFIX ## 8 ## Inv;\
-	typedef Zhele::IO::InvertedPin<PORT_TYPE_NAME, 9, PORT_TYPE_NAME ## H> PIN_NAME_PREFIX ## 9 ## Inv;\
-	typedef Zhele::IO::InvertedPin<PORT_TYPE_NAME, 10, PORT_TYPE_NAME ## H> PIN_NAME_PREFIX ## 10 ## Inv;\
-	typedef Zhele::IO::InvertedPin<PORT_TYPE_NAME, 11, PORT_TYPE_NAME ## H> PIN_NAME_PREFIX ## 11 ## Inv;\
-	typedef Zhele::IO::InvertedPin<PORT_TYPE_NAME, 12, PORT_TYPE_NAME ## H> PIN_NAME_PREFIX ## 12 ## Inv;\
-	typedef Zhele::IO::InvertedPin<PORT_TYPE_NAME, 13, PORT_TYPE_NAME ## H> PIN_NAME_PREFIX ## 13 ## Inv;\
-	typedef Zhele::IO::InvertedPin<PORT_TYPE_NAME, 14, PORT_TYPE_NAME ## H> PIN_NAME_PREFIX ## 14 ## Inv;\
-	typedef Zhele::IO::InvertedPin<PORT_TYPE_NAME, 15, PORT_TYPE_NAME ## H> PIN_NAME_PREFIX ## 15 ## Inv;\
-
-#else
-
 #define DECLARE_PORT_PINS(PORT_TYPE_NAME, PIN_NAME_PREFIX) \
 	using PIN_NAME_PREFIX ## 0 = Zhele::IO::TPin<PORT_TYPE_NAME, 0>; \
 	using PIN_NAME_PREFIX ## 1 = Zhele::IO::TPin<PORT_TYPE_NAME, 1>; \
@@ -121,8 +83,6 @@ namespace Zhele::IO
 	using PIN_NAME_PREFIX ## 30 ## Inv = Zhele::IO::InvertedPin<PORT_TYPE_NAME, 30>; \
 	using PIN_NAME_PREFIX ## 31 ## Inv = Zhele::IO::InvertedPin<PORT_TYPE_NAME, 31>; \
 
-#endif
-	using NullPin = Zhele::IO::TPin<NullPort, 0>;
 	//Short pin definitions
 	#if defined (GPIOA)
 		DECLARE_PORT_PINS(Porta, Pa)

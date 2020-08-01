@@ -5,22 +5,18 @@
 
 using namespace Zhele::IO;
 
-// I have stm32f103c8t6-based board. It has led on C13
+// Connect LED on A4 for this example (or edit example code, it's simple).
 int main()
 {
 	// Enable port clocking
-	Pc13::Port::Enable();
+	Pa4::Port::Enable();
 
 	// Configure as out pin
-	Pc13::SetConfiguration(Pc13::Configuration::Out);
+	Pa4::SetConfiguration(Pa4::Configuration::Out);
 	// Set driver type as push-pull
-	Pc13::SetDriverType(Pc13::DriverType::PushPull);
+	Pa4::SetDriverType(Pa4::DriverType::PushPull);
 	// Clear pin (and turn on led)
-	Pc13::Clear();
-
-	// Also we can present C13 as inverted
-	// Turn on
-	Pc13Inv::Set();
+	Pa4::Clear();
 
 	for (;;)
 	{

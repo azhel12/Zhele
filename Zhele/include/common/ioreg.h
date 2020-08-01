@@ -72,6 +72,7 @@ namespace Zhele
 		static void Set(DataT value){REG_NAME = (REG_NAME & ~(Mask << BITFIELD_OFFSET)) | (((RegT)value & Mask) << BITFIELD_OFFSET);}\
 	}
 	
+
 	/**
 	 * @brief Dummy register
 	 * 
@@ -148,7 +149,7 @@ namespace Zhele
 	 * @tparam _BitfieldOffset Bitfield offset in register
 	 * @tparam _BitfieldLength Bitfield length
 	 */
-	template<unsigned _RegAddr, class _DataType, int _BitfieldOffset, int _BitfieldLength>
+	template<unsigned _RegAddr, typename _DataType, unsigned _BitfieldOffset, unsigned _BitfieldLength>
 	class IoBitfield
 	{
 	public:
@@ -158,5 +159,26 @@ namespace Zhele
 		static DataT Get(){return (Value() >> _BitfieldOffset) & Mask;}
 		static void Set(DataT value){Value() = (Value() & ~(Mask << _BitfieldOffset)) | ((value & Mask) << _BitfieldOffset);}
 	};
+
+	/**
+	 * @brief Calculate bitfield length (if bitfield is continuous) in compile-time
+	 * 
+	 * @tparam _Mask Bitfield mask
+	 */
+	template<uint32_t _Mask>
+	class BitFieldLength
+	{
+	public:
+		static_assert((_Mask & 1) == 1);
+		static const uint32_t value = 1 + BitFieldLength<(_Mask >> 1)>::value;
+	};
+	template<>
+	class BitFieldLength<0>
+	{
+	public:
+		static const uint32_t value = 0;
+	};
+	template<uint32_t _Mask>
+	inline constexpr uint32_t GetBitFieldLength = BitFieldLength<_Mask>::value;
 }
 #endif //! ZHELE_IOREG_COMMON_H

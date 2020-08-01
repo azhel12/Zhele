@@ -1,6 +1,6 @@
 /**
  * @file
- * Contains instances of gpio pins (as typedefs) for stm32f1 series
+ * Contains instances of gpio pins (as typedefs) for stm32f0 series
  * 
  * @author Alexey Zhelonkin
  * @date 2019
@@ -9,10 +9,9 @@
 
 #ifndef ZHELE_IOPINS_H
 #define ZHELE_IOPINS_H
-#include <stm32f1xx.h>
+#include <stm32f0xx.h>
 
 #include "ioports.h"
-
 #include "../common/iopins.h"
 
 #endif //! ZHELE_IOPINS_H
