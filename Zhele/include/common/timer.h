@@ -383,7 +383,7 @@ namespace Zhele::Timers
                  */
                 static void SetPulse(typename Base::Counter pulse)
                 {
-                    (&_Regs()->CCR1)[_ChannelNumber * 2] = pulse;
+                    (&_Regs()->CCR1)[_ChannelNumber] = pulse;
                 }
 
                 /**
@@ -393,7 +393,7 @@ namespace Zhele::Timers
                  */
                 static typename Base::Counter GetPulse()
                 {
-                    return (&_Regs()->CCR1)[_ChannelNumber * 2];
+                    return (&_Regs()->CCR1)[_ChannelNumber];
                 }
 
                 /**
@@ -499,14 +499,7 @@ namespace Zhele::Timers
                  * @par Returns
                  * 	Nothing
                  */
-                static void SelectPins(int pinNumber)
-                {
-                    using Type = typename Pins::DataType;
-                    Type mask = 1 << pinNumber;
-                    Pins::Enable();
-                    Pins::SetConfiguration(mask, Pins::AltFunc);
-                    Pins::AltFuncNumber(mask, _ChPins<_ChannelNumber>::AltFunc + pinNumber);
-                }
+                static void SelectPins(int pinNumber);
             
                 /**
                  * @brief Select channel pin (template method)
@@ -517,12 +510,7 @@ namespace Zhele::Timers
                  * 	Nothing
                  */
                 template<typename Pin>
-                static void SelectPins()
-                {
-                    const int index = Pins::template PinIndex<Pin>::Value;
-                    static_assert(index >= 0);
-                    SelectPins(index);
-                }
+                static void SelectPins();
             };
 
             /**
@@ -582,12 +570,15 @@ namespace Zhele::Timers
                  * @par Returns
                  * 	Nothing
                  */
-                template<class Pin>
+                template<typename Pin>
                 static void SelectPins()
                 {
-                    const int index = TypeIndex<Pin, typename Pins::PinsAsTypeList>::value;
+                    const int index = Pins::template IndexOf<Pin>;
                     static_assert(index >= 0);
-                    SelectPins(index);
+                    Pin::Port::Enable();
+                    Pin::template SetSpeed<Pin::Speed::Slow>();
+                    Pin::template SetDriverType<Pins::DriverType::PushPull>();
+                    Base::template SelectPins<Pin>();
                 }
             };
         };

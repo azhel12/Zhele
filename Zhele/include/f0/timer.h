@@ -13,22 +13,42 @@
 
 #include "../common/timer.h"
 
+using namespace Zhele::IO;
+
 namespace Zhele::Timers
 {
     namespace Private
     {
-        using namespace Zhele::IO;
-        template<unsigned ChannelNumber> struct Tim2ChPins;
-        template<> struct Tim2ChPins<0>{ enum{AltFunc = 1}; using Pins = PinList<Pa0, Pa15>; };
-        template<> struct Tim2ChPins<1>{ enum{AltFunc = 1}; using Pins = PinList<Pa1, Pb3>; };
-        template<> struct Tim2ChPins<2>{ enum{AltFunc = 1}; using Pins = PinList<Pa2, Pb10>; };
-        template<> struct Tim2ChPins<3>{ enum{AltFunc = 1}; using Pins = PinList<Pa3, Pb11>; };
-        
+        template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>
+        template <unsigned _ChannelNumber>
+        void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::SelectPins(int pinNumber)
+        {
+            using Pins = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::Pins;
+            using Type = typename Pins::DataType;
+            Type mask = 1 << pinNumber;
+            Pins::Enable();
+            Pins::SetConfiguration(mask, Pins::AltFunc);
+            Pins::AltFuncNumber(mask, _ChPins<_ChannelNumber>::AltFunc);
+        }
+
+        template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>
+        template <unsigned _ChannelNumber>
+        template <typename Pin>
+        void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::SelectPins()
+        {
+            using Pins = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::Pins;
+            static_assert(Pins::template IndexOf<Pin> >= 0);
+            Pin::Port::Enable();
+            Pin::template SetConfiguration<Pins::AltFunc>();
+            Pin::template AltFuncNumber<_ChPins<_ChannelNumber>::AltFunc>();
+        }
+
+
         template<unsigned ChannelNumber> struct Tim3ChPins;
-        template<> struct Tim3ChPins<0>{ enum{AltFunc = 2}; using Pins = PinList<Pa6, Pb4>; };
-        template<> struct Tim3ChPins<1>{ enum{AltFunc = 2}; using Pins = PinList<Pa7, Pb5>; };
-        template<> struct Tim3ChPins<2>{ enum{AltFunc = 2}; using Pins = PinList<Pb0, Pb10>; };
-        template<> struct Tim3ChPins<3>{ enum{AltFunc = 2}; using Pins = PinList<Pb1, Pb11>; };
+        template<> struct Tim3ChPins<0>{ enum{AltFunc = 1}; using Pins = PinList<Pa6, Pb4>; };
+        template<> struct Tim3ChPins<1>{ enum{AltFunc = 1}; using Pins = PinList<Pa7, Pb5>; };
+        template<> struct Tim3ChPins<2>{ enum{AltFunc = 1}; using Pins = PinList<Pb0, Pb10>; };
+        template<> struct Tim3ChPins<3>{ enum{AltFunc = 1}; using Pins = PinList<Pb1, Pb11>; };
         
     #if defined (TIM1)
         IO_STRUCT_WRAPPER(TIM1, Tim1Regs, TIM_TypeDef);

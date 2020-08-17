@@ -17,6 +17,30 @@ namespace Zhele::Timers
 {
     namespace Private
     {
+        template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>
+        template <unsigned _ChannelNumber>
+        void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::SelectPins(int pinNumber)
+        {
+            using Pins = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::Pins;
+            using Type = typename Pins::DataType;
+            Type mask = 1 << pinNumber;
+            Pins::Enable();
+            Pins::SetConfiguration(mask, Pins::AltFunc);
+            Pins::AltFuncNumber(mask, _ChPins<_ChannelNumber>::AltFunc);
+        }
+
+        template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>
+        template <unsigned _ChannelNumber>
+        template <typename Pin>
+        void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::SelectPins()
+        {
+            using Pins = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::Pins;
+            static_assert(Pins::template IndexOf<Pin> >= 0);
+            Pin::Port::Enable();
+            Pin::template SetConfiguration<Pins::AltFunc>();
+            Pin::template AltFuncNumber<_ChPins<_ChannelNumber>::AltFunc>();
+        }
+
         using namespace Zhele::IO;
         template<unsigned ChannelNumber> struct Tim2ChPins;
         template<> struct Tim2ChPins<0>{ enum{AltFunc = 1}; using Pins = PinList<Pa0, Pa5, Pa15>; };
