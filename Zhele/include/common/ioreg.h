@@ -72,6 +72,10 @@ namespace Zhele
 		static void Set(DataT value){REG_NAME = (REG_NAME & ~(Mask << BITFIELD_OFFSET)) | (((RegT)value & Mask) << BITFIELD_OFFSET);}\
 	}
 	
+	#define DECLARE_IO_BITFIELD_WRAPPER(REG_NAME, CLASS_NAME, CMSIS_DEFINE) \
+		const static unsigned CLASS_NAME##Offset = CMSIS_DEFINE##_Pos; \
+        const static unsigned CLASS_NAME##Length = GetBitFieldLength<(CMSIS_DEFINE##_Msk >> CMSIS_DEFINE##_Pos)>; \
+        IO_BITFIELD_WRAPPER(RCC->CFGR, CLASS_NAME, uint32_t, CLASS_NAME##Offset, CLASS_NAME##Length); \
 
 	/**
 	 * @brief Dummy register
