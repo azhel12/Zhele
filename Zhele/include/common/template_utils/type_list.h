@@ -47,21 +47,23 @@ namespace Zhele
 		class TypeIndex<Search, TypeList<>>
 		{
 		public:
-			static const size_t value = -1;
+			static const int value = -1;
 		};
 
 		template<typename Search, typename... Tail>
 		class TypeIndex<Search, TypeList<Search, Tail...>>
 		{
 		public:
-			static const size_t value = 0;
+			static const int value = 0;
 		};
 
 		template<typename Search, typename Head, typename... Tail>
 		class TypeIndex<Search, TypeList<Head, Tail...>>
 		{
 		public:
-			static const size_t value = TypeIndex<Search, TypeList<Tail...>>::value + 1;
+			static const int value = TypeIndex<Search, TypeList<Tail...>>::value >= 0
+				? TypeIndex<Search, TypeList<Tail...>>::value + 1
+				: TypeIndex<Search, TypeList<Tail...>>::value;
 		};
 
 		/**

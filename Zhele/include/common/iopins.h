@@ -16,6 +16,7 @@
 
 namespace Zhele::IO
 {
+	using NullPin = Zhele::IO::TPin<NullPort, 0>;
 #define DECLARE_PORT_PINS(PORT_TYPE_NAME, PIN_NAME_PREFIX) \
 	using PIN_NAME_PREFIX ## 0 = Zhele::IO::TPin<PORT_TYPE_NAME, 0>; \
 	using PIN_NAME_PREFIX ## 1 = Zhele::IO::TPin<PORT_TYPE_NAME, 1>; \

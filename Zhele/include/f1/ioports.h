@@ -72,12 +72,83 @@ namespace Zhele
             }
         };
 
+        class NullPort : public NativePortBase
+        {
+        public:
+            typedef uint8_t DataT;
+            static void Write(DataT)
+            {}
+            static void ClearAndSet(DataT, DataT)
+            {}
+            static DataT Read()
+            {
+                return 0;
+            }
+            static void Set(DataT)
+            {}
+            static void Clear(DataT)
+            {}
+            static void Toggle(DataT)
+            {}
+            static DataT PinRead()
+            {
+                return 0;
+            }
+
+            static void Enable()
+            {}
+            static void Disable()
+            {}
+
+            template<DataT clearMask, DataT>
+            static void ClearAndSet()
+            {}
+
+            template<DataT>
+            static void Toggle()
+            {}
+
+            template<DataT>
+            static void Set()
+            {}
+
+            template<DataT>
+            static void Clear()
+            {}
+
+            template<unsigned pin, class Config>
+            static void SetPinConfiguration(Config)
+            {}
+            template<class Config>
+            static void SetConfiguration(DataT, Config)
+            {}
+
+            template<DataT mask, Configuration>
+            static void SetConfiguration()
+            {}
+
+            static void SetSpeed(DataT, Speed)
+            {}
+            
+            static void SetPullUp(DataT, PullMode)
+            {}
+            
+            static void SetDriverType(DataT, DriverType)
+            {}
+            
+            static void AltFuncNumber(DataT, uint8_t)
+            {}
+
+            enum{Id = '-'};
+            enum{Width=sizeof(DataT)*8};
+        };
+
         namespace Private
         {
             /**
              * @brief Implement GPIO port
              */
-            template<typename _Regs, typename _ClkEnReg, int ID>
+            template<typename _Regs, typename _ClkEnReg, uint8_t ID>
             class PortImplementation :public NativePortBase
             {
             public:
@@ -238,30 +309,6 @@ namespace Zhele
                 }
 
                 /**
-                 * @brief Set ping configuration
-                 * 
-                 * @tparam pin Pin number (0.. 15)
-                 * 
-                 * @param [in] configuration Pin configuration
-                 * 
-                 * @par Returns
-                 *	Nothings
-                 */
-                template<unsigned pin>
-                static void SetPinConfiguration(Configuration configuration)
-                {
-                    if constexpr (pin < 8)
-                    {			
-                        _Regs()->CRL = (_Regs()->CRL & ~(0x0fu << pin * 4)) | (static_cast<unsigned int>(configuration) << pin * 4);
-                    }
-                    else
-                    {
-                        static_assert(pin < 16);
-                        _Regs()->CRH = (_Regs()->CRH & ~(0x0fu << (pin - 8) * 4)) | static_cast<unsigned int>(configuration) << (pin - 8) * 4;	
-                    }
-                }
-
-                /**
                  * @brief Set port configuration
                  * 
                  * @param [in] mask Pin mask
@@ -319,7 +366,7 @@ namespace Zhele
                  *	Nothing
                  */
                 template<DataType mask, Speed speed>
-                void SetSpeed()
+                static void SetSpeed()
                 {
                     constexpr unsigned lowMaskPart = ConfigurationMask(mask);
                     constexpr unsigned highMaskPart = ConfigurationMask(mask);
@@ -421,7 +468,21 @@ namespace Zhele
                  */
                 static void AltFuncNumber(DataType mask, uint8_t number)
                 {
-                    // nothing to do
+                    // Not supported
+                }
+
+                /**
+                 * @brief Template clone of AltFuncNumber function
+                 * 
+                 * @tparam mask Pin mask
+                 * @tparam number Alternate function number for selected pins
+                 * 
+                 * @par Returns
+                 *	Nothing
+                 */
+                template<DataType mask, uint8_t number>
+                static void AltFuncNumber()
+                {
                 }
 
                 /**

@@ -76,6 +76,77 @@ namespace Zhele
 			}
         };
 
+        class NullPort : public NativePortBase
+        {
+        public:
+            typedef uint8_t DataT;
+            static void Write(DataT)
+            {}
+            static void ClearAndSet(DataT, DataT)
+            {}
+            static DataT Read()
+            {
+                return 0;
+            }
+            static void Set(DataT)
+            {}
+            static void Clear(DataT)
+            {}
+            static void Toggle(DataT)
+            {}
+            static DataT PinRead()
+            {
+                return 0;
+            }
+
+            static void Enable()
+            {}
+            static void Disable()
+            {}
+
+            template<DataT clearMask, DataT>
+            static void ClearAndSet()
+            {}
+
+            template<DataT>
+            static void Toggle()
+            {}
+
+            template<DataT>
+            static void Set()
+            {}
+
+            template<DataT>
+            static void Clear()
+            {}
+
+            template<unsigned pin, class Config>
+            static void SetPinConfiguration(Config)
+            {}
+            template<class Config>
+            static void SetConfiguration(DataT, Config)
+            {}
+
+            template<DataT mask, Configuration>
+            static void SetConfiguration()
+            {}
+
+            static void SetSpeed(DataT, Speed)
+            {}
+            
+            static void SetPullUp(DataT, PullMode)
+            {}
+            
+            static void SetDriverType(DataT, DriverType)
+            {}
+            
+            static void AltFuncNumber(DataT, uint8_t)
+            {}
+
+            enum{Id = '-'};
+            enum{Width=sizeof(DataT)*8};
+        };
+
         namespace Private
         {
             /**
@@ -242,22 +313,6 @@ namespace Zhele
                 }
 
                 /**
-                 * @brief Set ping configuration
-                 * 
-                 * @tparam pin Pin number (0.. 15)
-                 * 
-                 * @param [in] configuration Pin configuration
-                 * 
-                 * @par Returns
-                 *	Nothings
-                 */
-                template<unsigned pin>
-                static void SetPinConfiguration(Configuration configuration)
-                {
-					_Regs()->MODER = UnpackConfig2bits(1 << pin, _Regs()->MODER, configuration);
-                }
-
-                /**
                  * @brief Set port configuration
                  * 
                  * @param [in] mask Pin mask
@@ -309,7 +364,7 @@ namespace Zhele
                  *	Nothing
                  */
                 template<DataType mask, Speed speed>
-                void SetSpeed()
+                static void SetSpeed()
                 {
                     _Regs()->OSPEEDR = UnpackConfig2bits(mask, _Regs()->OSPEEDR, speed);
                 }

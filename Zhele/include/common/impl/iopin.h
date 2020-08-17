@@ -61,7 +61,14 @@ namespace Zhele::IO
 	template<typename _Port, uint8_t _Pin, typename _ConfigPort>
 	void TPin<_Port, _Pin, _ConfigPort>::SetConfiguration(Configuration configuration)
 	{
-		_ConfigPort:: template SetPinConfiguration<_Pin>(configuration);
+		_ConfigPort::SetPinConfiguration<_Pin>(1u << _Pin, configuration);
+	}
+
+	template<typename _Port, uint8_t _Pin, typename _ConfigPort>
+	template<typename TPin<_Port, _Pin, _ConfigPort>::Configuration configuration>
+	void TPin<_Port, _Pin, _ConfigPort>::SetConfiguration()
+	{
+		_ConfigPort::template SetConfiguration<1u << _Pin, configuration>();
 	}
 	
 	template<typename _Port, uint8_t _Pin, typename _ConfigPort>
@@ -71,9 +78,23 @@ namespace Zhele::IO
 	}
 	
 	template<typename _Port, uint8_t _Pin, typename _ConfigPort>
+	template<typename TPin<_Port, _Pin, _ConfigPort>::DriverType driverType>
+	void TPin<_Port, _Pin, _ConfigPort>::SetDriverType()
+	{
+		_ConfigPort::template SetDriverType<1u << _Pin, driverType>();
+	}
+
+	template<typename _Port, uint8_t _Pin, typename _ConfigPort>
 	void TPin<_Port, _Pin, _ConfigPort>::SetPullUp(PullMode pullMode)
 	{
 		_ConfigPort::SetPullUp(1u << _Pin, pullMode);
+	}
+
+	template<typename _Port, uint8_t _Pin, typename _ConfigPort>
+	template<typename TPin<_Port, _Pin, _ConfigPort>::PullMode pullMode>
+	void TPin<_Port, _Pin, _ConfigPort>::SetPullUp()
+	{
+		_ConfigPort::template SetPullUp<1u << _Pin, pullMode>();
 	}
 	
 	template<typename _Port, uint8_t _Pin, typename _ConfigPort>
@@ -83,9 +104,23 @@ namespace Zhele::IO
 	}
 
 	template<typename _Port, uint8_t _Pin, typename _ConfigPort>
+	template<typename TPin<_Port, _Pin, _ConfigPort>::Speed speed>
+	void TPin<_Port, _Pin, _ConfigPort>::SetSpeed()
+	{
+		_ConfigPort::template SetSpeed<1u << _Pin, speed>();
+	}
+
+	template<typename _Port, uint8_t _Pin, typename _ConfigPort>
 	void TPin<_Port, _Pin, _ConfigPort>::AltFuncNumber(uint8_t funcNumber)
 	{
 		_ConfigPort::AltFuncNumber(1u << _Pin, funcNumber);
+	}
+
+	template<typename _Port, uint8_t _Pin, typename _ConfigPort>
+	template<uint8_t funcNumber>
+	void TPin<_Port, _Pin, _ConfigPort>::AltFuncNumber()
+	{
+		_ConfigPort::template AltFuncNumber<1u << _Pin, funcNumber>();
 	}
 
 	template<typename _Port, uint8_t _Pin, typename _ConfigPort>

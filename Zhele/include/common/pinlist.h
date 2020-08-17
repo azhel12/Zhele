@@ -586,15 +586,10 @@ namespace Zhele
 			/**
 			 * @brief Detect index of pin in pinlist
 			 * 
-			 * @tparam _Pin Pin
-			 * 
+			 * @tparam Pin Pin
 			 */
-			template<typename _Pin>
-			class PinIndex
-			{
-			public:
-				const static int value = TypeIndex<_Pin, TypeList<_Pins...>>::value;
-			};
+			template<typename Pin>
+			const static int IndexOf = TypeIndex<Pin, PinsAsTypeList>::value;
 		};
 	}
 }

@@ -110,15 +110,12 @@ namespace Zhele
 			static void SetConfiguration(Configuration configuration);
 
 			/**
-			 * @brief Static variant of @ref SetConfiguration method
+			 * @brief Template variant of @ref SetConfiguration method
 			 * 
 			 * @tparam configuration Target configuration
 			 */
 			template<Configuration configuration>
-			static void SetConfiguration()
-			{
-				_ConfigPort::template SetConfiguration<1 << _Pin, configuration>();
-			}
+			static void SetConfiguration();
 			/**
 			 * @brief Set pin driver type (push-pull or open-drain)
 			 * 
@@ -128,6 +125,17 @@ namespace Zhele
 			 *	Nothing
 			 */
 			static void SetDriverType(DriverType driverType);
+
+			/**
+			 * @brief Template variant of @ref SetDriverType method
+			 * 
+			 * @tparam driverType Driver Type
+			 * 
+			 * @par Returns
+			 *	Nothing
+			 */
+			template<DriverType driverType>
+			static void SetDriverType();
 
 			/**
 			 * @brief Set pin pull type (Up/Down/Nopull)
@@ -140,11 +148,30 @@ namespace Zhele
 			static void SetPullUp(PullMode pullMode);
 
 			/**
+			 * @brief Template variant of @ref SetPullUp method
+			 * 
+			 * @tparam pullMode Pull type
+			 * 
+			 * @par Returns
+			 *	Nothing
+			 */
+			template<PullMode pullMode>
+			static void SetPullUp();
+
+			/**
 			 * @brief Set pin speed (Low/Medium/High)
 			 * 
-			 * @param [in] speed PIN Speed
+			 * @param [in] speed Pin Speed
 			 */
 			static void SetSpeed(Speed speed);
+
+			/**
+			 * @brief Template variant of @ref SetSpeed method
+			 * 
+			 * @tparam speed Pin Speed
+			 */
+			template <Speed speed> 
+			static void SetSpeed();
 
 			/**
 			 * @brief Set pin alternate function
@@ -155,6 +182,17 @@ namespace Zhele
 			 *	Nothing
 			 */
 			static void AltFuncNumber(uint8_t funcNumber);
+
+			/**
+			 * @brief Template variant of @ref AltFuncNumber method
+			 * 
+			 * @param [in] funcNumber Alternative pin function number (see table in DataSheet)
+			 * 
+			 * @par Returns
+			 *	Nothing
+			 */
+			template<uint8_t funcNumber>
+			static void AltFuncNumber();
 
 			/**
 			 * @brief Check that pin is set now
