@@ -28,6 +28,9 @@ namespace Zhele
         IO_STRUCT_WRAPPER(DMA1_Channel7, Dma1Channel7, DMA_Channel_TypeDef);	
     }
 
+    template<typename _Module, typename _ChannelRegs, unsigned _Channel, IRQn_Type _IRQnumber>
+	DmaChannelData DmaChannel<_Module, _ChannelRegs, _Channel, _IRQnumber>::Data;
+
     using Dma1 = DmaModule<Private::Dma1, Clock::Dma1Clock, 7>;
     using Dma1Channel1 = DmaChannel<Dma1, Private::Dma1Channel1, 1, DMA1_Channel1_IRQn>;
     using Dma1Channel2 = DmaChannel<Dma1, Private::Dma1Channel2, 2, DMA1_Channel2_IRQn>;

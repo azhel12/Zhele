@@ -32,6 +32,9 @@ namespace Zhele
     #endif
     }
 
+    template<typename _Module, typename _ChannelRegs, unsigned _Channel, IRQn_Type _IRQnumber>
+    DmaChannelData DmaChannel<_Module, _ChannelRegs, _Channel, _IRQnumber>::Data;
+
     using Dma1 = DmaModule<Private::Dma1, Clock::Dma1Clock, 7>;
     using Dma1Channel1 = DmaChannel<Dma1, Private::Dma1Channel1, 1, DMA1_Channel1_IRQn>;
     using Dma1Channel2 = DmaChannel<Dma1, Private::Dma1Channel2, 2, DMA1_Ch2_3_DMA2_Ch1_2_IRQn>;

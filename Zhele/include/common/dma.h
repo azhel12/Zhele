@@ -31,6 +31,12 @@
     #define ONLY_FOR_SXCR(TEXT)
 #endif
 
+// Dummy function for fix compiler problem.
+// Without this hook compiler does not overload weak irq handlers (not include cpp files with handlers).
+// So, I have placed declaration here and empty definition in each cpp file.
+// It should be fixed (but I dont know how do it).
+void DmaDummy();
+
 namespace Zhele
 {
     class DmaBase
@@ -83,8 +89,8 @@ namespace Zhele
 			PSize16Bits = DMA_SxCR_PSIZE_0,
 			PSize32Bits = DMA_SxCR_PSIZE_1,
 			
-			MemIncriment = DMA_SxCR_MINC,
-			PeriphIncriment = DMA_SxCR_PINC,
+			MemIncrement = DMA_SxCR_MINC,
+			PeriphIncrement = DMA_SxCR_PINC,
 			Circular = DMA_SxCR_CIRC,
 			
 			Periph2Mem = 0,
@@ -93,7 +99,8 @@ namespace Zhele
 			
 			TransferErrorInterrupt = DMA_SxCR_TEIE,
 			HalfTransferInterrupt = DMA_SxCR_HTIE,
-			TransferCompleteInterrupt = DMA_SxCR_TCIE
+			TransferCompleteInterrupt = DMA_SxCR_TCIE,
+            DirectModeErrorInterrupt = DMA_SxCR_DMEIE,
         #endif
         };
     };
@@ -166,8 +173,7 @@ namespace Zhele
     class DmaChannel : public DmaBase
     {
         static_assert(_Channel <= _Module::Channels);
-        static DmaChannelData ChannelData;
-
+        static DmaChannelData Data;
     public:
         using DmaBase::Mode;
 
@@ -178,7 +184,7 @@ namespace Zhele
          * @param [in] buffer Memory buffer
          * @param [in] periph Peripheral address (or second memory buffer in Mem2Mem case)
          * @param [in] bufferSize Memory buffer size
-         * @param [in] channel Channel (Not for any MCU)
+         * @param [in] channel Channel (for DMA with streams)
          * @par Returns
          *	Nothing
          */
@@ -203,20 +209,21 @@ namespace Zhele
 			_ChannelRegs()->PAR = reinterpret_cast<uint32_t>(periph);
 			_ChannelRegs()->M0AR = reinterpret_cast<uint32_t>(buffer);
         #endif
-            ChannelData.data = const_cast<void*>(buffer);
-            ChannelData.size = bufferSize;
+        Data.data = const_cast<void*>(buffer);
+        Data.size = bufferSize;
 
-            if(ChannelData.transferCallback)
-                mode = mode | DmaBase::TransferCompleteInterrupt | DmaBase::TransferErrorInterrupt;
-
-            NVIC_EnableIRQ(_IRQNumber);
+        if(Data.transferCallback)
+            mode = mode | DmaBase::TransferCompleteInterrupt | DmaBase::TransferErrorInterrupt;
             
+        NVIC_EnableIRQ(_IRQNumber);
+
         #if defined (DMA_CCR_EN)
             _ChannelRegs()->CCR = mode | DMA_CCR_EN;
         #endif
         #if defined (DMA_SxCR_EN)
-            _ChannelRegs()->CR = mode | DMA_SxCR_EN | ((channel & 0x07) << 25);
+            _ChannelRegs()->CR = mode | ((channel & 0x07) << 25) | DMA_SxCR_EN;
         #endif
+            DmaDummy();
         }
 
         /**
@@ -229,7 +236,7 @@ namespace Zhele
          */
         static void SetTransferCallback(TransferCallback callback)
         {
-            ChannelData.transferCallback = callback;
+            Data.transferCallback = callback;
         }
 
         /**
@@ -251,7 +258,7 @@ namespace Zhele
          */
         static bool Enabled()
         {
-            return _ChannelRegs()->CCR & ONLY_FOR_CCR(DMA_CCR_EN)ONLY_FOR_SXCR(DMA_SxCR_EN);
+            return _ChannelRegs()->ONLY_FOR_CCR(CCR)ONLY_FOR_SXCR(CR) & ONLY_FOR_CCR(DMA_CCR_EN)ONLY_FOR_SXCR(DMA_SxCR_EN);
         }
 
         /**
@@ -262,7 +269,7 @@ namespace Zhele
          */
         static void Enable()
         {
-            _ChannelRegs()->CCR |= ONLY_FOR_CCR(DMA_CCR_EN)ONLY_FOR_SXCR(DMA_SxCR_EN);
+            _ChannelRegs()->ONLY_FOR_CCR(CCR)ONLY_FOR_SXCR(CR) |= ONLY_FOR_CCR(DMA_CCR_EN)ONLY_FOR_SXCR(DMA_SxCR_EN);
         }
 
         /**
@@ -273,7 +280,7 @@ namespace Zhele
          */
         static void Disable()
         {
-            _ChannelRegs()->CCR &= ~ONLY_FOR_CCR(DMA_CCR_EN)ONLY_FOR_SXCR(DMA_SxCR_EN);
+            _ChannelRegs()->ONLY_FOR_CCR(CCR)ONLY_FOR_SXCR(CR) &= ~ONLY_FOR_CCR(DMA_CCR_EN)ONLY_FOR_SXCR(DMA_SxCR_EN);
         }
 
         /**
@@ -423,13 +430,13 @@ namespace Zhele
             {
                 ClearFlags();
                 Disable();
-                ChannelData.NotifyTransferComplete();
+                Data.NotifyTransferComplete();
             }
             if(TransferError())
             {
                 ClearFlags();
                 Disable();
-                ChannelData.NotifyError();
+                Data.NotifyError();
             }
         }
     };
@@ -462,19 +469,19 @@ namespace Zhele
         #if defined(DMA_SxCR_EN)
             if constexpr(ChannelNum <= 1)
             {
-                _DmaRegs()->LISR & (1 << (ChannelNum * 6 + Flag));
+                return _DmaRegs()->LISR & (1 << (ChannelNum * 6 + Flag));
             }
             if constexpr(2 <= ChannelNum && ChannelNum <= 3)
             {
-                _DmaRegs()->LISR & (1 << (4 + ChannelNum * 6 + Flag));
+                return _DmaRegs()->LISR & (1 << (4 + ChannelNum * 6 + Flag));
             }
             if constexpr(4 <= ChannelNum && ChannelNum <= 5)
             {
-                _DmaRegs()->HISR & (1 << ((ChannelNum - 4) * 6 + Flag));
+                return _DmaRegs()->HISR & (1 << ((ChannelNum - 4) * 6 + Flag));
             }
             if constexpr(6 <= ChannelNum && ChannelNum <= 7)
             {
-                _DmaRegs()->HISR & (1 << (4 + (ChannelNum - 4) * 6 + Flag));
+                return _DmaRegs()->HISR & (1 << (4 + (ChannelNum - 4) * 6 + Flag));
             }
 			return false;
         #endif
@@ -494,24 +501,24 @@ namespace Zhele
         static void ClearChannelFlag()
         {
         #if defined(DMA_CCR_EN)
-            _DmaRegs()->IFCR |= (1 << ((ChannelNum - 1) * 4 + Flag));
+            _DmaRegs()->IFCR |= (static_cast<uint32_t>(1) << ((ChannelNum - 1) * 4 + Flag));
         #endif
         #if defined(DMA_SxCR_EN)
             if constexpr(ChannelNum <= 1)
             {
-                _DmaRegs()->LIFSR |= (1 << (ChannelNum * 6 + Flag));
+                _DmaRegs()->LIFCR |= (1 << (ChannelNum * 6 + Flag));
             }
             if constexpr(2 <= ChannelNum && ChannelNum <= 3)
             {
-                _DmaRegs()->LIFSR |= (1 << (4 + ChannelNum * 6 + Flag));
+                _DmaRegs()->LIFCR |= (1 << (4 + ChannelNum * 6 + Flag));
             }
             if constexpr(4 <= ChannelNum && ChannelNum <= 5)
             {
-                _DmaRegs()->HIFSR |= (1 << ((ChannelNum - 4) * 6 + Flag));
+                _DmaRegs()->HIFCR |= (1 << ((ChannelNum - 4) * 6 + Flag));
             }
             if constexpr(6 <= ChannelNum && ChannelNum <= 7)
             {
-                _DmaRegs()->HIFSR |= (1 << (4 + (ChannelNum - 4) * 6 + Flag));
+                _DmaRegs()->HIFCR |= (1 << (4 + (ChannelNum - 4) * 6 + Flag));
             }
         #endif
         }

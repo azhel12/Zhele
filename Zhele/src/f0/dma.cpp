@@ -1,7 +1,7 @@
 #if defined (STM32F0)
-#include <common/macro_utils/declarations.h>
-#include <dma.h>
-
+    #include <common/macro_utils/declarations.h>
+    #include <dma.h>
+    
     using namespace Zhele;
 
     extern "C" ZHELE_INTERRUPT(DMA1_Ch1_IRQHandler)
@@ -29,4 +29,6 @@
         //Dma2Channel4::IrqHandler();
         //Dma2Channel5::IrqHandler();
     }
+
+    void DmaDummy() {}
 #endif

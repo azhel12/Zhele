@@ -54,4 +54,6 @@
         Dma2Channel5::IrqHandler();
     }
     #endif
+
+    void DmaDummy() {}
 #endif
