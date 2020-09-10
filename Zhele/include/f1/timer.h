@@ -17,31 +17,22 @@ namespace Zhele::Timers
 {
     namespace Private
     {
-        template <typename Periph>
-        struct TimerRemapAdapter{};
-
         class Tim1Regs;
         class Tim2Regs;
         class Tim3Regs;
         class Tim4Regs;
 
-        template<>
-        struct TimerRemapAdapter<Tim1Regs>{using Remap = Zhele::IO::Timer1Remap;};
-        template<>
-        struct TimerRemapAdapter<Tim2Regs>{using Remap = Zhele::IO::Timer2Remap;};
-        template<>
-        struct TimerRemapAdapter<Tim3Regs>{using Remap = Zhele::IO::Timer3Remap;};
-        template<>
-        struct TimerRemapAdapter<Tim4Regs>{using Remap = Zhele::IO::Timer4Remap;};
+        using TimerRegs = TypeList<Tim1Regs, Tim2Regs, Tim3Regs, Tim4Regs>;
+        using TimerRemaps = TypeList<Zhele::IO::Timer1Remap, Zhele::IO::Timer2Remap, Zhele::IO::Timer3Remap, Zhele::IO::Timer4Remap>;
 
-        template<typename Regs>
-        using TimerRemap = typename TimerRemapAdapter<Regs>::Remap;
-
-        template<typename Regs>
-        void RemapTimer(int altFuncNumber)
+        template <typename _Regs>
+        struct UsartRemapHelper
         {
-            TimerRemap<Regs>::Set(altFuncNumber);
-        }
+            using type = GetType<TypeIndex<_Regs, TimerRegs>::value, TimerRemaps>::type;
+        };
+
+        template<typename Regs>
+        using GetTimerRemap = typename UsartRemapHelper<Regs>::type;
 
         template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>
         template <unsigned _ChannelNumber>
@@ -52,7 +43,7 @@ namespace Zhele::Timers
             Type mask = 1 << pinNumber;
             Pins::Enable();
             Pins::SetConfiguration(mask, Pins::AltFunc);
-            RemapTimer<_Regs>(pinNumber);
+            GetTimerRemap<_Regs>::Set(pinNumber);
         }
 
         template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>
@@ -64,7 +55,7 @@ namespace Zhele::Timers
             static_assert(Pins::template IndexOf<Pin> >= 0);
             Pin::Port::Enable();
             Pin::template SetConfiguration<Pins::AltFunc>();
-            RemapTimer<_Regs>(Pins::template IndexOf<Pin>);
+            GetTimerRemap<_Regs>::Set(Pins::template IndexOf<Pin>);
         }
 
         using namespace Zhele::IO;
