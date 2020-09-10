@@ -215,7 +215,7 @@ namespace Zhele
                 _DmaRx::ClearTransferComplete();
                 _Regs()->CR3 |= USART_CR3_DMAR;
                 _DmaRx::SetTransferCallback(callback);
-                _DmaRx::Init(_DmaRx::Periph2Mem | _DmaRx::MemIncrement | _DmaRx::Circular, receiveBuffer, &_Regs()->DR, bufferSize);
+                _DmaRx::Transfer(_DmaRx::Periph2Mem | _DmaRx::MemIncrement | _DmaRx::Circular, receiveBuffer, &_Regs()->FOR_SR(DR)FOR_ISR(RDR), bufferSize);
             }
 
             /**

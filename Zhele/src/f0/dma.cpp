@@ -10,24 +10,30 @@
     }
     extern "C" ZHELE_INTERRUPT(DMA1_Ch2_3_DMA2_Ch1_2_IRQHandler)
     {
-        // Uncomment necessary lines
+        // Comment unnecessary lines (if you use not all channels of this interrupt,
+        // you can comment unnecessary lines and spare some MCU ticks)
         
-        //Dma1Channel2::IrqHandler();
-        //Dma1Channel3::IrqHandler();
-        //Dma2Channel1::IrqHandler();
-        //Dma2Channel2::IrqHandler();
+        Dma1Channel2::IrqHandler();
+        Dma1Channel3::IrqHandler();
+    #if defined(DMA2)
+        Dma2Channel1::IrqHandler();
+        Dma2Channel2::IrqHandler();
+    #endif
     }
     extern "C" ZHELE_INTERRUPT(DMA1_Ch4_7_DMA2_Ch3_5_IRQHandler)
     {
-        // Uncomment necessary lines
+        // Comment unnecessary lines (if you use not all channels of this interrupt,
+        // you can comment unnecessary lines and spare some MCU ticks)
 
-        //Dma1Channel4::IrqHandler();
-        //Dma1Channel5::IrqHandler();
-        //Dma1Channel6::IrqHandler();
-        //Dma1Channel7::IrqHandler();
-        //Dma2Channel3::IrqHandler();
-        //Dma2Channel4::IrqHandler();
-        //Dma2Channel5::IrqHandler();
+        Dma1Channel4::IrqHandler();
+        Dma1Channel5::IrqHandler();
+        Dma1Channel6::IrqHandler();
+        Dma1Channel7::IrqHandler();
+    #if defined(DMA2)
+        Dma2Channel3::IrqHandler();
+        Dma2Channel4::IrqHandler();
+        Dma2Channel5::IrqHandler();
+    #endif
     }
 
     void DmaDummy() {}
