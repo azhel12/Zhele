@@ -68,6 +68,36 @@ namespace Zhele::IO
             using BitField = Tim4RemapBitField;
         };
 
+        // Usarts remap
+        DECLARE_IO_BITFIELD_WRAPPER(AFIO->MAPR, Usart1RemapBitField, AFIO_MAPR_USART1_REMAP)
+        DECLARE_IO_BITFIELD_WRAPPER(AFIO->MAPR, Usart2RemapBitField, AFIO_MAPR_USART2_REMAP)
+        #if defined (AFIO_MAPR_USART3_REMAP)
+            DECLARE_IO_BITFIELD_WRAPPER(AFIO->MAPR, Usart3RemapBitField, AFIO_MAPR_USART3_REMAP)
+        #endif
+
+        class Usart1;
+        class Usart2;
+        class Usart3;
+
+        template<>
+        class PeriphRemapBitField<Usart1>
+        {
+        public:
+            using BitField = Usart1RemapBitField;
+        };
+        template<>
+        class PeriphRemapBitField<Usart2>
+        {
+        public:
+            using BitField = Usart2RemapBitField;
+        };
+        template<>
+        class PeriphRemapBitField<Usart3>
+        {
+        public:
+            using BitField = Usart3RemapBitField;
+        };
+
         template<typename Periph>
         using PeriphRemap = typename Private::PeriphRemapBitField<Periph>::BitField;
     }
@@ -76,6 +106,10 @@ namespace Zhele::IO
     using Timer2Remap = Private::PeriphRemap<Private::Timer2>;
     using Timer3Remap = Private::PeriphRemap<Private::Timer3>;
     using Timer4Remap = Private::PeriphRemap<Private::Timer4>;
+
+    using Usart1Remap = Private::PeriphRemap<Private::Usart1>;
+    using Usart2Remap = Private::PeriphRemap<Private::Usart2>;
+    using Usart3Remap = Private::PeriphRemap<Private::Usart3>;
 } // namespace Zhele::IO
 
 

@@ -39,7 +39,7 @@ namespace Zhele
         IO_STRUCT_WRAPPER(DMA2_Stream7, Dma2Stream7, DMA_Stream_TypeDef);
 
         template<typename _DmaStream, unsigned _DmaChannel>
-        class DmaStreamChannel : _DmaStream
+        class DmaStreamChannel : public _DmaStream
         {
         public:
             static void Transfer(DmaBase::Mode mode, const void* buffer, volatile void* periph, uint32_t bufferSize)
