@@ -7,6 +7,12 @@
  * @licence FreeBSD
  */
 
+#if defined(STM32F0)
+    #include <f0/pinlist.h>
+#endif
 #if defined(STM32F1)
     #include <f1/pinlist.h>
+#endif
+#if defined(STM32F4)
+    #include <f4/pinlist.h>
 #endif

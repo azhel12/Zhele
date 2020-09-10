@@ -10,7 +10,7 @@
 #ifndef ZHELE_PINLIST_H
 #define ZHELE_PINLIST_H
 
-#include <stm32f1xx.h>
+#include <stm32f4xx.h>
 
 #include "../common/pinlist.h"
 
