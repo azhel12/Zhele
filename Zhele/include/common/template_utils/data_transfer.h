@@ -1,6 +1,6 @@
 /**
  * @file
- * Contains declaration of
+ * Contains declaration of callbacks
  * 
  * @author Konstantin Chizhov
  * @date 2014
