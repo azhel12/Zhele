@@ -279,7 +279,7 @@ namespace Zhele
 		 * performed on each port.
 		 */
 		template<typename... _Pins>
-		class PinList :public PinListProperties<_Pins...>, public IO::NativePortBase
+		class PinList : public PinListProperties<_Pins...>, public IO::NativePortBase
 		{
 			using Config = PinListProperties<_Pins...>;
 			// Used ports (unique list)
@@ -590,6 +590,14 @@ namespace Zhele
 			 */
 			template<typename Pin>
 			const static int IndexOf = TypeIndex<Pin, PinsAsTypeList>::value;
+			
+			/**
+			 * @brief Returns pin by index
+			 * 
+			 * @tparam Index Index
+			 */
+			template<unsigned Index>
+			using Pin = typename GetType<Index, PinsAsTypeList>::type;
 		};
 	}
 }
