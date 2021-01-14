@@ -27,8 +27,12 @@
 
         Dma1Channel4::IrqHandler();
         Dma1Channel5::IrqHandler();
+     #if defined (DMA1_Channel6)
         Dma1Channel6::IrqHandler();
+    #endif
+    #if defined (DMA1_Channel7)
         Dma1Channel7::IrqHandler();
+    #endif
     #if defined(DMA2)
         Dma2Channel3::IrqHandler();
         Dma2Channel4::IrqHandler();

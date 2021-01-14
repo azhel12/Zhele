@@ -52,11 +52,6 @@ namespace Zhele
     // Alias for stream
     template<typename _Module, typename _StreamRegs, unsigned _Stream, IRQn_Type _IRQNumber>
     using DmaStream = DmaChannel<_Module, _StreamRegs, _Stream, _IRQNumber>;
-    
-    using DmaStreamData = DmaChannelData;
-
-    template<typename _Module, typename _StreamRegs, unsigned _Stream, IRQn_Type _IRQNumber>
-    DmaStreamData DmaChannel<_Module, _StreamRegs, _Stream, _IRQNumber>::Data;
 
     using Dma1 = DmaModule<Private::Dma1, Clock::Dma1Clock, 8>;
     using Dma1Stream0 = DmaStream<Dma1, Private::Dma1Stream0, 0, DMA1_Stream0_IRQn>;

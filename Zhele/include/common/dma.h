@@ -223,7 +223,6 @@ namespace Zhele
         #if defined (DMA_SxCR_EN)
             _ChannelRegs()->CR = mode | ((channel & 0x07) << 25) | DMA_SxCR_EN;
         #endif
-            DmaDummy();
         }
 
         /**
@@ -335,7 +334,7 @@ namespace Zhele
          */
         static bool HalfTransfer()
         {
-            return _Module::template HalfTrasfer<_Channel>();
+            return _Module::template HalfTransfer<_Channel>();
         }
 
         /**
@@ -391,9 +390,9 @@ namespace Zhele
          * @par Returns
          *	Nothing
          */
-        static void ClearHalfTrasfer()
+        static void ClearHalfTransfer()
         {
-            _Module::template ClearHalfTrasfer<_Channel>();
+            _Module::template ClearHalfTransfer<_Channel>();
         }
 
         /**
@@ -451,37 +450,55 @@ namespace Zhele
     template<typename _DmaRegs, typename _Clock, unsigned _Channels>
     class DmaModule : public DmaBase
     {
+        enum class Flags : uint8_t
+        {
+        #if defined(DMA_CCR_EN)
+            Global = DMA_IFCR_CGIF1,
+            TransferComplete = DMA_IFCR_CTCIF1,
+            HalfTransfer = DMA_IFCR_CHTIF1,
+            TransferError = DMA_IFCR_CTEIF1,
+            All = Global | TransferComplete | HalfTransfer | TransferError
+        #endif
+        #if defined(DMA_SxCR_EN)
+            TransferComplete = DMA_LISR_TCIF0,
+            HalfTransfer = DMA_LISR_HTIF0,
+            TransferError = DMA_LISR_TEIF0,
+            FifoError = DMA_LISR_FEIF0,
+            DirectError = DMA_LISR_DMEIF0,
+            All = TransferComplete | HalfTransfer | TransferError | FifoError | DirectError
+        #endif
+        };
         /**
          * @brief Returns channel flag state
          * 
          * @tparam ChannelNum Target channel number
-         * @tparam Flag Flag (bit) number
+         * @tparam FlagMask Flag mask
          * 
          * @retval true If flag is set
          * @retval false If flag is reset
          */
-        template<int ChannelNum, int Flag>
+        template<int ChannelNum, Flags FlagMask>
         static bool ChannelFlag()
         {
         #if defined(DMA_CCR_EN)
-            return _DmaRegs()->ISR & (1 << ((ChannelNum - 1) * 4 + Flag));
+            return _DmaRegs()->ISR & (static_cast<uint32_t>(FlagMask) << ((ChannelNum - 1) * 4));
         #endif
         #if defined(DMA_SxCR_EN)
             if constexpr(ChannelNum <= 1)
             {
-                return _DmaRegs()->LISR & (1 << (ChannelNum * 6 + Flag));
+                return _DmaRegs()->LISR & (static_cast<uint32_t>(FlagMask) << (ChannelNum * 6));
             }
             if constexpr(2 <= ChannelNum && ChannelNum <= 3)
             {
-                return _DmaRegs()->LISR & (1 << (4 + ChannelNum * 6 + Flag));
+                return _DmaRegs()->LISR & (static_cast<uint32_t>(FlagMask) << (4 + ChannelNum * 6));
             }
             if constexpr(4 <= ChannelNum && ChannelNum <= 5)
             {
-                return _DmaRegs()->HISR & (1 << ((ChannelNum - 4) * 6 + Flag));
+                return _DmaRegs()->HISR & (static_cast<uint32_t>(FlagMask) << ((ChannelNum - 4) * 6));
             }
             if constexpr(6 <= ChannelNum && ChannelNum <= 7)
             {
-                return _DmaRegs()->HISR & (1 << (4 + (ChannelNum - 4) * 6 + Flag));
+                return _DmaRegs()->HISR & (static_cast<uint32_t>(FlagMask) << (4 + (ChannelNum - 4) * 6));
             }
 			return false;
         #endif
@@ -492,33 +509,33 @@ namespace Zhele
          * @brief Clear channel flag
          * 
          * @tparam ChannelNum Target channel number
-         * @tparam Flag Flag (bit) number
+         * @tparam FlagMask Flag mask
          * 
          * @par Returns
          *	Nothing
          */
-        template<int ChannelNum, int Flag>
+        template<int ChannelNum, Flags FlagMask>
         static void ClearChannelFlag()
         {
         #if defined(DMA_CCR_EN)
-            _DmaRegs()->IFCR |= (static_cast<uint32_t>(1) << ((ChannelNum - 1) * 4 + Flag));
+            _DmaRegs()->IFCR |= (static_cast<uint32_t>(FlagMask) << ((ChannelNum - 1) * 4));
         #endif
         #if defined(DMA_SxCR_EN)
             if constexpr(ChannelNum <= 1)
             {
-                _DmaRegs()->LIFCR |= (1 << (ChannelNum * 6 + Flag));
+                _DmaRegs()->LIFCR |= (static_cast<uint32_t>(FlagMask) << (ChannelNum * 6));
             }
             if constexpr(2 <= ChannelNum && ChannelNum <= 3)
             {
-                _DmaRegs()->LIFCR |= (1 << (4 + ChannelNum * 6 + Flag));
+                _DmaRegs()->LIFCR |= (static_cast<uint32_t>(FlagMask) << (4 + ChannelNum * 6));
             }
             if constexpr(4 <= ChannelNum && ChannelNum <= 5)
             {
-                _DmaRegs()->HIFCR |= (1 << ((ChannelNum - 4) * 6 + Flag));
+                _DmaRegs()->HIFCR |= (static_cast<uint32_t>(FlagMask) << ((ChannelNum - 4) * 6));
             }
             if constexpr(6 <= ChannelNum && ChannelNum <= 7)
             {
-                _DmaRegs()->HIFCR |= (1 << (4 + (ChannelNum - 4) * 6 + Flag));
+                _DmaRegs()->HIFCR |= (static_cast<uint32_t>(FlagMask) << (4 + (ChannelNum - 4) * 6));
             }
         #endif
         }
@@ -537,7 +554,7 @@ namespace Zhele
         template<int ChannelNum>
         static bool TransferError()
         {
-            return ChannelFlag<ChannelNum, ONLY_FOR_CCR(3)ONLY_FOR_SXCR((1 << 3))>();
+            return ChannelFlag<ChannelNum, Flags::TransferError>();
         }
 
 
@@ -552,7 +569,7 @@ namespace Zhele
         template<int ChannelNum>
         static bool HalfTransfer()
         {
-            return ChannelFlag<ChannelNum, ONLY_FOR_CCR(2)ONLY_FOR_SXCR(4)>();
+            return ChannelFlag<ChannelNum, Flags::HalfTransfer>();
         }
 
         /**
@@ -566,20 +583,20 @@ namespace Zhele
         template<int ChannelNum>
         static bool TransferComplete()
         {
-            return ChannelFlag<ChannelNum, ONLY_FOR_CCR(1)ONLY_FOR_SXCR(5)>();
+            return ChannelFlag<ChannelNum, Flags::TransferComplete>();
         }
 
     #if defined(DMA_SxCR_EN)
         template<int ChannelNum>
 		static bool FifoError()
 		{
-			return ChannelFlag<ChannelNum, (0)>();
+			return ChannelFlag<ChannelNum, Flags::FifoError>();
 		}
 		
 		template<int ChannelNum>
 		static bool DirectError()
 		{
-			return ChannelFlag<ChannelNum, (2)>();
+			return ChannelFlag<ChannelNum, Flags::DirectError>();
 		}
     #endif
 
@@ -595,7 +612,7 @@ namespace Zhele
         template<int ChannelNum>
         static bool Interrupt()
         {
-            return ChannelFlag<ChannelNum, 0>();
+            return ChannelFlag<ChannelNum, Flags::Global>();
         }
     #endif
         /**
@@ -610,10 +627,10 @@ namespace Zhele
         static void ClearChannelFlags()
         {
         #if defined(DMA_CCR_EN)
-            ClearChannelFlag<ChannelNum, 0xf>();
+            ClearChannelFlag<ChannelNum, Flags::All>();
         #endif
         #if defined(DMA_SxCR_EN)
-            ClearChannelFlag<ChannelNum, 0x3d>();
+            ClearChannelFlag<ChannelNum, Flags::All>();
         #endif
         }
 
@@ -628,7 +645,7 @@ namespace Zhele
         template<int ChannelNum>
         static void ClearTransferError()
         {
-            ClearChannelFlag<ChannelNum, 3>();
+            ClearChannelFlag<ChannelNum, Flags::TransferError>();
         }
 
         /**
@@ -640,9 +657,9 @@ namespace Zhele
          *	Nothing
          */
         template<int ChannelNum>
-        static void ClearHalfTrasfer()
+        static void ClearHalfTransfer()
         {
-            ClearChannelFlag<ChannelNum, ONLY_FOR_CCR(2)ONLY_FOR_SXCR(4)>();
+            ClearChannelFlag<ChannelNum, Flags::HalfTransfer>();
         }
 
         /**
@@ -656,7 +673,7 @@ namespace Zhele
         template<int ChannelNum>
         static void ClearTransferComplete()
         {
-            ClearChannelFlag<ChannelNum, ONLY_FOR_CCR(1)ONLY_FOR_SXCR(5)>();
+            ClearChannelFlag<ChannelNum, Flags::TransferComplete>();
         }
 
     #if defined(DMA_CCR_EN)
@@ -671,20 +688,20 @@ namespace Zhele
         template<int ChannelNum>
         static void ClearInterrupt()
         {
-            ClearChannelFlag<ChannelNum, 0>();
+            ClearChannelFlag<ChannelNum, Flags::General>();
         }
     #endif
     #if defined(DMA_SxCR_EN)
         template<int ChannelNum>
 		static void ClearFifoError()
 		{
-			ClearChannelFlag<ChannelNum, 0>();
+			ClearChannelFlag<ChannelNum, Flags::FifoError>();
 		}
 		
 		template<int ChannelNum>
 		static void ClearDirectError()
 		{
-			ClearChannelFlag<ChannelNum, 2>();
+			ClearChannelFlag<ChannelNum, Flags::DirectError>();
 		}
     #endif
         /**
@@ -696,6 +713,8 @@ namespace Zhele
         static void Enable()
         {
             _Clock::Enable();
+            // See note.
+            DmaDummy();
         }
 
         /**
@@ -709,6 +728,9 @@ namespace Zhele
             _Clock::Disable();
         }
     };
+
+    template<typename _Module, typename _ChannelRegs, unsigned _Channel, IRQn_Type _IRQnumber>
+    DmaChannelData DmaChannel<_Module, _ChannelRegs, _Channel, _IRQnumber>::Data;
 }
 
 #endif //! ZHELE_DMA_COMMON_H
