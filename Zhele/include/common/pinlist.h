@@ -596,7 +596,7 @@ namespace Zhele
 			 * 
 			 * @tparam Index Index
 			 */
-			template<unsigned Index>
+			template<int Index>
 			using Pin = typename GetType<Index, PinsAsTypeList>::type;
 		};
 	}

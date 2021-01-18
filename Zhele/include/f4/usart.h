@@ -13,6 +13,7 @@
 
 #include "../common/usart.h"
 
+#include "afio_bind.h"
 #include "clock.h"
 #include "dma.h"
 #include "iopins.h"
@@ -23,25 +24,6 @@ namespace Zhele
 
     namespace Private
     {
-        class Usart1Regs;
-        class Usart2Regs;
-        class Usart3Regs;
-        class Uart4Regs;
-        class Uart5Regs;
-        class Usart6Regs;
-
-        using UsartRegs = TypeList<Usart1Regs, Usart2Regs, Usart3Regs, Uart4Regs, Uart5Regs, Usart6Regs>;
-        using AltFunctionNumbers = UnsignedArray<7, 7, 7, 8, 8, 8>;
-
-        template <typename _Regs>
-        struct AltFuncHelper
-        {
-            const static unsigned value = GetNumber<TypeIndex<_Regs, UsartRegs>::value, AltFunctionNumbers>::value;
-        };
-
-        template<typename Regs>
-        const static unsigned GetAltFunctionNumber = AltFuncHelper<Regs>::value;
-
         /**
          * @brief Select RX and TX pins (set settings)
          * 
@@ -52,7 +34,7 @@ namespace Zhele
          *	Nothing
         */
         template<typename _Regs, IRQn_Type _IRQNumber, typename _ClockCtrl, typename _TxPins, typename _RxPins, typename _DmaTx, typename _DmaRx>
-        void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins,  _DmaTx, _DmaRx>::SelectTxRxPins(uint8_t txPinNumber, uint8_t rxPinNumber)
+        void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins,  _DmaTx, _DmaRx>::SelectTxRxPins(int8_t txPinNumber, int8_t rxPinNumber)
         {
             using Type = typename _TxPins::DataType;
             _TxPins::Enable();
@@ -60,10 +42,13 @@ namespace Zhele
             _TxPins::SetConfiguration(maskTx, _TxPins::AltFunc);
             _TxPins::AltFuncNumber(maskTx, GetAltFunctionNumber<_Regs>);
 
-            _RxPins::Enable();
-            Type maskRx(1 << rxPinNumber);
-            _RxPins::SetConfiguration(maskRx, _RxPins::AltFunc);
-            _RxPins::AltFuncNumber(maskRx, GetAltFunctionNumber<_Regs>);
+            if(rxPinNumber != -1)
+            {
+                _RxPins::Enable();
+                Type maskRx(1 << rxPinNumber);
+                _RxPins::SetConfiguration(maskRx, _RxPins::AltFunc);
+                _RxPins::AltFuncNumber(maskRx, GetAltFunctionNumber<_Regs>);
+            }
         }
 
         /**
@@ -76,7 +61,7 @@ namespace Zhele
          *	Nothing
         */
         template<typename _Regs, IRQn_Type _IRQNumber, typename _ClockCtrl, typename _TxPins, typename _RxPins, typename _DmaTx, typename _DmaRx>
-        template<uint8_t TxPinNumber, uint8_t RxPinNumber>
+        template<int8_t TxPinNumber, int8_t RxPinNumber>
         void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins, _DmaTx, _DmaRx>::SelectTxRxPins()
         {
             using TxPin = typename _TxPins::template Pin<TxPinNumber>;
@@ -84,13 +69,16 @@ namespace Zhele
             TxPin::SetConfiguration(TxPin::Port::AltFunc);
             TxPin::AltFuncNumber(GetAltFunctionNumber<_Regs>);
 
-            using RxPin = typename _RxPins::template Pin<RxPinNumber>;
-            if constexpr (!std::is_same_v<typename RxPin::Port, typename TxPin::Port>)
+            using RxPin = std::conditional_t<RxPinNumber != -1, typename _RxPins::template Pin<RxPinNumber>, typename IO::NullPin>;
+            if constexpr(!std::is_same_v<RxPin, IO::NullPin>)
             {
-                RxPin::Port::Enable();
+                if constexpr (!std::is_same_v<typename RxPin::Port, typename TxPin::Port>)
+                {
+                    RxPin::Port::Enable();
+                }
+                RxPin::SetConfiguration(RxPin::Port::AltFunc);
+                RxPin::AltFuncNumber(GetAltFunctionNumber<_Regs>);
             }
-            RxPin::SetConfiguration(RxPin::Port::AltFunc);
-            RxPin::AltFuncNumber(GetAltFunctionNumber<_Regs>);
         }
 
         /**
@@ -106,10 +94,12 @@ namespace Zhele
         template<typename TxPin, typename RxPin>
         void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins, _DmaTx, _DmaRx>::SelectTxRxPins()
         {
-            const int txPinIndex = TypeIndex<TxPin, typename _TxPins::PinsAsTypeList>::value;
-            const int rxPinIndex = TypeIndex<RxPin, typename _RxPins::PinsAsTypeList>::value;
+            const int8_t txPinIndex = TypeIndex<TxPin, typename _TxPins::PinsAsTypeList>::value;
+            const int8_t rxPinIndex = !std::is_same_v<RxPin, IO::NullPin>
+                                ? TypeIndex<RxPin, typename _RxPins::PinsAsTypeList>::value
+                                : -1;
             static_assert(txPinIndex >= 0);
-            static_assert(rxPinIndex >= 0);
+            static_assert(rxPinIndex >= -1);
             SelectTxRxPins<txPinIndex, rxPinIndex>();
         }
 

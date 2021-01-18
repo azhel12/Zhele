@@ -35,7 +35,7 @@ namespace Zhele
          *	Nothing
         */
         template<typename _Regs, IRQn_Type _IRQNumber, typename _ClockCtrl, typename _TxPins, typename _RxPins, typename _DmaTx, typename _DmaRx>
-        void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins, _DmaTx, _DmaRx>::SelectTxRxPins(uint8_t txPinNumber, uint8_t rxPinNumber)
+        void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins, _DmaTx, _DmaRx>::SelectTxRxPins(int8_t txPinNumber, int8_t rxPinNumber)
         {
             using AltFuncNumbers = typename _TxPins::Value;
 
@@ -44,14 +44,16 @@ namespace Zhele
 
             using Type = typename _TxPins::Key::DataType;
 
-            Type maskTx(1 << txPinNumber);
             TxPins::Enable();
+            Type maskTx(1 << txPinNumber);
             TxPins::SetConfiguration(maskTx, TxPins::AltFunc);
 
-            Type maskRx(1 << rxPinNumber);
-
-            RxPins::Enable();
-            RxPins::SetConfiguration(maskRx, RxPins::In);
+            if(rxPinNumber != -1)
+            {
+                RxPins::Enable();
+                Type maskRx(1 << rxPinNumber);
+                RxPins::SetConfiguration(maskRx, RxPins::In);
+            }
 
             Clock::AfioClock::Enable();
             Zhele::IO::Private::PeriphRemap<_ClockCtrl>::Set(GetNumberRuntime<AltFuncNumbers>::Get(txPinNumber));
@@ -67,24 +69,28 @@ namespace Zhele
          *	Nothing
         */
         template<typename _Regs, IRQn_Type _IRQNumber, typename _ClockCtrl, typename _TxPins, typename _RxPins, typename _DmaTx, typename _DmaRx>
-        template<uint8_t TxPinNumber, uint8_t RxPinNumber>
+        template<int8_t TxPinNumber, int8_t RxPinNumber>
         void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins, _DmaTx, _DmaRx>::SelectTxRxPins()
         {
+            static_assert(TxPinNumber == RxPinNumber || RxPinNumber == -1);
+
             using TxAltFuncNumbers = typename _TxPins::Value;
             using RxAltFuncNumbers = typename _RxPins::Value;
 
-            static_assert(TxPinNumber == RxPinNumber);
             using TxPin = typename _TxPins::Key:: template Pin<TxPinNumber>;
-            using RxPin = typename _RxPins::Key:: template Pin<RxPinNumber>;
-
             TxPin::Port::Enable();
-            if constexpr (!std::is_same_v<typename RxPin::Port, typename TxPin::Port>)
-            {
-                RxPin::Port::Enable();
-            }
-
             TxPin::SetConfiguration(TxPin::Port::AltFunc);
-            RxPin::SetConfiguration(RxPin::Port::In);
+
+            using RxPin = std::conditional_t<RxPinNumber != -1, typename _RxPins::Key::template Pin<RxPinNumber>, typename IO::NullPin>;
+            
+            if constexpr(!std::is_same_v<RxPin, IO::NullPin>)
+            {
+                if constexpr (!std::is_same_v<typename RxPin::Port, typename TxPin::Port>)
+                {
+                    RxPin::Port::Enable();
+                }
+                RxPin::SetConfiguration(RxPin::Port::In);
+            }
 
             Clock::AfioClock::Enable();
             Zhele::IO::Private::PeriphRemap<_ClockCtrl>::Set(GetNumber<TxPinNumber, TxAltFuncNumbers>::value);
@@ -103,10 +109,12 @@ namespace Zhele
         template<typename TxPin, typename RxPin>
         void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins, _DmaTx, _DmaRx>::SelectTxRxPins()
         {
-            const int txPinIndex = TypeIndex<TxPin, typename _TxPins::Key::PinsAsTypeList>::value;
-            const int rxPinIndex = TypeIndex<RxPin, typename _RxPins::Key::PinsAsTypeList>::value;
+            const int8_t txPinIndex = TypeIndex<TxPin, typename _TxPins::Key::PinsAsTypeList>::value;
+            const int8_t rxPinIndex = !std::is_same_v<RxPin, IO::NullPin>
+                                ? TypeIndex<RxPin, typename _RxPins::Key::PinsAsTypeList>::value
+                                : 0xff;
             static_assert(txPinIndex >= 0);
-            static_assert(rxPinIndex >= 0);
+            static_assert(rxPinIndex >= -1);
             SelectTxRxPins<txPinIndex, rxPinIndex>();
          }
 

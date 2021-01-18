@@ -18,39 +18,87 @@
 
 namespace Zhele
 {
-#if(USART_SR_PE)
-    #define FOR_SR(TEXT) TEXT
-    #define FOR_ISR(TEXT)
-#endif
 #if(USART_ISR_PE)
-    #define FOR_SR(TEXT)
-    #define FOR_ISR(TEXT) TEXT
+    #define USART_TYPE_1
+    #define STATUS_REG ISR
+    #define TRANSMIT_DATA_REG TDR
+    #define RECEIVE_DATA_REG RDR
+#endif
+#if(USART_SR_PE)
+    #define USART_TYPE_2
+    #define STATUS_REG SR
+    #define TRANSMIT_DATA_REG DR
+    #define RECEIVE_DATA_REG DR
 #endif
     class UsartBase
     {
     public:
-        /// Usart modes
-        enum UsartMode
+        struct UsartMode
         {
-            DataBits8 = 0,
-            DataBits9 = USART_CR1_M,
+            /**
+             * @brief CR1 
+             */
+            enum _CR1 : uint32_t
+            {
+                DataBits8 = 0,
+                DataBits9 = USART_CR1_M,
 
-            NoneParity = 0,
-            EvenParity = USART_CR1_PCE,
-            OddParity  = USART_CR1_PS | USART_CR1_PCE,
+                NoneParity = 0,
+                EvenParity = USART_CR1_PCE,
+                OddParity  = USART_CR1_PS | USART_CR1_PCE,
 
-            NoClock = 0,
+                Disabled = 0,
+                RxEnable = USART_CR1_RE,
+                TxEnable = USART_CR1_TE,
+                RxTxEnable  = USART_CR1_RE | USART_CR1_TE,
+                Default = RxTxEnable,
+            } CR1;
 
-            Disabled = 0,
-            RxEnable = USART_CR1_RE,
-            TxEnable = USART_CR1_TE,
-            RxTxEnable  = USART_CR1_RE | USART_CR1_TE,
-            Default = RxTxEnable,
+            enum _CR2 : uint32_t
+            {
+                NoClock = 0,
+                Clock = USART_CR2_CLKEN,
 
-            OneStopBit         = 0,
-            HalfStopBit        = USART_CR2_STOP_0 << 16,
-            TwoStopBits        = USART_CR2_STOP_1 << 16,
-            OneAndHalfStopBits = (USART_CR2_STOP_0 | USART_CR2_STOP_1) << 16
+                OneStopBit         = 0,
+                HalfStopBit        = USART_CR2_STOP_0,
+                TwoStopBits        = USART_CR2_STOP_1,
+                OneAndHalfStopBits = (USART_CR2_STOP_0 | USART_CR2_STOP_1)
+            } CR2;
+
+            enum _CR3 : uint32_t
+            {
+                FullDuplex = 0,
+                HalfDuplex = USART_CR3_HDSEL,
+            
+                OneSampleBitDisable = 0,
+                OneSampleBitEnable =
+                #if defined (USART_CR3_ONEBIT)
+                    USART_CR3_ONEBIT
+                #else
+                    0
+                #endif
+            } CR3;
+
+            UsartMode(_CR1 cr1) : CR1(cr1){}
+            UsartMode(_CR2 cr2) : CR2(cr2){}
+            UsartMode(_CR3 cr3) : CR3(cr3){}
+
+            UsartMode(_CR1 cr1, _CR2 cr2, _CR3 cr3) : CR1(cr1), CR2(cr2), CR3(cr3) {}
+
+            UsartMode operator | (UsartMode::_CR1 flag)
+            {
+                return UsartMode{static_cast<UsartMode::_CR1>(CR1 | flag), CR2, CR3};
+            }
+
+            UsartMode operator | (UsartMode::_CR2 flag)
+            {
+                return UsartMode{CR1, static_cast<UsartMode::_CR2>(CR2 | flag), CR3};
+            }
+
+            UsartMode operator | (UsartMode::_CR3 flag)
+            {
+                return UsartMode{CR1, CR2, static_cast<UsartMode::_CR3>(CR3 | flag)};
+            }
         };
 
         /**
@@ -91,17 +139,17 @@ namespace Zhele
         enum Error
         {
             NoError = 0,
-        #if defined (USART_SR_PE)
-            OverrunError = USART_SR_ORE,
-            NoiseError = USART_SR_NE,
-            FramingError = USART_SR_FE,
-            ParityError = USART_SR_PE
-        #endif
-        #if defined (USART_ISR_PE)
+        #if defined (USART_TYPE_1)
             OverrunError = USART_ISR_ORE,
             NoiseError = USART_ISR_NE,
             FramingError = USART_ISR_FE,
             ParityError = USART_ISR_PE
+        #endif
+        #if defined (USART_TYPE_2)
+            OverrunError = USART_SR_ORE,
+            NoiseError = USART_SR_NE,
+            FramingError = USART_SR_FE,
+            ParityError = USART_SR_PE
         #endif
         };
 
@@ -111,31 +159,49 @@ namespace Zhele
         static const unsigned InterruptMask = ParityErrorInt | TxEmptyInt |
                 TxCompleteInt | RxNotEmptyInt | IdleInt | LineBreakInt |
                 ErrorInt | CtsInt;
-
-        static const unsigned CR1ModeMask =
-            USART_CR1_M |
-            USART_CR1_PCE |
-            USART_CR1_PS |
-            USART_CR1_RE |
-            USART_CR1_TE;
-
-        static const unsigned CR2ModeMask = USART_CR2_STOP_0 | USART_CR2_STOP_1;
-        enum
-        {
-            CR1ModeShift = 0,
-            CR2ModeShift = 16
-        };
     };
 
-    inline UsartBase::UsartMode operator|(UsartBase::UsartMode left, UsartBase::UsartMode right)
-    {	return static_cast<UsartBase::UsartMode>(static_cast<unsigned>(left) | static_cast<unsigned>(right));	}
+    UsartBase::UsartMode::_CR1 operator | (UsartBase::UsartMode::_CR1 first, UsartBase::UsartMode::_CR1 second)
+    {
+        return static_cast<UsartBase::UsartMode::_CR1>(static_cast<uint32_t>(first) | static_cast<uint32_t>(second));
+    }
 
-    inline UsartBase::InterruptFlags operator|(UsartBase::InterruptFlags left, UsartBase::InterruptFlags right)
-    {	return static_cast<UsartBase::InterruptFlags>(static_cast<unsigned>(left) | static_cast<unsigned>(right));	}
+    UsartBase::UsartMode::_CR2 operator | (UsartBase::UsartMode::_CR2 first, UsartBase::UsartMode::_CR2 second)
+    {
+        return static_cast<UsartBase::UsartMode::_CR2>(static_cast<uint32_t>(first) | static_cast<uint32_t>(second));
+    }
 
-    inline UsartBase::Error operator|(UsartBase::Error left, UsartBase::Error right)
-    {	return static_cast<UsartBase::Error>(static_cast<unsigned>(left) | static_cast<unsigned>(right));	}
+    UsartBase::UsartMode::_CR3 operator | (UsartBase::UsartMode::_CR3 first, UsartBase::UsartMode::_CR3 second)
+    {
+        return static_cast<UsartBase::UsartMode::_CR3>(static_cast<uint32_t>(first) | static_cast<uint32_t>(second));
+    }
 
+    UsartBase::UsartMode operator | (UsartBase::UsartMode::_CR1 cr1, UsartBase::UsartMode::_CR2 cr2)
+    {
+        return UsartBase::UsartMode{cr1, cr2, UsartBase::UsartMode::_CR3()};
+    }
+    UsartBase::UsartMode operator | (UsartBase::UsartMode::_CR2 cr2, UsartBase::UsartMode::_CR1 cr1)
+    {
+        return cr1 | cr2;
+    }
+
+    UsartBase::UsartMode operator | (UsartBase::UsartMode::_CR2 cr2, UsartBase::UsartMode::_CR3 cr3)
+    {
+        return UsartBase::UsartMode{UsartBase::UsartMode::_CR1(), cr2, cr3};
+    }
+    UsartBase::UsartMode operator | (UsartBase::UsartMode::_CR3 cr3, UsartBase::UsartMode::_CR2 cr2)
+    {
+        return cr2 | cr3;
+    }
+
+    UsartBase::UsartMode operator | (UsartBase::UsartMode::_CR1 cr1, UsartBase::UsartMode::_CR3 cr3)
+    {
+        return UsartBase::UsartMode{cr1, UsartBase::UsartMode::_CR2(), cr3};
+    }
+    UsartBase::UsartMode operator | (UsartBase::UsartMode::_CR3 cr3, UsartBase::UsartMode::_CR1 cr1)
+    {
+        return cr1 | cr3;
+    }
 
     namespace Private
     {
@@ -147,34 +213,63 @@ namespace Zhele
              * @brief Initialize USART
              * 
              * @tparam baud Baud rate
-             * @param [in] usartMode Mode
+             * @param [in] mode Mode
              * 
              * @par Returns
              *	Nothing
              */
             template<unsigned long baud>
-            static inline void Init(UsartMode usartMode = Default)
+            static inline void Init(UsartMode mode = UsartMode::Default)
             {
-                Init(baud, usartMode);
+                Init(baud, mode);
             }
 
             /**
              * @brief Initialize USART
              * 
              * @param [in] baud Baud rate
-             * @param[in] usartMode Mode
+             * @param[in] mode Mode
              * 
              * @par Returns
              *	Nothing
              */
-            static void Init(unsigned baud, UsartMode usartMode = Default)
+            static void Init(unsigned baud, UsartMode mode = UsartMode::Default)
             {
                 _ClockCtrl::Enable();
-                unsigned brr = _ClockCtrl::ClockFreq() / baud;
-                _Regs()->BRR = brr;
-                _Regs()->FOR_SR(SR)FOR_ISR(ISR) = 0x00;
-                _Regs()->CR2 = ((usartMode >> CR2ModeShift) & CR2ModeMask);
-                _Regs()->CR1 = (((usartMode >> CR1ModeShift) & CR1ModeMask) | USART_CR1_UE );
+                SetBaud(baud);
+                _Regs()->STATUS_REG = 0x00;
+                _Regs()->CR3 = mode.CR3;
+                _Regs()->CR2 = mode.CR2;
+                _Regs()->CR1 = mode.CR1 | USART_CR1_UE;
+            }
+
+            /**
+             * @brief Set config
+             * 
+             * @param [in] modeMask Mode mask
+             */
+            static void SetConfig(UsartMode modeMask)
+            {
+                _Regs()->CR3 |= modeMask.CR3;
+                _Regs()->CR2 |= modeMask.CR2;
+                _Regs()->CR1 |= modeMask.CR1;
+            }
+
+            /**
+             * @brief Clear config
+             * 
+             * @param [in] modeMask Mode mask
+             */
+            static void ClearConfig(UsartMode modeMask)
+            {
+                _Regs()->CR3 &= ~modeMask.CR3;
+                _Regs()->CR2 &= ~modeMask.CR2;
+                _Regs()->CR1 &= ~modeMask.CR1;
+            }
+
+            static void SetBaud(unsigned baud)
+            {
+                _Regs()->BRR = _ClockCtrl::ClockFreq() / baud;
             }
 
             /**
@@ -185,7 +280,7 @@ namespace Zhele
              */
             static bool ReadReady()
             {
-                return _Regs()->FOR_SR(SR)FOR_ISR(ISR) & RxNotEmptyInt;
+                return _Regs()->STATUS_REG & RxNotEmptyInt;
             }
 
             /**
@@ -197,7 +292,7 @@ namespace Zhele
             {
                 while(!ReadReady())
                     ;
-                return _Regs()->FOR_SR(DR)FOR_ISR(RDR);
+                return _Regs()->RECEIVE_DATA_REG;
             }
 
             /**
@@ -215,7 +310,7 @@ namespace Zhele
                 _DmaRx::ClearTransferComplete();
                 _Regs()->CR3 |= USART_CR3_DMAR;
                 _DmaRx::SetTransferCallback(callback);
-                _DmaRx::Transfer(_DmaRx::Periph2Mem | _DmaRx::MemIncrement | _DmaRx::Circular, receiveBuffer, &_Regs()->FOR_SR(DR)FOR_ISR(RDR), bufferSize);
+                _DmaRx::Transfer(_DmaRx::Periph2Mem | _DmaRx::MemIncrement | _DmaRx::Circular, receiveBuffer, &_Regs()->RECEIVE_DATA_REG, bufferSize);
             }
 
             /**
@@ -227,7 +322,7 @@ namespace Zhele
             static bool WriteReady()
             {
                 bool dmaActive = (_Regs()->CR3 & USART_CR3_DMAT) && _DmaTx::Enabled();
-                return (!dmaActive || _DmaTx::TransferComplete()) && (_Regs()->FOR_SR(SR)FOR_ISR(ISR) & TxEmptyInt);
+                return (!dmaActive || _DmaTx::TransferComplete()) && (_Regs()->STATUS_REG & TxEmptyInt);
             }
 
             /**
@@ -247,9 +342,14 @@ namespace Zhele
                     while (!WriteReady()) ;
                     _DmaTx::ClearTransferComplete();
                     _Regs()->CR3 |= USART_CR3_DMAT;
-                    _Regs()->FOR_SR(SR)FOR_ISR(ISR) &= ~TxCompleteInt;
-                    _DmaTx::Transfer(_DmaTx::Mem2Periph | _DmaTx::MemIncrement, data, &_Regs()->FOR_SR(DR)FOR_ISR(TDR), size);
-                }
+                #if defined (USART_TYPE_1)
+                    _Regs()->ICR |= TxCompleteInt;
+                #endif
+                #if defined (USART_TYPE_2)
+                    _Regs()->SR &= ~TxCompleteInt;
+                #endif
+                    _DmaTx::Transfer(_DmaTx::Mem2Periph | _DmaTx::MemIncrement, data, &_Regs()->TRANSMIT_DATA_REG, size);
+                } 
                 else
                 {
                     uint8_t *ptr = static_cast<uint8_t*>(const_cast<void*>(data));
@@ -272,7 +372,7 @@ namespace Zhele
             {
                 while (!WriteReady()) ;
 
-                _Regs()->FOR_SR(DR)FOR_ISR(TDR) = data;
+                _Regs()->TRANSMIT_DATA_REG = data;  
             }
 
             /**
@@ -368,7 +468,7 @@ namespace Zhele
              */
             static InterruptFlags InterruptSource()
             {
-                return static_cast<InterruptFlags>(_Regs()->FOR_SR(SR)FOR_ISR(ISR) & InterruptMask);
+                return static_cast<InterruptFlags>(_Regs()->STATUS_REG & InterruptMask);
             }
 
             /**
@@ -378,7 +478,7 @@ namespace Zhele
              */
             static Error GetError()
             {
-                return static_cast<Error>(_Regs()->FOR_SR(SR)FOR_ISR(ISR) & ErrorMask);
+                return static_cast<Error>(_Regs()->STATUS_REG & ErrorMask);
             }
 
             /**
@@ -391,7 +491,12 @@ namespace Zhele
              */
             static void ClearInterruptFlag(InterruptFlags interruptFlags)
             {
-                _Regs()->FOR_SR(SR)FOR_ISR(ICR) &= ~interruptFlags;
+            #if defined(USART_TYPE_1)
+                _Regs()->ICR |= interruptFlags;
+            #endif
+            #if defined(USART_TYPE_2)
+                _Regs()->SR &= ~interruptFlags;
+            #endif
             }
 
             /**
@@ -403,18 +508,7 @@ namespace Zhele
              * @par Returns
              *	Nothing
              */
-            static void SelectTxRxPins(uint8_t txPinNumber, uint8_t rxPinNumber);
-
-            /**
-             * @brief Select RX and TX pins (set settings)
-             * 
-             * @param [in] txPinNumber pin number in Txs PinList
-             * @param [in] rxPinNumber pin number in Rxs PinList
-             * 
-             * @par Returns
-             *	Nothing
-             */
-            static void SelectTxRxPins(uint8_t txPinNumber, uint8_t rxPinNumber, uint8_t txPinAltFuncNumber, uint8_t rxPinAltFuncNumber);
+            static void SelectTxRxPins(int8_t txPinNumber, int8_t rxPinNumber = -1);
 
             /**
              * @brief Template clone of SelectTxRxPins method
@@ -425,7 +519,7 @@ namespace Zhele
              * @par Returns
              *	Nothing
              */
-            template<uint8_t TxPinNumber, uint8_t RxPinNumber>
+            template<int8_t TxPinNumber, int8_t RxPinNumber = -1>
             static void SelectTxRxPins();
 
             /**
@@ -437,7 +531,7 @@ namespace Zhele
              * @par Returns
              *	Nothing
              */
-            template<typename TxPin, typename RxPin>
+            template<typename TxPin, typename RxPin = typename IO::NullPin>
             static void SelectTxRxPins();
         };
     }
