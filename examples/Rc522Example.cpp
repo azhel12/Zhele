@@ -61,7 +61,7 @@ void ConfigureTimer()
 
 extern "C"
 {
-    void TIM3_IRQHandler() // "void EXTI0_1_IRQHandler()" for Stm32F0
+    void TIM3_IRQHandler()
     {
         static char printbuffer[32];
         CheckTimer::ClearInterruptFlag();
