@@ -139,7 +139,7 @@ namespace Zhele
         I2cStatus Status;        
     };
 
-    typedef void (*I2cCallback)(I2cStatus status);
+    using I2cCallback = std::function<void(I2cStatus status)>;
 
     /**
      * @brief Implements I2C protocol.
@@ -779,7 +779,7 @@ namespace Zhele
     I2C_TEMPLATE_ARGS
     bool I2C_TEMPLATE_QUALIFIER::WriteDevAddrForWrite(uint16_t devAddr,I2cOpts opts)
     {
-        _Regs()->CR2 |= (devAddr << 1)
+        _Regs()->CR2 = (devAddr << 1)
             | (HasAnyFlag(opts, I2cOpts::RegAddr16Bit)
                 ? 2
                 : HasAnyFlag(opts, I2cOpts::RegAddrNone)
@@ -796,7 +796,7 @@ namespace Zhele
     I2C_TEMPLATE_ARGS
     bool I2C_TEMPLATE_QUALIFIER::WriteDevAddrForRead(uint16_t devAddr, I2cOpts opts, uint8_t bytesToRead, bool reload)
     {
-        _Regs()->CR2 |= (devAddr << 1)
+        _Regs()->CR2 = (devAddr << 1)
             | I2C_CR2_RD_WRN
             | (bytesToRead << I2C_CR2_NBYTES_Pos)
             | (reload ? I2C_CR2_RELOAD : 0)
