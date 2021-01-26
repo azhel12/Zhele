@@ -22,7 +22,7 @@ namespace Zhele::Clock
     #endif
     }
 
-    void PllClock::SetDivider(uint8_t divider)
+    void PllClock::SetDivider(ClockFrequenceT divider)
     {
     #if defined(RCC_CFGR2_PREDIV1)
         if(divider > 15)
@@ -49,7 +49,7 @@ namespace Zhele::Clock
     #endif
     }
 
-    void PllClock::SetMultipler(uint8_t multiplier)
+    void PllClock::SetMultiplier(ClockFrequenceT multiplier)
     {
     #if !(defined(RCC_CFGR_PLLMULL3) && defined(RCC_CFGR_PLLMULL10))
         if(multiplier > 9)

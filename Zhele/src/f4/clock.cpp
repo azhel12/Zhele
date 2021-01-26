@@ -29,7 +29,7 @@ namespace Zhele::Clock
         return PllM::Get();
     }
 
-    void PllClock::SetDivider(uint8_t divider)
+    void PllClock::SetDivider(ClockFrequenceT divider)
     {
         PllM::Set(divider);
     }
@@ -39,7 +39,7 @@ namespace Zhele::Clock
         return PllN::Get();
     }
 
-    void PllClock::SetMultipler(uint8_t multiplier)
+    void PllClock::SetMultiplier(ClockFrequenceT multiplier)
     {
         PllN::Set(multiplier);
     }  
@@ -58,11 +58,11 @@ namespace Zhele::Clock
             : ClockSource::Internal;
     }
 
-    ClockFrequenceT PllClock::GetGeneralOutputDivider()
+    ClockFrequenceT PllClock::GetSystemOutputDivider()
     {
         return PllP::Get();
     }
-    void PllClock::SetGeneralOutputDivider(uint8_t divider)
+    void PllClock::SetSystemOutputDivider(ClockFrequenceT divider)
     {
         PllP::Set(divider);
     }
@@ -70,7 +70,7 @@ namespace Zhele::Clock
     {
         return PllQ::Get();
     }
-    void PllClock::SetUsbOutputDivider(uint8_t divider)
+    void PllClock::SetUsbOutputDivider(ClockFrequenceT divider)
     {
         PllQ::Set(divider);
     }

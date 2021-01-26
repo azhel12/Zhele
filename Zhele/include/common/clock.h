@@ -262,7 +262,7 @@ namespace Zhele
              * @par Returns
              *	Nothing
              */
-            static void SetDivider(uint8_t divider);
+            static void SetDivider(ClockFrequenceT divider);
 
             /**
              * @brief Returns PLL multiplier
@@ -279,7 +279,7 @@ namespace Zhele
              * @par Returns
              *	Nothing
              */
-            static void SetMultipler(uint8_t multiplier);		
+            static void SetMultiplier(ClockFrequenceT multiplier);		
 
         #if defined(RCC_PLLCFGR_PLLP)
             /**
@@ -287,7 +287,7 @@ namespace Zhele
              * 
              * @returns PLLP value
              */
-            static ClockFrequenceT GetGeneralOutputDivider();
+            static ClockFrequenceT GetSystemOutputDivider();
 
             /**
              * @brief Set PLLP
@@ -297,7 +297,7 @@ namespace Zhele
              * @par Returns
              *	Nothing
              */
-            static void SetGeneralOutputDivider(uint8_t divider);
+            static void SetSystemOutputDivider(ClockFrequenceT divider);
 
             /**
              * @brief Return PLLQ value
@@ -314,7 +314,7 @@ namespace Zhele
              * @par Returns
              *	Nothing
              */
-            static void SetUsbOutputDivider(uint8_t divider);
+            static void SetUsbOutputDivider(ClockFrequenceT divider);
         #endif
 
             /**

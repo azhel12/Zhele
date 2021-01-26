@@ -18,7 +18,7 @@ namespace Zhele::Clock
             : 1;
     }
 
-    void PllClock::SetDivider(uint8_t divider)
+    void PllClock::SetDivider(ClockFrequenceT divider)
     {
         if(divider > 2)
             divider = 2;
@@ -33,7 +33,7 @@ namespace Zhele::Clock
         return ((RCC->CFGR & RCC_CFGR_PLLMUL) >> RCC_CFGR_PLLMUL_Pos) + 2;
     }
 
-    void PllClock::SetMultipler(uint8_t multiplier)
+    void PllClock::SetMultiplier(ClockFrequenceT multiplier)
     {
         if(multiplier > 16)
             multiplier = 16;
