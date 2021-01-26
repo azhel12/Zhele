@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Implements USART protocol for stm32f1 series
+ * @brief Implements USART protocol for stm32f4 series
  * @author Alexey Zhelonkin
  * @date 2019
  * @license FreeBSD
@@ -21,7 +21,6 @@
 
 namespace Zhele
 {
-
     namespace Private
     {
         /**
@@ -65,17 +64,16 @@ namespace Zhele
         void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins, _DmaTx, _DmaRx>::SelectTxRxPins()
         {
             using TxPin = typename _TxPins::template Pin<TxPinNumber>;
+            using RxPin = std::conditional_t<RxPinNumber != -1, typename _RxPins::template Pin<RxPinNumber>, typename IO::NullPin>;
+
+            using usedPorts = IO::PortList<typename TemplateUtils::Unique<TypeList<typename TxPin::Port, typename RxPin::Port>>::type>;
+
             TxPin::Port::Enable();
             TxPin::SetConfiguration(TxPin::Port::AltFunc);
             TxPin::AltFuncNumber(GetAltFunctionNumber<_Regs>);
 
-            using RxPin = std::conditional_t<RxPinNumber != -1, typename _RxPins::template Pin<RxPinNumber>, typename IO::NullPin>;
             if constexpr(!std::is_same_v<RxPin, IO::NullPin>)
             {
-                if constexpr (!std::is_same_v<typename RxPin::Port, typename TxPin::Port>)
-                {
-                    RxPin::Port::Enable();
-                }
                 RxPin::SetConfiguration(RxPin::Port::AltFunc);
                 RxPin::AltFuncNumber(GetAltFunctionNumber<_Regs>);
             }
@@ -118,8 +116,8 @@ namespace Zhele
         using Uart5TxPins = IO::PinList<IO::Pc12>;
         using Uart5RxPins = IO::PinList<IO::Pd2>;
 
-        //using Usart6TxPins = IO::PinList<IO::Pc6, IO::Pg14>;
-        //using Usart6RxPins = IO::PinList<IO::Pc7, IO::Pg9>;
+        using Usart6TxPins = IO::PinList<IO::Pc6>;
+        using Usart6RxPins = IO::PinList<IO::Pc7>;
 
         IO_STRUCT_WRAPPER(USART1, Usart1Regs, USART_TypeDef);
         IO_STRUCT_WRAPPER(USART2, Usart2Regs, USART_TypeDef);
@@ -148,7 +146,7 @@ namespace Zhele
     using Uart5 = Private::Usart<Private::Uart5Regs, UART5_IRQn, Clock::Uart4Clock, Private::Uart5TxPins, Private::Uart5RxPins, Dma2Stream7Channel4, Dma2Stream0Channel4>;
 #endif
 #if defined(USART6)
-    //using Usart6 = Private::Usart<Private::Usart6Regs, USART6_IRQn, Clock::Usart6Clock, Private::Usart6TxPins, Private::Usart6RxPins, Dma2Stream7Channel5, Dma2Stream2Channel5>;
+    using Usart6 = Private::Usart<Private::Usart6Regs, USART6_IRQn, Clock::Usart6Clock, Private::Usart6TxPins, Private::Usart6RxPins, Dma2Stream7Channel5, Dma2Stream2Channel5>;
 #endif
 }
 
