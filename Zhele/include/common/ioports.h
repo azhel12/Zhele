@@ -11,6 +11,7 @@
 
 #include <clock.h>
 #include "ioreg.h"
+#include "template_utils/type_list.h"
 
 
 namespace Zhele
@@ -482,6 +483,25 @@ namespace Zhele
                 enum { Id = ID };
             };
         }
+
+        template<typename... >
+        class PortList;
+
+        template<typename... _Ports>
+        class PortList<TemplateUtils::TypeList<_Ports...> >
+        {
+        public:
+            static void Enable()
+            {
+                (_Ports::Enable(), ...);
+            }
+
+            static void Disable()
+            {
+                (_Ports::Disable(), ...);
+            }
+        };
+
 #define MAKE_PORT(REGS, ClkEnReg, className, ID) \
        namespace Private{\
             IO_STRUCT_WRAPPER(REGS, className ## Regs, GPIO_TypeDef);\
