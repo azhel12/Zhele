@@ -141,300 +141,323 @@ namespace Zhele
 
     using I2cCallback = std::function<void(I2cStatus status)>;
 
-    /**
-     * @brief Implements I2C protocol.
-     * 
-     * @tparam _Regs Register.
-     * @tparam _EventIrqNumber Event IRQ number.
-     * @tparam _ErrorIrqNumber Error IRQ number.
-     * @tparam _ClockCtrl Clock.
-     * @tparam _SclPins Clock pins.
-     * @tparam _SdaPins Data pins.
-     * @tparam _DmaTx Dma Tx
-     * @tparam _DmaRx Dma Rx
-     */
-    template< 
-        typename _Regs, 
-        IRQn_Type _EventIrqNumber, 
-        IRQn_Type _ErrorIrqNumber, 
-        typename _ClockCtrl, 
-        typename _SclPins, 
-        typename _SdaPins, 
-        typename _DmaTx, 
-        typename _DmaRx>
-    class I2cBase
+    namespace Private
     {
-        static const uint16_t _timeout = 10000;
-
-        struct AsyncTransferData
+        /**
+         * @brief Implements I2C protocol.
+         * 
+         * @tparam _Regs Register.
+         * @tparam _EventIrqNumber Event IRQ number.
+         * @tparam _ErrorIrqNumber Error IRQ number.
+         * @tparam _ClockCtrl Clock.
+         * @tparam _SclPins Clock pins.
+         * @tparam _SdaPins Data pins.
+         * @tparam _DmaTx Dma Tx
+         * @tparam _DmaRx Dma Rx
+         */
+        template< 
+            typename _Regs, 
+            IRQn_Type _EventIrqNumber, 
+            IRQn_Type _ErrorIrqNumber, 
+            typename _ClockCtrl, 
+            typename _SclPins, 
+            typename _SdaPins, 
+            typename _DmaTx, 
+            typename _DmaRx>
+        class I2cBase
         {
-            uint8_t* Buffer;
-            uint16_t Size;
-            I2cCallback Callback;
+            static const uint16_t _timeout = 10000;
+
+            struct AsyncTransferData
+            {
+            #if defined (I2C_TYPE_1)
+                uint8_t* Buffer;
+                uint16_t Size;
+            #endif
+                I2cCallback Callback;
+            };
+
+            static AsyncTransferData _transferData;
+        public:
+            using SclPins = _SclPins;
+            using SdaPins = _SdaPins;
+            
+            /**
+             * @brief Initialize I2C
+             * 
+             * @param [in] i2cClockSpeed I2C speed
+             * @param [in] dutyCycle2 Enable duty cycle 16/9 (not for all MCU)
+             * 
+             * @par Returns
+             * 	Nothing
+             */
+        #if defined (I2C_TYPE_1)
+            static void Init(uint32_t i2cClockSpeed = 100000U);
+        #endif
+        #if defined (I2C_TYPE_2)
+            static void Init(uint32_t i2cClockSpeed = 100000U, bool dutyCycle2 = false);
+        #endif
+            
+            /**
+             * @brief Write 8-bit unsigned to register.
+             * 
+             * @param [in] devAddr Device address.
+             * @param [in] regAddr Register address.
+             * @param [in] data Data to write.
+             * @param [in] opts Options.
+             * 
+             * @returns Write status.
+             */
+            static I2cStatus WriteU8(uint16_t devAddr, uint16_t regAddr, uint8_t data, I2cOpts opts = I2cOpts::None);
+            
+            /**
+             * @brief Write data to register.
+             * 
+             * @param [in] devAddr Device address.
+             * @param [in] regAddr Register address.
+             * @param [in] data Data to write.
+             * @param [in] size Data size.
+             * @param [in] opts Options.
+             * 
+             * @returns Write status.
+             */
+            static I2cStatus Write(uint16_t devAddr, uint16_t regAddr, const uint8_t *data, uint16_t size, I2cOpts opts = I2cOpts::None);
+
+            /**
+             * @brief Write data to register async.
+             * 
+             * @param [in] devAddr Device address.
+             * @param [in] regAddr Register address.
+             * @param [in] data Data to write.
+             * @param [in] size Data size.
+             * @param [in] opts Options.
+             * @param [in] callback Complete (or error) callabck.
+             * 
+             * @returns Status.
+             */
+            static I2cStatus WriteAsync(uint16_t devAddr, uint16_t regAddr, const uint8_t *data, uint16_t size, I2cOpts opts = I2cOpts::None, I2cCallback callback = nullptr);
+
+            /**
+             * @brief Read 8-bit unsigned.
+             * 
+             * @param [in] devAddr Device address.
+             * @param [in] regAddr Register address.
+             * @param [in] opts Options.
+             * 
+             * @returns If return value is positive - it is read result (cast it to uint8_t!), if negative - it is error code.
+             */
+            static ReadResult ReadU8(uint16_t devAddr, uint16_t regAddr, I2cOpts opts = I2cOpts::None);
+
+            /**
+             * @brief Read some bytes.
+             * 
+             * @param [in] devAddr Device address.
+             * @param [in] regAddr Register address.
+             * @param [in] data Data buffer.
+             * @param [in] size Data size.
+             * @param [in] opts Options.
+             * 
+             * @returns Operation status.
+             */
+            static I2cStatus Read(uint16_t devAddr, uint16_t regAddr, uint8_t *data, uint16_t size, I2cOpts opts = I2cOpts::None);
+
+            /**
+             * @brief Read some bytes async.
+             * 
+             * @param [in] devAddr Device address.
+             * @param [in] regAddr Register address.
+             * @param [out] data Output buffer.
+             * @param [in] size Data size to read.
+             * @param [in] opts Options.
+             * @param [in] callback Complete (or error) callback.
+             * 
+             * @returns Operation status.
+             */
+            static I2cStatus EnableAsyncRead(uint16_t devAddr, uint16_t regAddr, uint8_t *data, uint16_t size, I2cOpts opts = I2cOpts::None, I2cCallback callback = nullptr);
+
+            /**
+             * @brief Write register address.
+             * 
+             * @param [in] regAddr Register address.
+             * @param [in] opts Options
+             * 
+             * @retval true Success.
+             * @retval false Fail.
+             */
+            static bool WriteRegAddr(uint16_t regAddr, I2cOpts opts);
+            
+            /**
+             * @brief Wait for events.
+             * 
+             * @param [in] Events mask.
+             * 
+             * @retval true Events was occured.
+             * @retval false Events was not occured.
+             */
+            static bool WaitEvent(uint32_t i2c_event);
+            
+            /**
+             * @brief Is bus busy.
+             * 
+             * @retval true Bus is busy.
+             * @retval false Bus is free.
+             */
+            static bool Busy();
+            
+            /**
+             * @brief Wait while bus busy.
+             * 
+             * @retval true Bus is free.
+             * @retval false Timeout.
+             */
+            static bool WaitWhileBusy();
+            
+            /**
+             * @brief Event IRQ handler
+             * 
+             * @par Returns
+             *  Nothing
+             */
+            static void EventIrqHandler();
+            
+            /**
+             * @brief Error IRQ handler
+             * 
+             * @par Returns
+             *  Nothing
+             */
+            static void ErrorIrqHandler();
+            
+            /**
+             * @brief Returns error from event.
+             * 
+             * @returns Status from event.
+             */
+            static I2cStatus GetErorFromEvent(uint32_t lastevent);
+            
+            /**
+             * @brief Select pins
+             * 
+             * @tparam SclPinNumber SCL pin number
+             * @tparam SdaPinNumber SDA pin number
+             * 
+             * @par Returns
+             *  Nothing
+             */
+            template<unsigned sclPinNumber, unsigned sdaPinNumber>
+            static void SelectPins();
+
+            /**
+             * @brief Select pins.
+             * 
+             * @param [in] sclPinNumber SCL pin number
+             * @param [in] sdaPinNumber SDA pin number
+             * 
+             * @par Returns
+             *  Nothing
+             */
+            static void SelectPins(uint8_t sclPinNumber, uint8_t sdaPinNumber);
+            
+            /**
+             * @brief Select pins
+             * 
+             * @tparam SclPin SCL pin
+             * @tparam SdaPin SDA pin
+             * 
+             * @par Returns
+             *  Nothing
+             */
+            template<typename SclPin, typename SdaPin>
+            static void SelectPins();
+
+        private:
+            #if defined(I2C_TYPE_1)
+            /**
+             * @brief Write device address for write operation.
+             * 
+             * @param [in] devAddr Device address.
+             * @param [in] opts Options
+             * 
+             * @retval true Success.
+             * @retval false Fail.
+             */
+            static bool WriteDevAddrForWrite(uint16_t devAddr, I2cOpts opts);
+            
+            /**
+             * @brief Write device address for read operation.
+             * 
+             * @param [in] devAddr Device address.
+             * @param [in] opts Options.
+             * @param [in] bytesToRead Nbytes value.
+             * @param [in] reload Need reload (if need read > 255 bytes)
+             * 
+             * @retval true Success.
+             * @retval false Fail.
+             */
+            static bool WriteDevAddrForRead(uint16_t devAddr, I2cOpts opts, uint8_t bytesToRead = 1, bool reload = false);
+
+            /**
+             * @brief Set transfer size (only for MCUs with NBYTES in CR2)
+             * 
+             * @param [in] size Nbytes 
+             * @param [in] isLast Is this transfer last
+             */
+            static void SetTransferSize(uint8_t size, bool isLast = true);
+            #endif
+
+            #if defined (I2C_TYPE_2)
+            /**
+             * @brief Write device address for write operation.
+             * 
+             * @param [in] devAddr Device address.
+             * @param [in] read Is read
+             * @param [in] opts Options
+             * 
+             * @retval true Success.
+             * @retval false Fail.
+             */        
+            static bool WriteDevAddr(uint16_t devAddr, bool read, I2cOpts opts);
+
+            /**
+             * @brief Start transfer.
+             * 
+             * @retval true Success.
+             * @retval false Fail.
+             */
+            static bool Start();
+            #endif
+
+            /**
+             * @brief Returns last event (SR register value)
+             * 
+             * @returns Event bitmask
+             */
+            static uint32_t GetLastEvent();
         };
 
-        static AsyncTransferData _transferData;
-    public:
-        using SclPins = _SclPins;
-        using SdaPins = _SdaPins;
-        
-        /**
-         * @brief Initialize I2C
-         * 
-         * @param [in] i2cClockSpeed I2C speed
-         * @param [in] dutyCycle2 Enable duty cycle 16/9 (not for all MCU)
-         * 
-         * @par Returns
-         * 	Nothing
-         */
+        #define I2C_TEMPLATE_ARGS template< \
+            typename _Regs, \
+            IRQn_Type _EventIrqNumber, \
+            IRQn_Type _ErrorIrqNumber, \
+            typename _ClockCtrl, \
+            typename _SclPins, \
+            typename _SdaPins, \
+            typename _DmaTx, \
+            typename _DmaRx>
+
+        #define I2C_TEMPLATE_QUALIFIER I2cBase<\
+                _Regs, \
+                _EventIrqNumber, \
+                _ErrorIrqNumber, \
+                _ClockCtrl, \
+                _SclPins, \
+                _SdaPins, \
+                _DmaTx, \
+                _DmaRx>
+
+        I2C_TEMPLATE_ARGS
+        typename I2C_TEMPLATE_QUALIFIER::AsyncTransferData I2C_TEMPLATE_QUALIFIER::_transferData;
     #if defined (I2C_TYPE_1)
-        static void Init(uint32_t i2cClockSpeed = 100000U);
-    #endif
-    #if defined (I2C_TYPE_2)
-        static void Init(uint32_t i2cClockSpeed = 100000U, bool dutyCycle2 = false);
-    #endif
-        
-        /**
-         * @brief Write 8-bit unsigned to register.
-         * 
-         * @param [in] devAddr Device address.
-         * @param [in] regAddr Register address.
-         * @param [in] data Data to write.
-         * @param [in] opts Options.
-         * 
-         * @returns Write status.
-         */
-        static I2cStatus WriteU8(uint16_t devAddr, uint16_t regAddr, uint8_t data, I2cOpts opts = I2cOpts::None);
-        
-        /**
-         * @brief Write data to register.
-         * 
-         * @param [in] devAddr Device address.
-         * @param [in] regAddr Register address.
-         * @param [in] data Data to write.
-         * @param [in] size Data size.
-         * @param [in] opts Options.
-         * 
-         * @returns Write status.
-         */
-        static I2cStatus Write(uint16_t devAddr, uint16_t regAddr, const uint8_t *data, uint16_t size, I2cOpts opts = I2cOpts::None);
-
-        /**
-         * @brief Write data to register async.
-         * 
-         * @param [in] devAddr Device address.
-         * @param [in] regAddr Register address.
-         * @param [in] data Data to write.
-         * @param [in] size Data size.
-         * @param [in] opts Options.
-         * @param [in] callback Complete (or error) callabck.
-         * 
-         * @returns Status.
-         */
-        static I2cStatus WriteAsync(uint16_t devAddr, uint16_t regAddr, const uint8_t *data, uint16_t size, I2cOpts opts = I2cOpts::None, I2cCallback callback = nullptr);
-
-        /**
-         * @brief Read 8-bit unsigned.
-         * 
-         * @param [in] devAddr Device address.
-         * @param [in] regAddr Register address.
-         * @param [in] opts Options.
-         * 
-         * @returns If return value is positive - it is read result (cast it to uint8_t!), if negative - it is error code.
-         */
-        static ReadResult ReadU8(uint16_t devAddr, uint16_t regAddr, I2cOpts opts = I2cOpts::None);
-
-        /**
-         * @brief Read some bytes.
-         * 
-         * @param [in] devAddr Device address.
-         * @param [in] regAddr Register address.
-         * @param [in] data Data buffer.
-         * @param [in] size Data size.
-         * @param [in] opts Options.
-         * 
-         * @returns Operation status.
-         */
-        static I2cStatus Read(uint16_t devAddr, uint16_t regAddr, uint8_t *data, uint16_t size, I2cOpts opts = I2cOpts::None);
-
-        /**
-         * @brief Read some bytes async.
-         * 
-         * @param [in] devAddr Device address.
-         * @param [in] regAddr Register address.
-         * @param [out] data Output buffer.
-         * @param [in] size Data size to read.
-         * @param [in] opts Options.
-         * @param [in] callback Complete (or error) callback.
-         * 
-         * @returns Operation status.
-         */
-        static I2cStatus EnableAsyncRead(uint16_t devAddr, uint16_t regAddr, uint8_t *data, uint16_t size, I2cOpts opts = I2cOpts::None, I2cCallback callback = nullptr);
-
-        /**
-         * @brief Write register address.
-         * 
-         * @param [in] regAddr Register address.
-         * @param [in] opts Options
-         * 
-         * @retval true Success.
-         * @retval false Fail.
-         */
-        static bool WriteRegAddr(uint16_t regAddr, I2cOpts opts);
-        
-        /**
-         * @brief Wait for events.
-         * 
-         * @param [in] Events mask.
-         * 
-         * @retval true Events was occured.
-         * @retval false Events was not occured.
-         */
-        static bool WaitEvent(uint32_t i2c_event);
-        
-         /**
-         * @brief Is bus busy.
-         * 
-         * @retval true Bus is busy.
-         * @retval false Bus is free.
-         */
-        static bool Busy();
-        
-        /**
-         * @brief Wait while bus busy.
-         * 
-         * @retval true Bus is free.
-         * @retval false Timeout.
-         */
-        static bool WaitWhileBusy();
-        
-        /**
-         * @brief Event IRQ handler
-         * 
-         * @par Returns
-         *  Nothing
-         */
-        static void EventIrqHandler();
-        
-        /**
-         * @brief Error IRQ handler
-         * 
-         * @par Returns
-         *  Nothing
-         */
-        static void ErrorIrqHandler();
-        
-        /**
-         * @brief Returns error from event.
-         * 
-         * @returns Status from event.
-         */
-        static I2cStatus GetErorFromEvent(uint32_t lastevent);
-        
-        /**
-         * @brief Select pins
-         * 
-         * @tparam SclPinNumber SCL pin number
-         * @tparam SdaPinNumber SDA pin number
-         * 
-         * @par Returns
-         *  Nothing
-         */
-        template<unsigned sclPinNumber, unsigned sdaPinNumber>
-        static void SelectPins();
-
-        /**
-         * @brief Select pins.
-         * 
-         * @param [in] sclPinNumber SCL pin number
-         * @param [in] sdaPinNumber SDA pin number
-         * 
-         * @par Returns
-         *  Nothing
-         */
-        static void SelectPins(uint8_t sclPinNumber, uint8_t sdaPinNumber);
-        
-        /**
-         * @brief Select pins
-         * 
-         * @tparam SclPin SCL pin
-         * @tparam SdaPin SDA pin
-         * 
-         * @par Returns
-         *  Nothing
-         */
-        template<typename SclPin, typename SdaPin>
-        static void SelectPins();
-
-    private:
-        /**
-         * @brief Write device address for write operation.
-         * 
-         * @param [in] devAddr Device address.
-         * @param [in] opts Options
-         * 
-         * @retval true Success.
-         * @retval false Fail.
-         */
-        static bool WriteDevAddrForWrite(uint16_t devAddr, I2cOpts opts);
-        
-        #if defined(I2C_TYPE_1)
-        /**
-         * @brief Write device address for read operation.
-         * 
-         * @param [in] devAddr Device address.
-         * @param [in] opts Options.
-         * @param [in] bytesToRead Nbytes value.
-         * @param [in] reload Need reload (if need read > 255 bytes)
-         * 
-         * @retval true Success.
-         * @retval false Fail.
-         */
-        static bool WriteDevAddrForRead(uint16_t devAddr, I2cOpts opts, uint8_t bytesToRead = 1, bool reload = false);
-
-        /**
-         * @brief Set transfer size (only for MCUs with NBYTES in CR2)
-         * 
-         * @param [in] size Nbytes 
-         * @param [in] isLast Is this transfer last
-         */
-        static void SetTransferSize(uint8_t size, bool isLast = true);
-        #endif
-        /**
-         * @brief Returns last event (SR register value)
-         * 
-         * @returns Event bitmask
-         */
-        static uint32_t GetLastEvent();
-    };
-
-    #define I2C_TEMPLATE_ARGS template< \
-        typename _Regs, \
-        IRQn_Type _EventIrqNumber, \
-        IRQn_Type _ErrorIrqNumber, \
-        typename _ClockCtrl, \
-        typename _SclPins, \
-        typename _SdaPins, \
-        typename _DmaTx, \
-        typename _DmaRx>
-
-    #define I2C_TEMPLATE_QUALIFIER I2cBase<\
-            _Regs, \
-            _EventIrqNumber, \
-            _ErrorIrqNumber, \
-            _ClockCtrl, \
-            _SclPins, \
-            _SdaPins, \
-            _DmaTx, \
-            _DmaRx>
-
-    I2C_TEMPLATE_ARGS
-    typename I2C_TEMPLATE_QUALIFIER::AsyncTransferData I2C_TEMPLATE_QUALIFIER::_transferData;
-}
-
-namespace Zhele
-{
-#if defined (I2C_TYPE_1)
     static inline uint32_t CalcTiming (uint32_t sourceClock, uint32_t sclClock)
     {
         uint32_t tClk = 4000000000u / sourceClock;	// 4*nsec
@@ -562,7 +585,7 @@ namespace Zhele
     I2C_TEMPLATE_ARGS
     I2cStatus I2C_TEMPLATE_QUALIFIER::WriteAsync(uint16_t devAddr, uint16_t regAddr, const uint8_t* data, uint16_t size, I2cOpts opts, I2cCallback callback)
     {
-         if(!WaitWhileBusy())
+        if(!WaitWhileBusy())
             return I2cStatus::Busy;
         
         if(!WriteDevAddrForWrite(devAddr, opts))
@@ -846,55 +869,426 @@ namespace Zhele
             | (size << I2C_CR2_NBYTES_Pos)
             | (isLast ? 0 : I2C_CR2_RELOAD);
     }
-
-#endif
-    I2C_TEMPLATE_ARGS
-    bool I2C_TEMPLATE_QUALIFIER::WaitWhileBusy()
-    {
-        for(uint32_t i = _timeout; i >= 0 && Busy(); --i);
-
-        return !Busy();
-    }
-
-    I2C_TEMPLATE_ARGS
-    bool I2C_TEMPLATE_QUALIFIER::WaitEvent(uint32_t i2c_event)
-    {
-        bool result = false;
-        auto timer = _timeout;
-        uint32_t lastevent;
-        do
+    #endif
+    #if defined (I2C_TYPE_2)
+        template<typename _Regs>
+        static inline uint32_t CalcTiming(uint32_t sourceClock, uint32_t i2cClockSpeed, bool dutyCycle2)
         {
-            lastevent = GetLastEvent();
-            result = (lastevent & i2c_event) == i2c_event;
-        } while(!result && --timer > 0);
+            uint32_t sourceClockInMhz = sourceClock / 1000000;
+            uint32_t result = 0;
+            uint32_t tmpreg = 0;
 
-        return result;
-    }
+            if (i2cClockSpeed <= 100000)
+            {
+                result = (uint16_t)(sourceClock / (i2cClockSpeed << 1));
 
-    I2C_TEMPLATE_ARGS
-    I2cStatus I2C_TEMPLATE_QUALIFIER::GetErorFromEvent(uint32_t lastevent)
-    {
-        if(lastevent & Timeout)
+                if (result < 0x04)
+                {
+                    result = 0x04;
+                }
+                tmpreg |= result;
+                _Regs()->TRISE = sourceClockInMhz + 1;
+            }
+            else
+            {
+                if (dutyCycle2)
+                {
+                    result = static_cast<uint16_t>(sourceClock / (i2cClockSpeed * 3));
+                }
+                else
+                {
+                    result = static_cast<uint16_t>(sourceClock / (i2cClockSpeed * 25));
+                    result |= 0x4000;
+                }
+
+
+                if ((result & I2C_CCR_CCR) == 0)
+                {
+                    result |= static_cast<uint16_t>(0x0001);
+                }
+                tmpreg |= static_cast<uint16_t>(result | I2C_CCR_FS);
+                _Regs()->TRISE = static_cast<uint16_t>(((sourceClockInMhz * static_cast<uint16_t>(300)) / static_cast<uint16_t>(1000)) + static_cast<uint16_t>(1));  
+            }
+            _Regs()->CCR = tmpreg;
+        }
+
+        I2C_TEMPLATE_ARGS
+        void I2C_TEMPLATE_QUALIFIER::Init(uint32_t i2cClockSpeed, bool dutyCycle2)
         {
+            _ClockCtrl::Enable();
+            
+            _Regs()->CR1 = 0;
+            while (_Regs()->CR1 & I2C_CR1_PE) {};
+            
+            uint32_t sourceClock = _ClockCtrl::ClockFreq();
+            CalcTiming<_Regs>(sourceClock, i2cClockSpeed, dutyCycle2);
+
+            _Regs()->CR1 |= (I2C_CR1_ACK | I2C_CR1_PE);
+
+            while ((_Regs()->CR1 & I2C_CR1_PE) == 0) {};
+
+            _Regs()->OAR1 = 2;
+            _Regs()->OAR2 = 0;
+
+            NVIC_EnableIRQ(_EventIrqNumber);
+            if constexpr(_EventIrqNumber != _ErrorIrqNumber)
+            {
+                NVIC_EnableIRQ(_ErrorIrqNumber);
+            }
+        }
+
+        I2C_TEMPLATE_ARGS
+        I2cStatus I2C_TEMPLATE_QUALIFIER::WriteU8(uint16_t devAddr, uint16_t regAddr, uint8_t data, I2cOpts opts)
+        {
+            _Regs()->SR1 = 0;
+            _Regs()->SR2 = 0;
+
+            if(!WaitWhileBusy())
+                return GetErorFromEvent(GetLastEvent());
+
+            if(!Start())
+                return GetErorFromEvent(GetLastEvent());
+            
+            if(!WriteDevAddr(devAddr, false, opts))
+                return GetErorFromEvent(GetLastEvent());
+
+            if(!HasAnyFlag(opts, I2cOpts::RegAddrNone) )
+            {
+                if(!WriteRegAddr(regAddr, opts))
+                    return GetErorFromEvent(GetLastEvent());
+            }
+            _Regs()->DR = data;
+
+            if(!WaitEvent(Events::ByteTransferFinished | Events::TxEmpty | Events::MasterSlave | Events::BusBusy | Events::TransmitterReceiver))
+                return GetErorFromEvent(GetLastEvent());
+
+            _Regs()->CR1 &= ~I2C_CR1_ACK;
+            _Regs()->CR1 |= I2C_CR1_STOP;
+
+            return I2cStatus::Success;
+        }
+
+        I2C_TEMPLATE_ARGS
+        I2cStatus I2C_TEMPLATE_QUALIFIER::Write(uint16_t devAddr, uint16_t regAddr, const uint8_t *data, uint16_t size, I2cOpts opts)
+        {
+            _Regs()->SR1 = 0;
+            _Regs()->SR2 = 0;
+
+            if(!WaitWhileBusy())
+                return GetErorFromEvent(GetLastEvent());
+
+            _Regs()->CR1 |= I2C_CR1_ACK;
+            
+            if(!Start())
+                return GetErorFromEvent(GetLastEvent());
+            
+           if(!WriteDevAddr(devAddr, false, opts))
+                return GetErorFromEvent(GetLastEvent());
+
+            if(!HasAnyFlag(opts, I2cOpts::RegAddrNone) )
+            {
+                if(!WriteRegAddr(regAddr, opts))
+                    return GetErorFromEvent(GetLastEvent());
+            }
+            
+            for(uint16_t i = 0; i < size; ++i)
+            {
+                _Regs()->DR = data[i];
+
+                if(!WaitEvent(Events::ByteTransferFinished | Events::TxEmpty | Events::MasterSlave | Events::BusBusy))
+                    return GetErorFromEvent(GetLastEvent());
+            }
+            
+            _Regs()->CR1 &= ~I2C_CR1_ACK;
+            _Regs()->CR1 |= I2C_CR1_STOP;
+
+            return I2cStatus::Success;
+        }
+
+        I2C_TEMPLATE_ARGS
+        I2cStatus I2C_TEMPLATE_QUALIFIER::WriteAsync(uint16_t devAddr, uint16_t regAddr, const uint8_t *data, uint16_t size, I2cOpts opts, I2cCallback callback)
+        {
+            _Regs()->SR1 = 0;
+            _Regs()->SR2 = 0;
+
+            if(!WaitWhileBusy())
+                return GetErorFromEvent(GetLastEvent());
+
+            _Regs()->CR1 |= I2C_CR1_ACK;
+            
+            if(!Start())
+                return GetErorFromEvent(GetLastEvent());
+            
+           if(!WriteDevAddr(devAddr, false, opts))
+                return GetErorFromEvent(GetLastEvent());
+
+            if(!HasAnyFlag(opts, I2cOpts::RegAddrNone) )
+            {
+                if(!WriteRegAddr(regAddr, opts))
+                    return GetErorFromEvent(GetLastEvent());
+            }
+            
+            _transferData.Callback = callback;
+
+            _DmaTx::ClearTransferComplete();
+            _Regs()->CR2 |= I2C_CR2_DMAEN;
+
+            _DmaTx::SetTransferCallback([](void* buffer, unsigned size, bool success)
+            {
+                if(!WaitEvent(Events::ByteTransferFinished))
+                {
+                    if (_transferData.Callback != nullptr)
+                    {
+                        _transferData.Callback(GetErorFromEvent(GetLastEvent()));
+                    }
+                }
+
+                _Regs()->CR1 &= ~I2C_CR1_ACK;
+                _Regs()->CR1 |= I2C_CR1_STOP;
+
+                if (_transferData.Callback != nullptr)
+                {
+                    _transferData.Callback(success ? I2cStatus::Success : GetErorFromEvent(GetLastEvent()));
+                }
+            });
+
+            _DmaTx::Transfer(_DmaTx::Mem2Periph | _DmaTx::MemIncrement, data, &_Regs()->DR, size);
+
+            return I2cStatus::Success;
+        }
+
+        I2C_TEMPLATE_ARGS
+        ReadResult I2C_TEMPLATE_QUALIFIER::ReadU8(uint16_t devAddr, uint16_t regAddr, I2cOpts opts)
+        {
+            if(!WaitWhileBusy())
+                return ReadResult {0, GetErorFromEvent(GetLastEvent())};
+
+            if(!Start())
+                return ReadResult {0, GetErorFromEvent(GetLastEvent())};
+
+            if(!WriteDevAddr(devAddr, false, opts))
+                return ReadResult {0, GetErorFromEvent(GetLastEvent())};
+
+            if(!HasAnyFlag(opts, I2cOpts::RegAddrNone))
+            {
+                if(!WriteRegAddr(regAddr, opts))
+                    return ReadResult {0, GetErorFromEvent(GetLastEvent())};
+            }
+
+            if(!Start())
+                return ReadResult {0, GetErorFromEvent(GetLastEvent())};
+
+            if(!WriteDevAddr(devAddr, true, opts))
+                return ReadResult {0, GetErorFromEvent(GetLastEvent())};
+
+            _Regs()->CR1 = (_Regs()->CR1 & (~I2C_CR1_ACK)) | I2C_CR1_STOP;
+            uint8_t readedValue = static_cast<uint8_t>(_Regs()->DR);
+
+            return ReadResult {readedValue, I2cStatus::Success};
+        }
+
+        I2C_TEMPLATE_ARGS
+        I2cStatus I2C_TEMPLATE_QUALIFIER::Read(uint16_t devAddr, uint16_t regAddr, uint8_t *data, uint16_t size, I2cOpts opts)
+        {            
+            if(!WaitWhileBusy())
+                GetErorFromEvent(GetLastEvent());
+            
+            if(!Start())
+                GetErorFromEvent(GetLastEvent());
+
+            if(!WriteDevAddr(devAddr, false, opts))
+                GetErorFromEvent(GetLastEvent());
+
+            if(!HasAnyFlag(opts, I2cOpts::RegAddrNone))
+            {
+                if(!WriteRegAddr(regAddr, opts))
+                    return GetErorFromEvent(GetLastEvent());
+            }
+            
+            if(!Start())
+                return GetErorFromEvent(GetLastEvent());
+
+            _Regs()->CR1 |= I2C_CR1_ACK;
+
+            if(!WriteDevAddr(devAddr, true, opts))
+                GetErorFromEvent(GetLastEvent());
+            
+            for(int i = 0; i < size - 1; ++i)
+            {
+                if(!WaitEvent(Events::RxNotEmpty | Events::MasterSlave | Events::BusBusy))
+                    return GetErorFromEvent(GetLastEvent());
+
+                data[i] = static_cast<uint8_t>(_Regs()->DR);
+            }
+
+            _Regs()->CR1 &= ~I2C_CR1_ACK;
+
+            if(!WaitEvent(Events::RxNotEmpty | Events::MasterSlave | Events::BusBusy))
+                    return GetErorFromEvent(GetLastEvent());
+
+            data[size - 1] = static_cast<uint8_t>(_Regs()->DR);
+
+            _Regs()->CR1 |= I2C_CR1_STOP;
+
+            return I2cStatus::Success;
+        }
+
+        I2C_TEMPLATE_ARGS
+        I2cStatus I2C_TEMPLATE_QUALIFIER::EnableAsyncRead(uint16_t devAddr, uint16_t regAddr, uint8_t *data, uint16_t size, I2cOpts opts, I2cCallback callback)
+        {            
+            if(!WaitWhileBusy())
+                GetErorFromEvent(GetLastEvent());
+            
+            if(!Start())
+                GetErorFromEvent(GetLastEvent());
+
+            if(!WriteDevAddr(devAddr, false, opts))
+                GetErorFromEvent(GetLastEvent());
+
+            if(!HasAnyFlag(opts, I2cOpts::RegAddrNone))
+            {
+                if(!WriteRegAddr(regAddr, opts))
+                    return GetErorFromEvent(GetLastEvent());
+            }
+            
+            if(!Start())
+                return GetErorFromEvent(GetLastEvent());
+
+            _Regs()->CR1 |= I2C_CR1_ACK;
+
+            if(!WriteDevAddr(devAddr, true, opts))
+                GetErorFromEvent(GetLastEvent());
+            
+            _transferData.Callback = callback;
+
+            _DmaRx::ClearTransferComplete();
+            _Regs()->CR2 |= I2C_CR2_DMAEN;
+
+            _DmaRx::SetTransferCallback([](void* buffer, unsigned size, bool success)
+            {
+                _Regs()->CR1 &= ~I2C_CR1_ACK;
+
+                if(!WaitEvent(Events::RxNotEmpty | Events::MasterSlave | Events::BusBusy))
+                {
+                    if (_transferData.Callback != nullptr)
+                    {
+                        _transferData.Callback(GetErorFromEvent(GetLastEvent()));
+                    }
+                }
+
+                static_cast<uint8_t*>(buffer)[size] = static_cast<uint8_t>(_Regs()->DR);
+
+                _Regs()->CR1 |= I2C_CR1_STOP;
+
+                if (_transferData.Callback != nullptr)
+                {
+                    _transferData.Callback(success ? I2cStatus::Success : GetErorFromEvent(GetLastEvent()));
+                }
+            });
+
+            _DmaRx::Transfer(_DmaRx::Periph2Mem | _DmaRx::MemIncrement | _DmaRx::Circular, data, &_Regs()->DR, size - 1);
+
+            return I2cStatus::Success;
+        }
+
+        I2C_TEMPLATE_ARGS
+        bool I2C_TEMPLATE_QUALIFIER::WriteDevAddr(uint16_t devAddr, bool read, I2cOpts opts)
+        {
+            _Regs()->DR = (devAddr << 1) | (read ? 1 : 0);
+            return WaitEvent(read
+                ? Events::RxNotEmpty | Events::MasterSlave | Events::BusBusy
+                : Events::AddressSent | Events::TxEmpty | Events::MasterSlave | Events::BusBusy | Events::TransmitterReceiver);
+        }
+
+        I2C_TEMPLATE_ARGS
+        bool I2C_TEMPLATE_QUALIFIER::WriteRegAddr(uint16_t regAddr, I2cOpts opts)
+        {
+            if(HasAnyFlag(opts, I2cOpts::RegAddr16Bit))
+            {
+                _Regs()->DR = static_cast<uint8_t>(regAddr);
+                if(!WaitEvent(Events::RxNotEmpty | Events::MasterSlave | Events::BusBusy))
+                    return false;
+            
+                _Regs()->DR = static_cast<uint8_t>(regAddr >> 8);
+                return WaitEvent(Events::ByteTransferFinished | Events::TxEmpty | Events::MasterSlave | Events::BusBusy | Events::TransmitterReceiver);
+            }
+            else
+            {
+                _Regs()->DR = static_cast<uint8_t>(regAddr);
+                return WaitEvent(Events::ByteTransferFinished | Events::TxEmpty | Events::MasterSlave | Events::BusBusy | Events::TransmitterReceiver);
+            }
+            return true;
+        }
+
+        I2C_TEMPLATE_ARGS
+        bool I2C_TEMPLATE_QUALIFIER::Start()
+        {
+            _Regs()->SR1 = 0;
+            _Regs()->SR2 = 0;
+            _Regs()->CR1 |= I2C_CR1_START;
+            return WaitEvent(Events::MasterSlave | Events::BusBusy | Events::StartBit);
+        }
+
+        I2C_TEMPLATE_ARGS
+        bool I2C_TEMPLATE_QUALIFIER::Busy()
+        {
+            return (_Regs()->SR2 & I2C_SR2_BUSY) > 0;
+        }
+
+        I2C_TEMPLATE_ARGS
+        uint32_t I2C_TEMPLATE_QUALIFIER::GetLastEvent()
+        {
+            return (_Regs()->SR1 | _Regs()->SR2 << 16) & 0x00ffffff;
+        }
+    #endif
+        I2C_TEMPLATE_ARGS
+        bool I2C_TEMPLATE_QUALIFIER::WaitWhileBusy()
+        {
+            for(uint32_t i = _timeout; i >= 0 && Busy(); --i);
+
+            return !Busy();
+        }
+
+        I2C_TEMPLATE_ARGS
+        bool I2C_TEMPLATE_QUALIFIER::WaitEvent(uint32_t i2c_event)
+        {
+            bool result = false;
+            auto timer = _timeout;
+            uint32_t lastevent;
+            do
+            {
+                lastevent = GetLastEvent();
+                result = (lastevent & i2c_event) == i2c_event;
+            } while(!result && --timer > 0);
+
+            return result;
+        }
+
+        I2C_TEMPLATE_ARGS
+        I2cStatus I2C_TEMPLATE_QUALIFIER::GetErorFromEvent(uint32_t lastevent)
+        {
+            if(lastevent & Timeout)
+            {
+                return I2cStatus::Timeout;
+            }
+            if(lastevent & Overrun)
+            {
+                return I2cStatus::Overflow;
+            }
+            if(lastevent & AckFailure)
+            {
+                return I2cStatus::Nack;
+            }
+            if(lastevent & ArbitrationLost)
+            {
+                return I2cStatus::ArbitrationError;
+            }
+            if(lastevent & BusError)
+            {
+                return I2cStatus::BusError;
+            }
             return I2cStatus::Timeout;
         }
-        if(lastevent & Overrun)
-        {
-            return I2cStatus::Overflow;
-        }
-        if(lastevent & AckFailure)
-        {
-            return I2cStatus::Nack;
-        }
-        if(lastevent & ArbitrationLost)
-        {
-            return I2cStatus::ArbitrationError;
-        }
-        if(lastevent & BusError)
-        {
-            return I2cStatus::BusError;
-        }
-        return I2cStatus::Timeout;
     }
 }
 
