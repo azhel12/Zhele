@@ -14,88 +14,123 @@
 
 #include "../common/spi.h"
 
+#include "clock.h"
+#include "dma.h"
+#include "iopins.h"
 #include "remap.h"
-#include <clock.h>
-#include <iopins.h>
 
 namespace Zhele
 {
     namespace Private
     {
-        template<typename _Regs, typename _Clock, typename _MosiPins, typename _MisoPins, typename _ClockPins, typename _SsPins>
-        void Spi<_Regs, _Clock, _MosiPins, _MisoPins, _ClockPins, _SsPins>::SelectPins(unsigned mosiPinNumber, unsigned misoPinNumber, unsigned clockPinNumber, unsigned ssPinNumber)
+        template<typename _Regs, typename _Clock, typename _MosiPins, typename _MisoPins, typename _ClockPins, typename _SsPins, typename _DmaTx, typename _DmaRx>
+        void Spi<_Regs, _Clock, _MosiPins, _MisoPins, _ClockPins, _SsPins, _DmaTx, _DmaRx>::SelectPins(int8_t mosiPinNumber, int8_t misoPinNumber, int8_t clockPinNumber, int8_t ssPinNumber)
         {
             if(!(mosiPinNumber == misoPinNumber && mosiPinNumber == clockPinNumber && mosiPinNumber == ssPinNumber))
                 return;
 
             using Type = typename _MosiPins::DataType;
 
-            _MosiPins::Enable();
-            Type maskMosi (1 << mosiPinNumber);
-            _MosiPins::SetConfiguration(maskMosi, _MosiPins::AltFunc);
+            if(mosiPinNumber != -1)
+            {
+                _MosiPins::Enable();
+                Type maskMosi (1 << mosiPinNumber);
+                _MosiPins::SetConfiguration(maskMosi, _MosiPins::AltFunc);
+                _MosiPins::SetDriverType(maskMosi, _MosiPins::DriverType::PushPull);
+            }
 
-            _MisoPins::Enable();
-            Type maskMiso (1 << misoPinNumber);
-            _MisoPins::SetConfiguration(maskMiso, _MisoPins::AltFunc);
+            if(misoPinNumber != -1)
+            {
+                _MisoPins::Enable();
+                Type maskMiso (1 << misoPinNumber);
+                _MisoPins::SetConfiguration(maskMiso, _MisoPins::AltFunc);
+            }
             
             _ClockPins::Enable();
-            Type maskSck (1 << clockPinNumber);
-            _ClockPins::SetConfiguration(maskSck, _ClockPins::AltFunc);
+            Type maskClock (1 << clockPinNumber);
+            _ClockPins::SetConfiguration(maskClock, _ClockPins::AltFunc);
+            _ClockPins::SetDriverType(maskClock, _ClockPins::DriverType::PushPull);
             
-            _SsPins::Enable();
-            Type maskNss (1 << ssPinNumber);
-            _SsPins::SetConfiguration(maskNss, _SsPins::AltFunc);
+            if(ssPinNumber != -1)
+            {
+                _SsPins::Enable();
+                Type maskSs (1 << ssPinNumber);
+                _SsPins::SetConfiguration(maskSs, _SsPins::AltFunc);
+                _SsPins::SetDriverType(maskSs, _SsPins::DriverType::PushPull);
+            }
 
             Clock::AfioClock::Enable();
-            if(mosiPinNumber == 1)
+            if(clockPinNumber == 1)
             {
                 Zhele::IO::Private::PeriphRemap<_Clock>::Set(1);
             }
         }
 
-        template<typename _Regs, typename _Clock, typename _MosiPins, typename _MisoPins, typename _ClockPins, typename _SsPins>
-        template<unsigned mosiPinNumber, unsigned misoPinNumber, unsigned clockPinNumber, unsigned ssPinNumber>
-        void Spi<_Regs, _Clock, _MosiPins, _MisoPins, _ClockPins, _SsPins>::SelectPins()
+        template<typename _Regs, typename _Clock, typename _MosiPins, typename _MisoPins, typename _ClockPins, typename _SsPins, typename _DmaTx, typename _DmaRx>
+        template<int8_t mosiPinNumber, int8_t misoPinNumber, int8_t clockPinNumber, int8_t ssPinNumber>
+        void Spi<_Regs, _Clock, _MosiPins, _MisoPins, _ClockPins, _SsPins, _DmaTx, _DmaRx>::SelectPins()
         {
-            static_assert(mosiPinNumber == misoPinNumber && mosiPinNumber == clockPinNumber && mosiPinNumber == ssPinNumber);
-            static_assert(mosiPinNumber <= 1);
+            static_assert((clockPinNumber == mosiPinNumber || mosiPinNumber == -1)
+                && (clockPinNumber == misoPinNumber || misoPinNumber == -1)
+                && (clockPinNumber == ssPinNumber || ssPinNumber == -1));
 
-            using MosiPin = typename GetType<mosiPinNumber, typename _MosiPins::PinsAsTypeList>::type;
-            MosiPin::Port::Enable();
-            MosiPin::SetConfiguration(MosiPin::Configuration::AltFunc);
-        
-            using MisoPin = typename GetType<misoPinNumber, typename _MisoPins::PinsAsTypeList>::type;
-            MisoPin::Port::Enable();
-            MisoPin::SetConfiguration(MisoPin::Configuration::AltFunc);
+            static_assert(clockPinNumber <= 1);
 
+            using MosiPin = std::conditional_t<mosiPinNumber != -1, typename GetType<mosiPinNumber, typename _MosiPins::PinsAsTypeList>::type, typename IO::NullPin>;
+            using MisoPin = std::conditional_t<misoPinNumber != -1, typename GetType<misoPinNumber, typename _MisoPins::PinsAsTypeList>::type, typename IO::NullPin>;
             using ClockPin = typename GetType<clockPinNumber, typename _ClockPins::PinsAsTypeList>::type;
-            ClockPin::Port::Enable();
-            ClockPin::SetConfiguration(ClockPin::Configuration::AltFunc);
+            using SsPin = std::conditional_t<ssPinNumber != -1, typename GetType<ssPinNumber, typename _SsPins::PinsAsTypeList>::type, typename IO::NullPin>;
+            
+            using usedPorts = Zhele::IO::PortList<typename TemplateUtils::Unique<TypeList<typename MosiPin::Port, typename MisoPin::Port, typename ClockPin::Port, typename SsPin::Port>>::type>;
+            usedPorts::Enable();
 
-            using SsPin = typename GetType<ssPinNumber, typename _SsPins::PinsAsTypeList>::type;
-            SsPin::Port::Enable();
-            SsPin::SetConfiguration(SsPin::Configuration::AltFunc);
+            if constexpr(mosiPinNumber != -1)
+            {
+                MosiPin::template SetConfiguration<MosiPin::Configuration::AltFunc>();
+                MosiPin::template SetDriverType<MosiPin::DriverType::PushPull>();
+            }
+
+            if constexpr(misoPinNumber != -1)
+            {
+                MisoPin::template SetConfiguration<MisoPin::Configuration::AltFunc>();
+            }
+
+            ClockPin::template SetConfiguration<ClockPin::Configuration::AltFunc>();
+            ClockPin::template SetDriverType<ClockPin::DriverType::PushPull>();
+
+            if constexpr(ssPinNumber != -1)
+            {
+                SsPin::template SetConfiguration<SsPin::Configuration::AltFunc>();
+                SsPin::template SetDriverType<SsPin::DriverType::PushPull>();
+            }
 
             Clock::AfioClock::Enable();
-            if constexpr (mosiPinNumber == 1)
+            
+            if constexpr (ssPinNumber == 1)
             {
                 Zhele::IO::Private::PeriphRemap<_Clock>::Set(1);
             }
         }
 
-        template<typename _Regs, typename _Clock, typename _MosiPins, typename _MisoPins, typename _ClockPins, typename _SsPins>
+        template<typename _Regs, typename _Clock, typename _MosiPins, typename _MisoPins, typename _ClockPins, typename _SsPins, typename _DmaTx, typename _DmaRx>
         template<typename MosiPin, typename MisoPin, typename ClockPin, typename SsPin>
-        void Spi<_Regs, _Clock, _MosiPins, _MisoPins, _ClockPins, _SsPins>::SelectPins()
+        void Spi<_Regs, _Clock, _MosiPins, _MisoPins, _ClockPins, _SsPins, _DmaTx, _DmaRx>::SelectPins()
         {
-            const int mosiPinIndex = TypeIndex<MosiPin, typename _MosiPins::PinsAsTypeList>::value;
-            const int misoPinIndex = TypeIndex<MisoPin, typename _MisoPins::PinsAsTypeList>::value;
-            const int clockPinIndex = TypeIndex<ClockPin, typename _ClockPins::PinsAsTypeList>::value;
-            const int ssPinIndex = TypeIndex<SsPin, typename _SsPins::PinsAsTypeList>::value;
+            const int8_t mosiPinIndex = !std::is_same_v<MosiPin, IO::NullPin>
+                                ? TypeIndex<MosiPin, typename _MosiPins::PinsAsTypeList>::value
+                                : -1;
+            const int8_t misoPinIndex = !std::is_same_v<MisoPin, IO::NullPin>
+                                ? TypeIndex<MisoPin, typename _MisoPins::PinsAsTypeList>::value
+                                : -1;
+            const int8_t clockPinIndex = TypeIndex<ClockPin, typename _ClockPins::PinsAsTypeList>::value;
+            const int8_t ssPinIndex = !std::is_same_v<SsPin, IO::NullPin>
+                                ? TypeIndex<SsPin, typename _SsPins::PinsAsTypeList>::value
+                                : -1;
 
-            static_assert(mosiPinIndex >= 0);
-            static_assert(misoPinIndex >= 0);
+            static_assert(mosiPinIndex >= -1);
+            static_assert(misoPinIndex >= -1);
             static_assert(clockPinIndex >= 0);
-            static_assert(ssPinIndex >= 0);
+            static_assert(ssPinIndex >= -1);
 
             SelectPins<mosiPinIndex, misoPinIndex, clockPinIndex, ssPinIndex>();
         }
@@ -129,7 +164,9 @@ namespace Zhele
         Private::Spi1MosiPins, 
         Private::Spi1MisoPins,
         Private::Spi1ClockPins,
-        Private::Spi1SsPins>;
+        Private::Spi1SsPins,
+        Dma1Channel3,
+        Dma1Channel2>;
 
     using Spi2 = Private::Spi<
         Private::Spi2Regs, 
@@ -137,7 +174,9 @@ namespace Zhele
         Private::Spi2MosiPins, 
         Private::Spi2MisoPins,
         Private::Spi2ClockPins,
-        Private::Spi2SsPins>;
+        Private::Spi2SsPins,
+        Dma1Channel5,
+        Dma1Channel4>;
 
     #if defined(SPI3)
         using Spi3 = Private::Spi<
@@ -146,7 +185,9 @@ namespace Zhele
             Private::Spi3MosiPins, 
             Private::Spi3MisoPins,
             Private::Spi3ClockPins,
-            Private::Spi3SsPins>;
+            Private::Spi3SsPins,
+            Dma2Channel2,
+            Dma2Channel1>;
     #endif
     
 }

@@ -20,42 +20,6 @@ namespace Zhele
 {
     namespace Private
     {
-        using I2C1SclPins = IO::PinList<IO::Pb6, IO::Pb8>;
-        using I2C1SdaPins = IO::PinList<IO::Pb7, IO::Pb9>;
-        IO_STRUCT_WRAPPER(I2C1, I2C1Regs, I2C_TypeDef);
-
-    #if defined (I2C2)
-        using I2C2SclPins = IO::PinList<IO::Pb10>;
-        using I2C2SdaPins = IO::PinList<IO::Pb11>;
-        IO_STRUCT_WRAPPER(I2C2, I2C2Regs, I2C_TypeDef);
-        using I2c2 = I2cBase<I2C2Regs, I2C2_EV_IRQn, I2C2_ER_IRQn, Clock::I2c2Clock, I2C2SclPins, I2C2SdaPins, void, void>;
-    #endif
-
-        I2C_TEMPLATE_ARGS
-        template<unsigned sclPinNumber, unsigned sdaPinNumber>
-        void I2C_TEMPLATE_QUALIFIER::SelectPins()
-        {
-            using SclPin = typename _SclPins::template Pin<sclPinNumber>;
-            SclPin::Port::Enable();
-            SclPin::template SetConfiguration<SclPin::Port::AltFunc>();
-            SclPin::template SetDriverType<SclPin::Port::OpenDrain>();
-            SclPin::template SetPullUp<SclPin::PullMode::PullUp>();
-
-            using SdaPin = typename _SdaPins::template Pin<sdaPinNumber>;
-            if constexpr (!std::is_same_v<typename SdaPin::Port, typename SclPin::Port>)
-            {
-                SdaPin::Port::Enable();
-            }
-            SdaPin::template SetConfiguration<SdaPin::Port::AltFunc>();
-            SdaPin::template SetDriverType<SdaPin::Port::OpenDrain>();
-            SdaPin::template  SetPullUp<SdaPin::PullMode::PullUp>();
-
-            if constexpr(sclPinNumber == 1)
-            {
-                Zhele::IO::Private::PeriphRemap<_ClockCtrl>::Set(1);
-            }
-        }
-
         I2C_TEMPLATE_ARGS
         void I2C_TEMPLATE_QUALIFIER::SelectPins(uint8_t sclPinNumber, uint8_t sdaPinNumber)
         {
@@ -82,6 +46,31 @@ namespace Zhele
         }
         
         I2C_TEMPLATE_ARGS
+        template<unsigned sclPinNumber, unsigned sdaPinNumber>
+        void I2C_TEMPLATE_QUALIFIER::SelectPins()
+        {
+            using SclPin = typename _SclPins::template Pin<sclPinNumber>;
+            SclPin::Port::Enable();
+            SclPin::template SetConfiguration<SclPin::Port::AltFunc>();
+            SclPin::template SetDriverType<SclPin::Port::OpenDrain>();
+            SclPin::template SetPullUp<SclPin::PullMode::PullUp>();
+
+            using SdaPin = typename _SdaPins::template Pin<sdaPinNumber>;
+            if constexpr (!std::is_same_v<typename SdaPin::Port, typename SclPin::Port>)
+            {
+                SdaPin::Port::Enable();
+            }
+            SdaPin::template SetConfiguration<SdaPin::Port::AltFunc>();
+            SdaPin::template SetDriverType<SdaPin::Port::OpenDrain>();
+            SdaPin::template  SetPullUp<SdaPin::PullMode::PullUp>();
+
+            if constexpr(sclPinNumber == 1)
+            {
+                Zhele::IO::Private::PeriphRemap<_ClockCtrl>::Set(1);
+            }
+        }
+        
+        I2C_TEMPLATE_ARGS
         template<typename SclPin, typename SdaPin>
         void I2C_TEMPLATE_QUALIFIER::SelectPins()
         {
@@ -93,6 +82,17 @@ namespace Zhele
 
             SelectPins<sclPinIndex, sdaPinIndex>();
         }
+
+        using I2C1SclPins = IO::PinList<IO::Pb6, IO::Pb8>;
+        using I2C1SdaPins = IO::PinList<IO::Pb7, IO::Pb9>;
+        IO_STRUCT_WRAPPER(I2C1, I2C1Regs, I2C_TypeDef);
+
+    #if defined (I2C2)
+        using I2C2SclPins = IO::PinList<IO::Pb10>;
+        using I2C2SdaPins = IO::PinList<IO::Pb11>;
+        IO_STRUCT_WRAPPER(I2C2, I2C2Regs, I2C_TypeDef);
+        using I2c2 = I2cBase<I2C2Regs, I2C2_EV_IRQn, I2C2_ER_IRQn, Clock::I2c2Clock, I2C2SclPins, I2C2SdaPins, void, void>;
+    #endif
     }
 
     using I2c1 = Private::I2cBase<Private::I2C1Regs, I2C1_EV_IRQn, I2C1_ER_IRQn, Clock::I2c1Clock, Private::I2C1SclPins, Private::I2C1SdaPins, Dma1Channel6, Dma1Channel7>;
