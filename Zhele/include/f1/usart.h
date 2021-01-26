@@ -112,7 +112,7 @@ namespace Zhele
             const int8_t txPinIndex = TypeIndex<TxPin, typename _TxPins::Key::PinsAsTypeList>::value;
             const int8_t rxPinIndex = !std::is_same_v<RxPin, IO::NullPin>
                                 ? TypeIndex<RxPin, typename _RxPins::Key::PinsAsTypeList>::value
-                                : 0xff;
+                                : -1;
             static_assert(txPinIndex >= 0);
             static_assert(rxPinIndex >= -1);
             SelectTxRxPins<txPinIndex, rxPinIndex>();

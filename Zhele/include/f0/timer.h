@@ -10,8 +10,11 @@
 #define ZHELE_TIMER_H
 
 #include "iopins.h"
+#include "../common/template_utils/pair.h"
+#include "../common/template_utils/static_array.h"
 
 #include "../common/timer.h"
+
 
 using namespace Zhele::IO;
 
@@ -24,11 +27,27 @@ namespace Zhele::Timers
         void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::SelectPins(int pinNumber)
         {
             using Pins = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::Pins;
+            using PinAltFuncNumbers = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::PinsAltFuncNumber;
             using Type = typename Pins::DataType;
+
             Type mask = 1 << pinNumber;
             Pins::Enable();
             Pins::SetConfiguration(mask, Pins::AltFunc);
-            Pins::AltFuncNumber(mask, _ChPins<_ChannelNumber>::AltFunc);
+            Pins::AltFuncNumber(mask, GetNumberRuntime<PinAltFuncNumbers>::Get(pinNumber));
+        }
+
+        template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>
+        template <unsigned _ChannelNumber>
+        template <unsigned PinNumber>
+        void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::SelectPins()
+        {
+            using Pins = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::Pins;
+            using PinAltFuncNumbers = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::PinsAltFuncNumber;
+            using Pin = typename Pins::template Pin<PinNumber>;
+
+            Pin::Port::Enable();
+            Pin::template SetConfiguration<Pin::Port::AltFunc>();
+            Pin::template AltFuncNumber<GetNumber<PinNumber, PinAltFuncNumbers>::value>();
         }
 
         template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>
@@ -36,19 +55,18 @@ namespace Zhele::Timers
         template <typename Pin>
         void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::SelectPins()
         {
-            using Pins = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::Pins;
+            
             static_assert(Pins::template IndexOf<Pin> >= 0);
-            Pin::Port::Enable();
-            Pin::template SetConfiguration<Pins::AltFunc>();
-            Pin::template AltFuncNumber<_ChPins<_ChannelNumber>::AltFunc>();
+            
+            SelectPins<Pins::template IndexOf<Pin>>();
         }
 
 
         template<unsigned ChannelNumber> struct Tim3ChPins;
-        template<> struct Tim3ChPins<0>{ enum{AltFunc = 1}; using Pins = PinList<Pa6, Pb4>; };
-        template<> struct Tim3ChPins<1>{ enum{AltFunc = 1}; using Pins = PinList<Pa7, Pb5>; };
-        template<> struct Tim3ChPins<2>{ enum{AltFunc = 1}; using Pins = PinList<Pb0, Pb10>; };
-        template<> struct Tim3ChPins<3>{ enum{AltFunc = 1}; using Pins = PinList<Pb1, Pb11>; };
+        template<> struct Tim3ChPins<0>{ using Pins = Pair<IO::PinList<Pa6, Pb4>, UnsignedArray<1, 1>>; };
+        template<> struct Tim3ChPins<1>{ using Pins = Pair<IO::PinList<Pa7, Pb5>, UnsignedArray<1, 1>>; };
+        template<> struct Tim3ChPins<2>{ using Pins = Pair<IO::PinList<Pb0, Pb10>, UnsignedArray<1, 1>>; };
+        template<> struct Tim3ChPins<3>{ using Pins = Pair<IO::PinList<Pb1, Pb11>, UnsignedArray<1, 1>>; };
         
     #if defined (TIM1)
         IO_STRUCT_WRAPPER(TIM1, Tim1Regs, TIM_TypeDef);

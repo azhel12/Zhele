@@ -92,7 +92,7 @@ namespace Zhele
             if constexpr(mosiPinNumber != -1)
             {
                 MosiPin::template SetConfiguration<MosiPin::Port::AltFunc>();
-                MosiPin::SetDriverType(MosiPin::DriverType::PushPull);
+                MosiPin::template SetDriverType<MosiPin::DriverType::PushPull>();
                 MosiPin::template AltFuncNumber<GetNumber<mosiPinNumber, MosiAltFuncNumbers>::value>();
             }
 
@@ -103,13 +103,13 @@ namespace Zhele
             }
 
             ClockPin::template SetConfiguration<ClockPin::Port::AltFunc>();
-            ClockPin::SetDriverType(ClockPin::DriverType::PushPull);
+            ClockPin::template SetDriverType<ClockPin::DriverType::PushPull>();
             ClockPin::template AltFuncNumber<GetNumber<clockPinNumber, ClockAltFuncNumbers>::value>();
 
             if constexpr(ssPinNumber != -1)
             {
                 SsPin::template SetConfiguration<SsPin::Port::AltFunc>();
-                SsPin::SetDriverType(SsPin::DriverType::PushPull);
+                SsPin::template SetDriverType<SsPin::DriverType::PushPull>;
                 SsPin::template AltFuncNumber<GetNumber<ssPinNumber, SsAltFuncNumbers>::value>();
             }
         }

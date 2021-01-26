@@ -48,7 +48,6 @@ namespace Zhele
             Type maskTx(1 << txPinNumber);
             TxPins::SetConfiguration(maskTx, TxPins::AltFunc);
             TxPins::AltFuncNumber(maskTx, GetNumberRuntime<TxAltFuncNumbers>::Get(txPinNumber));
-            
 
             if(rxPinNumber != -1)
             {
@@ -74,19 +73,18 @@ namespace Zhele
         {
             using TxAltFuncNumbers = typename _TxPins::Value;
             using RxAltFuncNumbers = typename _RxPins::Value;
+
             using TxPin = typename _TxPins::Key::template Pin<TxPinNumber>;
-            
-            TxPin::Port::Enable();
+            using RxPin = std::conditional_t<RxPinNumber != -1, typename _RxPins::Key::template Pin<RxPinNumber>, typename IO::NullPin>;
+
+            using usedPorts = IO::PortList<typename TemplateUtils::Unique<TypeList<typename TxPin::Port, typename RxPin::Port>>::type>;
+            usedPorts::Enable();
+
             TxPin::template SetConfiguration<TxPin::Port::AltFunc>();
             TxPin::template AltFuncNumber<GetNumber<TxPinNumber, TxAltFuncNumbers>::value>();
             
-            using RxPin = std::conditional_t<RxPinNumber != -1, typename _RxPins::Key::template Pin<RxPinNumber>, typename IO::NullPin>;
             if constexpr(!std::is_same_v<RxPin, IO::NullPin>)
             {
-                if constexpr (!std::is_same_v<typename RxPin::Port, typename TxPin::Port>)
-                {
-                    RxPin::Port::Enable();
-                }
                 RxPin::template SetConfiguration<RxPin::Port::AltFunc>();
                 RxPin::template AltFuncNumber<GetNumber<RxPinNumber, RxAltFuncNumbers>::value>();
             }

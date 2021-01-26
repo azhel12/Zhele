@@ -77,6 +77,16 @@ namespace Zhele::IO
             DECLARE_PERIPH_REMAP(Zhele::Clock::Spi3Clock, Spi3RemapBitField);
         #endif
 
+        // I2C remap
+        DECLARE_IO_BITFIELD_WRAPPER(AFIO->MAPR, I2c1RemapBitField, AFIO_MAPR_I2C1_REMAP)
+        DECLARE_PERIPH_REMAP(Zhele::Clock::I2c1Clock, I2c1RemapBitField)
+
+        template<typename Clock>
+        using PeriphRemap = typename Private::PeriphRemapBitField<Clock>::BitField;
+
+        // SWJ remap
+        DECLARE_IO_BITFIELD_WRAPPER(AFIO->MAPR, SwjRemapBitField, AFIO_MAPR_SWJ_CFG)
+
         template<typename Clock>
         using PeriphRemap = typename Private::PeriphRemapBitField<Clock>::BitField;
     }
@@ -94,6 +104,10 @@ namespace Zhele::IO
     #if defined(SPI3)
         using Spi3Remap = Private::PeriphRemap<Zhele::Clock::Spi3Clock>;
     #endif
+
+    using I2c1Remap = Private::PeriphRemap<Zhele::Clock::I2c1Clock>;
+
+    using SwjRemap = Private::SwjRemapBitField;
 } // namespace Zhele::IO
 
 

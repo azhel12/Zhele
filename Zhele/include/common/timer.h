@@ -371,7 +371,8 @@ namespace Zhele::Timers
                     ForcedInactive = TIM_CCMR1_OC1M_2
                 };
                 static_assert(_ChannelNumber < 4);
-                using Pins = typename _ChPins<_ChannelNumber>::Pins;
+                using Pins = typename _ChPins<_ChannelNumber>::Pins::Key;
+                using PinsAltFuncNumber = typename _ChPins<_ChannelNumber>::Pins::Value;
             
                 /**
                  * @brief Set OC pulse
@@ -502,6 +503,14 @@ namespace Zhele::Timers
                 static void SelectPins(int pinNumber);
             
                 /**
+                 * @brief Select channel pin by number (template method)
+                 * 
+                 * @tparam PinNumber Pin number
+                 */
+                template<unsigned PinNumber>
+                static void SelectPins();
+
+                /**
                  * @brief Select channel pin (template method)
                  * 
                  * @tparam Pin Pin class
@@ -522,7 +531,7 @@ namespace Zhele::Timers
             class PWMGeneration : public OutputCompare<_ChannelNumber>
             {
                 using Base = OutputCompare<_ChannelNumber>;
-                using Pins = typename _ChPins<_ChannelNumber>::Pins;
+                using Pins = typename Base::Pins;
             public:
                 /// PWM Fast mod
                 enum class FastMode
@@ -560,6 +569,24 @@ namespace Zhele::Timers
                     Pins::SetSpeed(mask, Pins::Speed::Slow);
                     Pins::SetDriverType(mask, Pins::DriverType::PushPull);
                     Base::SelectPins(pinNumber);
+                }
+
+                /**
+                 * @brief Select channel pin (template method by number)
+                 * 
+                 * @param [in] pinNumber Pin number
+                 * 
+                 * @par Returns
+                 * 	Nothing
+                 */
+                template<unsigned PinNumber>
+                static void SelectPins()
+                {
+                    using Pin = typename Pins::template Pin<PinNumber>;
+                    Pin::Port::Enable();
+                    Pin::template SetSpeed<Pin::Speed::Slow>();
+                    Pin::template SetDriverType<Pins::DriverType::PushPull>();
+                    Base::template SelectPins<Pin>();
                 }
 
                 /**

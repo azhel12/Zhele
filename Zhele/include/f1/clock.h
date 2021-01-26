@@ -194,8 +194,6 @@ namespace Zhele::Clock
             return SrcClockFreq() / ((AdcPrescalerBitField::Get() + 1) * 2);
         }
     };
-    
-    
 
     using CrcClock = ClockControl<AhbClockEnableReg, RCC_AHBENR_CRCEN, AhbClock>;
     using Dma1Clock = ClockControl<AhbClockEnableReg, RCC_AHBENR_DMA1EN, AhbClock>;
