@@ -34,7 +34,7 @@ namespace Zhele
         class Length<TypeList<Types...>>
         {
         public:
-            static const size_t value = sizeof...(Types);
+            static const unsigned value = sizeof...(Types);
         };
 
         /**
@@ -69,8 +69,15 @@ namespace Zhele
         /**
          * @brief Select type from type list by index
          */
-        template<unsigned, typename...>
+        template<int, typename...>
         class GetType {};
+
+        template<typename Head, typename... Tail>
+        class GetType<-1, TypeList<Head, Tail...>>
+        {
+        public:
+            using type = void;
+        };
 
         template<typename Head, typename... Tail>
         class GetType<0, TypeList<Head, Tail...>>
@@ -79,7 +86,7 @@ namespace Zhele
             using type = Head;
         };
 
-        template<unsigned Index, typename Head, typename... Tail>
+        template<int Index, typename Head, typename... Tail>
         class GetType<Index, TypeList<Head , Tail...>>
         {
             static_assert(Index < Length<TypeList<Head, Tail...>>::value);
