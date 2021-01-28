@@ -226,9 +226,9 @@ namespace Zhele
 				 * 	Nothing
 				 */
 				template<typename _DataType, typename PullMode>
-				static void SetPullUp(_DataType mask, PullMode mode)
+				static void SetPullMode(_DataType mask, PullMode mode)
 				{
-					(_Ports::SetPullUp(Private::GetPinlistValueForPort<_Ports, _PinList>(mask), mode), ...);
+					(_Ports::SetPullMode(Private::GetPinlistValueForPort<_Ports, _PinList>(mask), mode), ...);
 				}
 
 				/**
@@ -467,9 +467,9 @@ namespace Zhele
 			 * 	Nothing
 			 */
 			template<typename PullMode>
-			static void SetPullUp(DataType mask, PullMode pull)
+			static void SetPullMode(DataType mask, PullMode pull)
 			{
-				PortWriter::SetPullUp(mask, pull);
+				PortWriter::SetPullMode(mask, pull);
 			}
 			/**
 			 * @brief Set pull mode with mask (template method)
@@ -481,9 +481,9 @@ namespace Zhele
 			 * 	Nothing
 			 */
 			template<DataType mask, PullMode pull>
-			static void SetPullUp()
+			static void SetPullMode()
 			{
-				PortWriter::SetPullUp(mask, pull);
+				PortWriter::SetPullMode(mask, pull);
 			}
 			/**
 			 * @brief Set pull mode
@@ -494,9 +494,9 @@ namespace Zhele
 			 * 	Nothing
 			 */
 			template<PullMode pull>
-			static void SetPullUp()
+			static void SetPullMode()
 			{
-				PortWriter::SetPullUp(-1, pull);
+				PortWriter::SetPullMode(-1, pull);
 			}
 
 			/**

@@ -145,10 +145,10 @@ namespace Zhele
 			 * @par Returns
 			 *	Nothing
 			 */
-			static void SetPullUp(PullMode pullMode);
+			static void SetPullMode(PullMode pullMode);
 
 			/**
-			 * @brief Template variant of @ref SetPullUp method
+			 * @brief Template variant of @ref SetPullMode method
 			 * 
 			 * @tparam pullMode Pull type
 			 * 
@@ -156,7 +156,7 @@ namespace Zhele
 			 *	Nothing
 			 */
 			template<PullMode pullMode>
-			static void SetPullUp();
+			static void SetPullMode();
 
 			/**
 			 * @brief Set pin speed (Low/Medium/High)

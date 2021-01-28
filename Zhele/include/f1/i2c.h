@@ -53,7 +53,7 @@ namespace Zhele
             SclPin::Port::Enable();
             SclPin::template SetConfiguration<SclPin::Port::AltFunc>();
             SclPin::template SetDriverType<SclPin::Port::OpenDrain>();
-            SclPin::template SetPullUp<SclPin::PullMode::PullUp>();
+            SclPin::template SetPullMode<SclPin::PullMode::PullUp>();
 
             using SdaPin = typename _SdaPins::template Pin<sdaPinNumber>;
             if constexpr (!std::is_same_v<typename SdaPin::Port, typename SclPin::Port>)
@@ -62,7 +62,7 @@ namespace Zhele
             }
             SdaPin::template SetConfiguration<SdaPin::Port::AltFunc>();
             SdaPin::template SetDriverType<SdaPin::Port::OpenDrain>();
-            SdaPin::template  SetPullUp<SdaPin::PullMode::PullUp>();
+            SdaPin::template  SetPullMode<SdaPin::PullMode::PullUp>();
 
             if constexpr(sclPinNumber == 1)
             {

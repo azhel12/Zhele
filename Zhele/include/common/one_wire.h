@@ -50,7 +50,7 @@ namespace Zhele
             
             _Usart::template SelectTxRxPins<_Pin>();
             _Pin::SetDriverType(_Pin::DriverType::OpenDrain);
-            _Pin::SetPullUp(_Pin::PullMode::PullUp);
+            _Pin::SetPullMode(_Pin::PullMode::PullUp);
             _Pin::SetSpeed(_Pin::Speed::Fast);
         }
 

@@ -85,16 +85,16 @@ namespace Zhele::IO
 	}
 
 	template<typename _Port, uint8_t _Pin, typename _ConfigPort>
-	void TPin<_Port, _Pin, _ConfigPort>::SetPullUp(PullMode pullMode)
+	void TPin<_Port, _Pin, _ConfigPort>::SetPullMode(PullMode pullMode)
 	{
-		_ConfigPort::SetPullUp(1u << _Pin, pullMode);
+		_ConfigPort::SetPullMode(1u << _Pin, pullMode);
 	}
 
 	template<typename _Port, uint8_t _Pin, typename _ConfigPort>
 	template<typename TPin<_Port, _Pin, _ConfigPort>::PullMode pullMode>
-	void TPin<_Port, _Pin, _ConfigPort>::SetPullUp()
+	void TPin<_Port, _Pin, _ConfigPort>::SetPullMode()
 	{
-		_ConfigPort::template SetPullUp<1u << _Pin, pullMode>();
+		_ConfigPort::template SetPullMode<1u << _Pin, pullMode>();
 	}
 	
 	template<typename _Port, uint8_t _Pin, typename _ConfigPort>

@@ -34,7 +34,7 @@ namespace Zhele
             SclPin::template SetConfiguration<SclPin::Port::AltFunc>();
             SclPin::template AltFuncNumber<GetNumber<sclPinNumber, SclAltFuncNumbers>::value>();
             SclPin::SetDriverType(SclPin::Port::OpenDrain);
-            SclPin::SetPullUp(SclPin::PullMode::PullUp);
+            SclPin::SetPullMode(SclPin::PullMode::PullUp);
 
             using SdaPin = typename _SdaPins::Key::template Pin<sdaPinNumber>;
             if constexpr (!std::is_same_v<typename SdaPin::Port, typename SclPin::Port>)
@@ -44,7 +44,7 @@ namespace Zhele
             SdaPin::template SetConfiguration<SdaPin::Port::AltFunc>();
             SdaPin::template AltFuncNumber<GetNumber<sdaPinNumber, SdaAltFuncNumbers>::value>();
             SdaPin::SetDriverType(SdaPin::Port::OpenDrain);
-            SdaPin::SetPullUp(SdaPin::PullMode::PullUp);
+            SdaPin::SetPullMode(SdaPin::PullMode::PullUp);
         }
 
         I2C_TEMPLATE_ARGS
@@ -63,14 +63,14 @@ namespace Zhele
             SclPins::SetConfiguration(maskScl, SclPins::AltFunc);
             SclPins::AltFuncNumber(maskScl, GetNumberRuntime<SclAltFuncNumbers>::Get(sclPinNumber));
             SclPins::SetDriverType(maskScl, SclPins::OpenDrain);
-            SclPins::SetPullUp(maskScl, SclPins::PullMode::PullUp);
+            SclPins::SetPullMode(maskScl, SclPins::PullMode::PullUp);
 
             SdaPins::Enable();
             Type maskSda(1 << sdaPinNumber);
             SdaPins::SetConfiguration(maskSda, SdaPins::AltFunc);
             SdaPins::AltFuncNumber(maskSda, GetNumberRuntime<SdaAltFuncNumbers>::Get(sdaPinNumber));
             SdaPins::SetDriverType(maskSda, SdaPins::OpenDrain);
-            SdaPins::SetPullUp(maskSda, SdaPins::PullMode::PullUp);
+            SdaPins::SetPullMode(maskSda, SdaPins::PullMode::PullUp);
         }
         
         I2C_TEMPLATE_ARGS

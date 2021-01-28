@@ -38,7 +38,7 @@ namespace Zhele
             // Pull mode
             enum PullMode
             {
-                NoPullUp = 0,
+                NoPull = 0,
                 PullUp   = 1,
                 PullDown = 2
             };
@@ -135,7 +135,7 @@ namespace Zhele
             static void SetSpeed(DataT, Speed)
             {}
             
-            static void SetPullUp(DataT, PullMode)
+            static void SetPullMode(DataT, PullMode)
             {}
             
             static void SetDriverType(DataT, DriverType)
@@ -379,13 +379,13 @@ namespace Zhele
                  * @par Returns
                  *	Nothing
                  */
-                static void SetPullUp(DataType mask, PullMode mode)
+                static void SetPullMode(DataType mask, PullMode mode)
                 {
                     _Regs()->PUPDR = UnpackConfig2bits(mask, _Regs()->PUPDR, mode);
                 }
 
                 /**
-                 * @brief Template clone of SetPullUp function.
+                 * @brief Template clone of SetPullMode function.
                  * 
                  * @tparam mask Pin mask
                  * @tparam mode Pull mode for selected pins
@@ -394,7 +394,7 @@ namespace Zhele
                  *	Nothing
                  */
                 template <DataType mask, PullMode mode>
-                static void SetPullUp()
+                static void SetPullMode()
                 {
                     _Regs()->PUPDR = UnpackConfig2bits(mask, _Regs()->PUPDR, mode);
                 }

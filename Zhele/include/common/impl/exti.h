@@ -42,7 +42,7 @@ namespace Zhele
     {
         pin::Port::Enable();
         pin::SetConfiguration(pin::Configuration::In);
-        pin::SetPullUp(pullMode);
+        pin::SetPullMode(pullMode);
         pin::SetDriverType(driverType);
         pin::SetSpeed(speed);
     }
