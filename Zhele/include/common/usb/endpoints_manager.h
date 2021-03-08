@@ -26,7 +26,7 @@ namespace Zhele::Usb
     /**
      * @brief Endpoint transfer complete callback.
      */
-    using EpRequestHandler = std::add_pointer_t<void(PacketBufferDescriptor*)>;
+    using EpRequestHandler = std::add_pointer_t<void()>;
 
     /**
      * @brief Predicat for search Tx endpoint by number
@@ -312,11 +312,6 @@ namespace Zhele::Usb
                                                                                             ? (ControlAndBulkDoubleBufferedRxEndpoints::MaxPacketSize / 2) << 10
                                                                                             : 0x8000 | (ControlAndBulkDoubleBufferedRxEndpoints::MaxPacketSize / 32) << 10)), ...);
         }
-
-        static PacketBufferDescriptor* GetPacketBufferDescriptor(uint8_t number)
-        {
-            return reinterpret_cast<PacketBufferDescriptor*>(BdtBase + number * 8);
-        }
     };
     
     template<typename Endpoints>
@@ -359,14 +354,12 @@ namespace Zhele::Usb
     template<typename... Endpoints, int8_t... Indexes>
     class EndpointHandlersBase<TypeList<Endpoints...>, Int8_tArray<Indexes...>>
     {
-        using EpManager = EndpointsManager<TypeList<Endpoints...>>;
-
         static constexpr EpRequestHandler _handlers[] = {Endpoints::Handler...};
         static constexpr int8_t _handlersIndexes[] = {Indexes...};
     public:
         inline static void Handle(uint8_t number, EndpointDirection direction)
         {
-            _handlers[_handlersIndexes[number + (direction == EndpointDirection::Out ? 1 : 0)]](EpManager::GetPacketBufferDescriptor(number));
+            _handlers[_handlersIndexes[number + (direction == EndpointDirection::Out ? 1 : 0)]]();
         }
     };
 

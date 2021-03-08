@@ -76,11 +76,10 @@ namespace Zhele::Usb
         using EpHandlers = EndpointHandlers<AllEndpoints>;
     public:
 
-        using Ep0 = _Ep0;
         static void Enable()
         {
             _ClockCtrl::Enable();
-            volatile int a = 100;
+
             EpBufferManager::Init();
 
             _Regs()->CNTR = USB_CNTR_CTRM | USB_CNTR_RESETM;
@@ -137,11 +136,11 @@ namespace Zhele::Usb
             _Regs()->DADDR = USB_DADDR_EF;
         }
 
-        static void Handler(PacketBufferDescriptor* descriptor)
+        static void Handler()
         {
             if(_Ep0::Reg::Get() & USB_EP_SETUP)
             {
-                SetupPacket* setup = reinterpret_cast<SetupPacket*>(PmaBufferBase + descriptor->RxAddress);
+                SetupPacket* setup = reinterpret_cast<SetupPacket*>(_Ep0::RxBuffer);
                 switch (setup->Request)
                 {
                 case StandartRequestCode::SetAddress:
@@ -151,9 +150,8 @@ namespace Zhele::Usb
                     switch (static_cast<GetDescriptorParameter>(setup->Value))
                     {
                     case GetDescriptorParameter::DeviceDescriptor:
-                        FillDescriptor(reinterpret_cast<DeviceDescriptor*>(PmaBufferBase + descriptor->TxAddress));
+                        FillDescriptor(reinterpret_cast<DeviceDescriptor*>(_Ep0::TxBuffer));
                         _Ep0::Writer::SendData(sizeof(DeviceDescriptor));
-                        IO::Pc7::Clear();
                         break;
                     default:
                         break;

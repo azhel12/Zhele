@@ -149,7 +149,7 @@ namespace Zhele::Usb
             Reg::Xor(static_cast<uint16_t>(status) << 4);
         }
 
-        static void Handler(PacketBufferDescriptor* );
+        static void Handler();
     private:
     };
 
@@ -234,6 +234,8 @@ namespace Zhele::Usb
         static constexpr uint32_t RxBuffer = _RxBufferAddress;
         using RxBufferCount = RegisterWrapper<_RxCountRegAddress, uint16_t>;
         using Writer = EndpointWriter<This>;
+
+        static void Handler();
     };
 
     template<typename _Base, typename _Reg, uint32_t _Buffer0Address, uint32_t _Count0RegAddress, uint32_t _Buffer1Address, uint32_t _Count1RegAddress>
