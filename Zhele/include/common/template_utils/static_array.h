@@ -14,50 +14,44 @@
 
 namespace Zhele
 {
-    template<unsigned... Numbers>
+    template<uint32_t... Numbers>
     class UnsignedArray;
-
     /**
      * @brief Array length
      */
     template<typename...>
     class Length {};
 
-    template<unsigned... Numbers>
+    template<uint32_t... Numbers>
     class Length<UnsignedArray<Numbers...>>
     {
     public:
         static const size_t value = sizeof...(Numbers);
     };
-
     /**
      * @brief Select number from array by index
      */
     template<int, typename...>
     class GetNumber {};
-
-    template<unsigned Head, unsigned... Tail>
+    template<uint32_t Head, uint32_t... Tail>
     class GetNumber<-1, UnsignedArray<Head, Tail...>>
     {
     public:
-        static const unsigned value = 0;
+        static const uint32_t value = 0;
     };
-
-    template<unsigned Head, unsigned... Tail>
+    template<uint32_t Head, uint32_t... Tail>
     class GetNumber<0, UnsignedArray<Head, Tail...>>
     {
     public:
-        static const unsigned value = Head;
+        static const uint32_t value = Head;
     };
-
-    template<int Index, unsigned Head, unsigned... Tail>
+    template<int Index, uint32_t Head, uint32_t... Tail>
     class GetNumber<Index, UnsignedArray<Head , Tail...>>
     {
         static_assert(Index < Length<UnsignedArray<Head, Tail...>>::value);
     public:
-        static const unsigned value = GetNumber<Index - 1, UnsignedArray<Tail...>>::value;
+        static const uint32_t value = GetNumber<Index - 1, UnsignedArray<Tail...>>::value;
     };
-
     /**
      * @brief Select number from array by index. Non-static variant.
      */
@@ -75,16 +69,16 @@ namespace Zhele
         static uint8_t Get(uint8_t index);
     };
 
-    template<unsigned... Numbers>
+    template<uint32_t... Numbers>
     class GetNumberRuntime<UnsignedArray<Numbers ...>>
     {
-        const static uint8_t _altFuncNumbers[sizeof...(Numbers)];
+        const static uint8_t _numbers[sizeof...(Numbers)];
     public:
-        static uint8_t Get(uint8_t index) {return _altFuncNumbers[index];};
+        static uint8_t Get(uint8_t index) {return _numbers[index];};
     };
 
-    template<unsigned... Numbers>
-    const uint8_t GetNumberRuntime<UnsignedArray<Numbers ...>>::_altFuncNumbers[sizeof... (Numbers)] = {Numbers ...};
+    template<uint32_t... Numbers>
+    const uint8_t GetNumberRuntime<UnsignedArray<Numbers ...>>::_numbers[sizeof... (Numbers)] = {Numbers ...};
 }
 
 #endif //!ZHELE_STATICARRAY_H

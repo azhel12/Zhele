@@ -141,7 +141,7 @@ namespace Zhele
         class DeleteFirst<TypeToDelete, TypeList<TypeToDelete, Tail...>>
         {
         public:
-            typedef TypeList<Tail...> type;
+            using type = TypeList<Tail...>;
         };
 
         template <typename TypeToDelete, typename Head, typename... Tail>
@@ -192,7 +192,76 @@ namespace Zhele
             using type = typename InsertFront<Head, TailWithoutHead>::type;
         };
 
+        /**
+         * @brief Appends typelists
+         */
+        template<typename...>
+        class Append{};
 
+        template<>
+        class Append<>
+        {
+        public:
+            using type = TypeList<>;
+        };
+
+        template<typename T, typename... Types>
+        class Append<T, TypeList<Types...>>
+        {
+        public:
+            using type = TypeList<T, Types...>;
+        };
+
+        /// 1 types list
+        template<typename... FirstListTypes>
+        class Append<TypeList<FirstListTypes...>>
+        {
+        public:
+            using type = TypeList<FirstListTypes...>;
+        };
+
+        /// 2 types lists
+        template<typename... FirstListTypes, typename... SecondListTypes>
+        class Append<TypeList<FirstListTypes...>, TypeList<SecondListTypes...>>
+        {
+        public:
+            using type = TypeList<FirstListTypes..., SecondListTypes...>;
+        };
+
+        /// 3 types lists
+        template<typename... FirstListTypes, typename... SecondListTypes, typename... ThirdListTypes>
+        class Append<TypeList<FirstListTypes...>, TypeList<SecondListTypes...>, TypeList<ThirdListTypes...>>
+        {
+        public:
+            using type = TypeList<FirstListTypes..., SecondListTypes..., ThirdListTypes...>;
+        };
+
+        /// 4 types lists
+        template<typename... FirstListTypes, typename... SecondListTypes, typename... ThirdListTypes, typename... FourthListTypes>
+        class Append<TypeList<FirstListTypes...>, TypeList<SecondListTypes...>, TypeList<ThirdListTypes...>, TypeList<FourthListTypes...>>
+        {
+        public:
+            using type = TypeList<FirstListTypes..., SecondListTypes..., ThirdListTypes..., FourthListTypes...>;
+        };
+
+        /// 5 types lists
+        template<typename... FirstListTypes, typename... SecondListTypes, typename... ThirdListTypes, typename... FourthListTypes, typename... FifthListTypes>
+        class Append<TypeList<FirstListTypes...>, TypeList<SecondListTypes...>, TypeList<ThirdListTypes...>, TypeList<FourthListTypes...>, TypeList<FifthListTypes...>>
+        {
+        public:
+            using type = TypeList<FirstListTypes..., SecondListTypes..., ThirdListTypes..., FourthListTypes..., FifthListTypes...>;
+        };
+
+        /// 6 types lists
+        template<typename... FirstListTypes, typename... SecondListTypes, typename... ThirdListTypes, typename... FourthListTypes, typename... FifthListTypes, typename... SixthListTypes>
+        class Append<TypeList<FirstListTypes...>, TypeList<SecondListTypes...>, TypeList<ThirdListTypes...>, TypeList<FourthListTypes...>, TypeList<FifthListTypes...>, TypeList<SixthListTypes...>>
+        {
+        public:
+            using type = TypeList<FirstListTypes..., SecondListTypes..., ThirdListTypes..., FourthListTypes..., FifthListTypes..., SixthListTypes...>;
+        };
+
+        template<typename... T>
+        using Append_t = typename Append<T...>::type;
         /**
          * @brief Select by bool template argument
          */
@@ -221,7 +290,31 @@ namespace Zhele
         {
         public:
             using type = typename DeleteAll<void, TypeList<typename Select<Predicate<Types>::value, Types, void>::value ...>>::type;
-        };	
+        };
+
+        /**
+         * @brief Search type by predicate
+         */
+        template<template <typename> class, typename...>
+        class Search;
+
+        template<template <typename> class Predicate>
+        class Search<Predicate, TypeList<>>
+        {
+        public:
+            static const int value = -1;
+        };
+
+        template<template <typename> class Predicate, typename Head, typename... Tail>
+        class Search<Predicate, TypeList<Head, Tail...>>
+        {
+        public:
+            static const int value = Predicate<Head>::value
+                ? 0
+                : (Search<Predicate, TypeList<Tail...>>::value >= 0
+                    ? TypeIndex<Search, TypeList<Tail...>>::value + 1
+                    : TypeIndex<Search, TypeList<Tail...>>::value);
+        };
     }
 }
 #endif //! ZHELE_TYPELIST_H
