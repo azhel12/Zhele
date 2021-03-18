@@ -11,6 +11,7 @@
 #define ZHELE_TYPELIST_H
 
 #include <type_traits>
+#include <utility>
 
 namespace Zhele
 {
@@ -93,6 +94,9 @@ namespace Zhele
         public:
             using type = typename GetType<Index - 1, TypeList<Tail...>>::type;
         };
+
+        template<int Index, typename Types>
+        using GetType_t = typename GetType<Index, Types>::type;
 
         /**
          * @brief Insert type to front of type
@@ -314,6 +318,53 @@ namespace Zhele
                 : (Search<Predicate, TypeList<Tail...>>::value >= 0
                     ? TypeIndex<Search, TypeList<Tail...>>::value + 1
                     : TypeIndex<Search, TypeList<Tail...>>::value);
+        };
+
+        // Thanks https://codereview.stackexchange.com/questions/131194/selection-sorting-a-type-list-compile-time
+        template <auto i, auto j, typename List>
+        class SwapElementsInTypeList
+        {
+            template <typename IndexSequence>
+            struct SwapElementsInTypeListImpl;
+            template <unsigned... Indexes>
+            struct SwapElementsInTypeListImpl<std::index_sequence<Indexes...>>
+            {
+                using type = TypeList<GetType_t<Indexes != i && Indexes != j ? Indexes : Indexes == i ? j : i, List> ...>;
+            };
+
+        public:
+            using type = typename SwapElementsInTypeListImpl<std::make_index_sequence<Length<List>::value>>::type;
+        };
+
+        template <template <typename, typename> class Comparator, typename List>
+        class TypeListSort
+        {
+            template <unsigned i, unsigned j, unsigned Size, typename LoopList>
+            struct TypeListSortImpl
+            {
+                using PermutationList = std::conditional_t<
+                    Comparator<GetType_t<i, LoopList>, GetType_t<j, LoopList>>::value,
+                    typename SwapElementsInTypeList<i, j, LoopList>::type,
+                    LoopList
+                >;
+
+                using type = typename TypeListSortImpl<i, j + 1, Size, PermutationList>::type;
+            };
+
+            template <unsigned i, unsigned Size, typename LoopList>
+            struct TypeListSortImpl<i, Size, Size, LoopList>
+            {
+                using type = typename TypeListSortImpl<i + 1, i + 2, Size, LoopList>::type;
+            };
+
+            template <unsigned j, unsigned Size, class LoopList>
+            struct TypeListSortImpl<Size, j, Size, LoopList>
+            {
+                using type = LoopList;
+            };
+
+        public:
+            using type = typename TypeListSortImpl<0, 1, Length<List>::value, List>::type;
         };
     }
 }
