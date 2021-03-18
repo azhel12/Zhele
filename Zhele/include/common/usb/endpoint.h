@@ -151,34 +151,18 @@ namespace Zhele::Usb
         static void SetRxStatus(EndpointStatus status)
         {
             ToogleAndSet<USB_EPREG_MASK | USB_EPRX_STAT, USB_EP_CTR_TX | USB_EP_CTR_RX>(static_cast<uint16_t>(status) << 12);
-            //uint16_t tmp = Reg::Get();
-            //tmp ^= (status == EndpointStatus::Valid ? 0x3000 : 0x1000);
-            //tmp &= 0xbf8f;
-            //Reg::Set(tmp);
         }
         static void SetTxStatus(EndpointStatus status)
         {
             ToogleAndSet<USB_EPREG_MASK | USB_EPTX_STAT, USB_EP_CTR_TX | USB_EP_CTR_RX>(static_cast<uint16_t>(status) << 4);
-            //uint16_t tmp = Reg::Get();
-            //tmp ^= (status == EndpointStatus::Valid ? 0x0030 : 0x0010);
-            //tmp &= 0x8fbf;
-            //Reg::Set(tmp);
         }
         static void ClearCtrRx()
         {
             ClearRegBitMaskAndSet<USB_EPREG_MASK, USB_EP_CTR_TX>(USB_EP_CTR_RX);
-            //uint16_t tmp= Reg::Get();
-            //tmp &= ~USB_EP_CTR_RX; //погасим нужные флаги
-            //tmp &= 0x8f8f;// но сбросим тоогл биты
-            //Reg::Set(tmp);
         }
         static void ClearCtrTx()
         {
             ClearRegBitMaskAndSet<USB_EPREG_MASK, USB_EP_CTR_TX>(USB_EP_CTR_RX);
-            //uint16_t tmp= Reg::Get();
-            //tmp &= ~USB_EP_CTR_TX; //погасим нужные флаги
-            //tmp &= 0x8f8f;// но сбросим тоогл биты
-            //Reg::Set(tmp);
         }
 
         static void ClearTxDtog()
