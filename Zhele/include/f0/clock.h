@@ -15,6 +15,35 @@
 
 namespace Zhele::Clock
 {
+    #if defined(RCC_HSI48_SUPPORT)
+        /**
+         * @brief Implements Hsi48 clock source
+         */
+        IO_REG_WRAPPER(RCC->CR2, RccCr2Reg, uint32_t);
+        class Hsi48Clock : public ClockBase<RccCr2Reg>
+        {
+        public:
+            static ClockFrequenceT SrcClockFreq()
+            {
+                return 48000000;
+            }
+            static ClockFrequenceT GetDivider() { return 1; }
+            static ClockFrequenceT GetMultipler() { return 1; }
+            static ClockFrequenceT ClockFreq()
+            {
+                return SrcClockFreq();
+            }
+            static bool Enable()
+            {
+                return ClockBase::EnableClockSource(RCC_CR2_HSI48ON, RCC_CR2_HSI48RDY);
+            }
+            static bool Disable()
+            {
+                return ClockBase::DisableClockSource(RCC_CR2_HSI48ON, RCC_CR2_HSI48RDY);
+            }
+        };
+    #endif
+
     IO_REG_WRAPPER(RCC->AHBENR, AhbClockEnableReg, uint32_t);
     const static unsigned AhbPrescalerBitFieldOffset = RCC_CFGR_HPRE_Pos;
     const static unsigned AhbPrescalerBitFieldLength = GetBitFieldLength<(RCC_CFGR_HPRE_Msk >> RCC_CFGR_HPRE_Pos)>;
@@ -89,6 +118,8 @@ namespace Zhele::Clock
             Base::SetPrescaler(prescaler);
         }
     };
+    using Apb1Clock = ApbClock;
+    using Apb2Clock = ApbClock;
 
     const static unsigned AdcPrescalerBitFieldOffset = RCC_CFGR_ADCPRE_Pos;
     const static unsigned AdcPrescalerBitFieldLength = GetBitFieldLength<(RCC_CFGR_ADCPRE_Msk >> RCC_CFGR_ADCPRE_Pos)>;
@@ -132,7 +163,7 @@ namespace Zhele::Clock
             */
         static void SetPrescaler(Prescaler prescaller)
         {
-            AdcPrescalerBitField::Set((uint32_t)prescaller);
+            AdcPrescalerBitField::Set(static_cast<uint32_t>(prescaller));
         }
         
         /**
