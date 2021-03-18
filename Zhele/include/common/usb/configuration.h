@@ -22,10 +22,11 @@ namespace Zhele::Usb
         uint8_t Reserved2 : 1;
     };
 
+    #pragma pack(push, 1)
     struct ConfigurationDescriptor
     {
-        static const uint8_t Length = 9;
-        static const DescriptorType Type = DescriptorType::Configuration;
+        uint8_t Length = 9;
+        DescriptorType Type = DescriptorType::Configuration;
         uint16_t TotalLength;
         uint8_t InterfacesCount;
         uint8_t Number;
@@ -33,6 +34,7 @@ namespace Zhele::Usb
         ConfigurationAttributes Attributes;
         uint8_t MaxPower;
     };
+    #pragma pack(pop)
 
     /**
      * @brief Implements configuration
@@ -61,7 +63,7 @@ namespace Zhele::Usb
                 .MaxPower = _MaxPower
             };
 
-            InterfaceDescriptor* configurationsDescriptors = reinterpret_cast<InterfaceDescriptor*>(reinterpret_cast<uint8_t*>(descriptor) + sizeof(ConfigurationDescriptor));
+            InterfaceDescriptor* configurationsDescriptors = reinterpret_cast<InterfaceDescriptor*>(&descriptor[1]);
             totalLength += (_Interfaces::FillDescriptor(configurationsDescriptors++) + ...);
 
             descriptor->TotalLength = totalLength;
@@ -69,6 +71,14 @@ namespace Zhele::Usb
             return totalLength;
         }
     private:
+    };
+
+    template <uint8_t _Number, uint8_t _MaxPower, bool _RemoteWakeup, bool _SelfPowered, typename _HidReport, typename... _Interfaces>
+    class HidConfiguration : public Configuration<_Number, _MaxPower, _RemoteWakeup, _SelfPowered, _Interfaces...>
+    {
+        using Base = Configuration<_Number, _MaxPower, _RemoteWakeup, _SelfPowered, _Interfaces...>;
+    public:
+        using HidReport = _HidReport;
     };
 }
 #endif // ZHELE_USB_CONFIGURATION_H

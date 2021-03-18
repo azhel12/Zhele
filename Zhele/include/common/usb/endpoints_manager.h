@@ -41,7 +41,7 @@ namespace Zhele::Usb
         class type
         {
         public:
-            static const bool value = Endpoint::Number == Number && Endpoint::Direction == EndpointDirection::Out;
+            static const bool value = (Endpoint::Number == Number && Endpoint::Direction == EndpointDirection::Out);
         };
     };
 
@@ -58,7 +58,58 @@ namespace Zhele::Usb
         class type
         {
         public:
-            static const bool value = Endpoint::Number == Number && Endpoint::Direction == EndpointDirection::In;
+            static const bool value = (Endpoint::Number == Number && Endpoint::Direction == EndpointDirection::In);
+        };
+    };
+
+    /**
+     * @brief Predicat for search Tx or bidirectional endpoint by number
+     * 
+     * @tparam Number Endpoint number
+     */
+    template<uint8_t Number>
+    class IsTxOrBidirectionalEndpointWithNumber
+    {
+    public:
+        template<typename Endpoint>
+        class type
+        {
+        public:
+            static const bool value = (Endpoint::Number == Number && Endpoint::Direction == EndpointDirection::Out || Endpoint::Direction == EndpointDirection::Bidirectional);
+        };
+    };
+
+    /**
+     * @brief Predicat for search Rx or bidirectional endpoint by number
+     * 
+     * @tparam Number Endpoint number
+     */
+    template<uint8_t Number>
+    class IsRxOrBidirectionalEndpointWithNumber
+    {
+    public:
+        template<typename Endpoint>
+        class type
+        {
+        public:
+            static const bool value = (Endpoint::Number == Number && Endpoint::Direction == EndpointDirection::In || Endpoint::Direction == EndpointDirection::Bidirectional);
+        };
+    };
+
+    /**
+     * @brief Predicat for search Rx endpoint by number
+     * 
+     * @tparam Number Endpoint number
+     */
+    template<uint8_t Number>
+    class IsBidirectionalEndpointWithNumber
+    {
+    public:
+        template<typename Endpoint>
+        class type
+        {
+        public:
+            static const bool value = (Endpoint::Number == Number && Endpoint::Direction == EndpointDirection::Bidirectional);
         };
     };
 
@@ -66,65 +117,50 @@ namespace Zhele::Usb
      * @brief Predicate for search control or double-buffered bulk endpoints.
      */
     template<typename Endpoint>
-    class IsControlOrBulkDoubleBufferedEndpoint
+    class IsBidirectionalOrBulkDoubleBufferedEndpoint
     {
     public:
-        static const bool value = (Endpoint::Type == EndpointType::Control
-                                || Endpoint::Type == EndpointType::ControlStatusOut
-                                || Endpoint::Type == EndpointType::BulkDoubleBuffered);
+        static const bool value = (Endpoint::Type == EndpointType::BulkDoubleBuffered
+                                || Endpoint::Direction == EndpointDirection::Bidirectional);
     };
 
     /**
      * @brief Predicate for search Rx (no control) endpoints/
      */
     template<typename Endpoint>
-    class IsRxEndpoint
+    class IsOutEndpoint
     {
     public:
-        static const bool value = (Endpoint::Direction == EndpointDirection::In
+        static const bool value = (Endpoint::Direction == EndpointDirection::Out
                                 && Endpoint::Type != EndpointType::Control
-                                && Endpoint::Type != EndpointType::ControlStatusOut);
+                                && Endpoint::Type != EndpointType::ControlStatusOut
+                                && Endpoint::Type != EndpointType::BulkDoubleBuffered);
     };
 
     /**
-     * @brief Predicate for search Rx double-buffered
+     * @brief Predicate for search Tx double-buffered
      */
     template<typename Endpoint>
-    class IsControlOrBulkDoubleBufferedRxEndpoint
+    class IsBulkDoubleBufferedTxEndpoint
     {
     public:
-        static const bool value = ( Endpoint::Type != EndpointType::Control
-                                || Endpoint::Type != EndpointType::ControlStatusOut
-                                || (Endpoint::Type == EndpointType::BulkDoubleBuffered && Endpoint::Direction == EndpointDirection::In));
+        static const bool value = (Endpoint::Type == EndpointType::BulkDoubleBuffered && Endpoint::Direction == EndpointDirection::Out);
     };
 
     /**
-     * @brief Sort endpoints by their number/direction.
+     * @brief Sort endpoints by number and direction
      */
-    template<typename...>
-    class SortEndpointsByNumberAndDirection;
-    template<>
-    class SortEndpointsByNumberAndDirection<TypeList<>>
-    {
-    public:
-        using type = TypeList<>;
-    };
-    template<typename... Endpoints>
-    class SortEndpointsByNumberAndDirection<TypeList<Endpoints...>>
-    {
-        using ListOfEndpoints = TypeList<Endpoints...>;
-        using NextEndpointTx = GetType<Search<IsTxEndpointWithNumber<sizeof...(Endpoints) - 1>::template type, ListOfEndpoints>::value, ListOfEndpoints>::type;
-        using NextEndpointRx = GetType<Search<IsRxEndpointWithNumber<sizeof...(Endpoints) - 1>::template type, ListOfEndpoints>::value, ListOfEndpoints>::type;
-        using OtherEndpoints = DeleteAll<NextEndpointTx, typename DeleteAll<NextEndpointRx, ListOfEndpoints>::type>::type;
-    public:
-        using type = DeleteAll<void, typename InsertBack<typename InsertBack<typename SortEndpointsByNumberAndDirection<OtherEndpoints>::type, NextEndpointTx>::type, NextEndpointRx>::type>::type;
-    };
+    template <typename T, typename U>
+    struct NumberAndDirectionComparator : std::conditional_t<(U::Number < T::Number || (U::Number == T::Number && static_cast<uint8_t>(U::Direction) > static_cast<uint8_t>(T::Direction))), std::true_type, std::false_type>
+    {};
+    template<typename Endpoints>
+    using EndpointsSortedByNumberAndDirection = typename TypeListSort<NumberAndDirectionComparator, Endpoints>::type;
 
     /**
      * @brief Unique endpoints sorted by numbers/direction.
      */
     template<typename Endpoints>
-    using SortedUniqueEndpoints = typename SortEndpointsByNumberAndDirection<typename Unique<Endpoints>::type>::type;
+    using SortedUniqueEndpoints = EndpointsSortedByNumberAndDirection<typename Unique<Endpoints>::type>;
 
     /**
      * @brief Calculates endpoint`s buffers offsets.
@@ -141,10 +177,15 @@ namespace Zhele::Usb
     class OffsetOfBuffer<Number, TypeList<Endpoints...>>
     {
         using Endpoint = GetType<Number, TypeList<Endpoints...>>::type;
+        using PreviousEndpoint = GetType<Number - 1, TypeList<Endpoints...>>::type;
     public:
-        static const unsigned value = (Endpoint::Type == EndpointType::BulkDoubleBuffered || Endpoint::Type == EndpointType::Control)
-                ? Endpoint::MaxPacketSize * 2 + OffsetOfBuffer<Number - 1, TypeList<Endpoints...>>::value
-                : Endpoint::MaxPacketSize + OffsetOfBuffer<Number - 1, TypeList<Endpoints...>>::value;
+        static const uint16_t value = OffsetOfBuffer<Number - 1, TypeList<Endpoints...>>::value +
+            (PreviousEndpoint::Type == EndpointType::BulkDoubleBuffered
+            || PreviousEndpoint::Type == EndpointType::Control
+            || PreviousEndpoint::Type == EndpointType::ControlStatusOut
+            || PreviousEndpoint::Direction == EndpointDirection::Bidirectional)
+                ? PreviousEndpoint::MaxPacketSize * 2
+                : PreviousEndpoint::MaxPacketSize;
     };
 
     /**
@@ -241,26 +282,33 @@ namespace Zhele::Usb
      */
     template<typename...>
     class EndpointsManagerBase;
-    template<typename... AllEndpoints, typename... ControlAndBulkDoubleBufferedEndpoints, typename... RxEndpoints, typename... ControlAndBulkDoubleBufferedRxEndpoints>
-    class EndpointsManagerBase<TypeList<AllEndpoints...>, TypeList<ControlAndBulkDoubleBufferedEndpoints...>, TypeList<RxEndpoints...>, TypeList<ControlAndBulkDoubleBufferedRxEndpoints...>>
+    template<typename... AllEndpoints, typename... BidirectionalAndBulkDoubleBufferedEndpoints, typename... RxEndpoints, typename... BulkDoubleBufferedTxEndpoints>
+    class EndpointsManagerBase<TypeList<AllEndpoints...>, TypeList<BidirectionalAndBulkDoubleBufferedEndpoints...>, TypeList<RxEndpoints...>, TypeList<BulkDoubleBufferedTxEndpoints...>>
     {
         using AllEndpointsList = TypeList<AllEndpoints...>;
-        static const auto BdtSize = (GetType<sizeof...(AllEndpoints) - 1, AllEndpointsList>::type::Number + 1) * 8;
 
+        /// Buffer descriptor table size (all realy used endpoints * 8)
+        static const auto BdtSize = 8 * (EndpointEPRn<GetType_t<sizeof...(AllEndpoints) - 1, AllEndpointsList>, AllEndpointsList>::RegisterNumber + 1);
+
+        /// Buffer offset in PMA for endpoint
         template<typename Endpoint>
         static constexpr uint32_t BufferOffset = BdtSize + OffsetOfBuffer<TypeIndex<Endpoint, AllEndpointsList>::value, AllEndpointsList>::value;
 
+        /// Buffer descriptor offset in BDT for endpoint
         template<typename Endpoint>
         static constexpr uint32_t BdtCellOffset =
-            Endpoint::Number * 8 + (Endpoint::Type == EndpointType::Control
+            EndpointEPRn<Endpoint, AllEndpointsList>::RegisterNumber * 8
+                                + (Endpoint::Type == EndpointType::Control
                                 || Endpoint::Type == EndpointType::ControlStatusOut
                                 || Endpoint::Type == EndpointType::BulkDoubleBuffered
                                 || Endpoint::Direction == EndpointDirection::Out
+                                || Endpoint::Direction == EndpointDirection::Bidirectional
                                     ? 0
                                     : 4);
-
+        /// BDT base
         static const uint32_t BdtBase = PmaBufferBase;
     public:
+        /// Extends endpoint (init addresses)
         template<typename Endpoint>
         using ExtendEndpoint = 
             typename Select<Endpoint::Type == EndpointType::Control || Endpoint::Type == EndpointType::ControlStatusOut,
@@ -301,27 +349,31 @@ namespace Zhele::Usb
             memset(reinterpret_cast<void*>(BdtBase), 0x00, BdtSize);
             // Init all endpoints offsets (and TX buffers for control and double-buffered bulk endpoints)
             ((*(reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<AllEndpoints>)) = BufferOffset<AllEndpoints>), ...);
-            // Init RX buffer for control endpoints and second half-buffer for double-buffered bulk endpoints
-            ((*(reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<ControlAndBulkDoubleBufferedEndpoints> + 4)) = (BufferOffset<ControlAndBulkDoubleBufferedEndpoints> + ControlAndBulkDoubleBufferedEndpoints::MaxPacketSize)), ...);
+            // Init RX buffer for control and bidirectional endpoints and second half-buffer for double-buffered bulk endpoints
+            ((*(reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<BidirectionalAndBulkDoubleBufferedEndpoints> + 4)) = (BufferOffset<BidirectionalAndBulkDoubleBufferedEndpoints> + BidirectionalAndBulkDoubleBufferedEndpoints::MaxPacketSize)), ...);
             // Init RX_count buffer for RX endpoints
             ((*(reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<RxEndpoints> + 2)) = (RxEndpoints::MaxPacketSize <= 62
                                                                                             ? (RxEndpoints::MaxPacketSize / 2) << 10
                                                                                             : 0x8000 | (RxEndpoints::MaxPacketSize / 32) << 10)), ...);
-            // Init RX_count buffer for control and RX endpoints
-            ((*(reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<ControlAndBulkDoubleBufferedRxEndpoints> + 6)) = (ControlAndBulkDoubleBufferedRxEndpoints::MaxPacketSize <= 62
-                                                                                            ? (ControlAndBulkDoubleBufferedRxEndpoints::MaxPacketSize / 2) << 10
-                                                                                            : 0x8000 | (ControlAndBulkDoubleBufferedRxEndpoints::MaxPacketSize / 32) << 10)), ...);
+            // Init RX_count buffer for control and bidirectional endpoints and second half-buffer for double-buffered bulk endpoints
+            ((*(reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<BidirectionalAndBulkDoubleBufferedEndpoints> + 6)) = (BidirectionalAndBulkDoubleBufferedEndpoints::MaxPacketSize <= 62
+                                                                                            ? (BidirectionalAndBulkDoubleBufferedEndpoints::MaxPacketSize / 2) << 10
+                                                                                            : 0x8000 | (BidirectionalAndBulkDoubleBufferedEndpoints::MaxPacketSize / 32) << 10)), ...);
+
+            // Set TX_count to 0 for TX double-buffered bulk
+            ((*(reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<BulkDoubleBufferedTxEndpoints> + 2)) = 0), ...);
+            ((*(reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<BulkDoubleBufferedTxEndpoints> + 6)) = 0), ...);
         }
     };
     
     template<typename Endpoints>
     using EndpointsManager = EndpointsManagerBase<SortedUniqueEndpoints<Endpoints>,
-        typename Sample<IsControlOrBulkDoubleBufferedEndpoint, SortedUniqueEndpoints<Endpoints>>::type,
-        typename Sample<IsRxEndpoint, SortedUniqueEndpoints<Endpoints>>::type,
-        typename Sample<IsControlOrBulkDoubleBufferedRxEndpoint, SortedUniqueEndpoints<Endpoints>>::type>;
+        typename Sample<IsBidirectionalOrBulkDoubleBufferedEndpoint, SortedUniqueEndpoints<Endpoints>>::type,
+        typename Sample<IsOutEndpoint, SortedUniqueEndpoints<Endpoints>>::type,
+        typename Sample<IsBulkDoubleBufferedTxEndpoint, SortedUniqueEndpoints<Endpoints>>::type>;
 
     template<typename... Endpoints>
-    using EndpointsInitializer = EndpointsManagerBase<TypeList<Endpoints...>,
+    using EndpointsInitializer = EndpointsManagerBase<SortedUniqueEndpoints<TypeList<Endpoints...>>,
         TypeList<>,
         TypeList<>,
         TypeList<>>;
@@ -382,7 +434,7 @@ namespace Zhele::Usb
     {
         static const int temp = Zhele::TemplateUtils::Length<TypeList<Endpoints...>>::value - 1;
 
-        using Predicate = Select<Index % 2 == 0, IsTxEndpointWithNumber<Index / 2>, IsRxEndpointWithNumber<Index / 2>>::value;
+        using Predicate = Select<Index % 2 == 0, IsTxOrBidirectionalEndpointWithNumber<Index / 2>, IsRxOrBidirectionalEndpointWithNumber<Index / 2>>::value;
         static const int8_t EndpointIndex = Search<Predicate::template type, TypeList<Endpoints...>>::value;
     public:
         using type = typename Int8_tArray_InsertBack<typename EndpointHandlersIndexes<Index - 1, TypeList<Endpoints...>>::type, EndpointIndex>::type;

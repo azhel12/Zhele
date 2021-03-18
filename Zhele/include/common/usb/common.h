@@ -80,16 +80,19 @@ namespace Zhele::Usb
     /**
      * @brief Setup packet request type
      */
+    #pragma pack(push, 1)
     struct SetupRequestType
     {
         uint8_t Recipient : 5;
         uint8_t Type : 2;
         uint8_t Dir : 1;
     };
+    #pragma pack(pop)
 
     /**
      * @brief Setup packet.
      */
+    #pragma pack(push, 1)
     struct SetupPacket
     {
         SetupRequestType RequestType;
@@ -98,5 +101,7 @@ namespace Zhele::Usb
         uint16_t Index;
         uint16_t Length;
     };
+    static_assert(sizeof(SetupPacket) == 8);
+    #pragma pack(pop)
 }
 #endif // ZHELE_USB_COMMON_H

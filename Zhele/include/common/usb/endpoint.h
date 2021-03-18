@@ -3,6 +3,9 @@
  * Implement USB endpoint
  * 
  * @author Aleksei Zhelonkin
+ * Endpoint`s registers bits manipulation code is taken from libopencm3 project.
+ * Original source: https://github.com/libopencm3/libopencm3/blob/master/include/libopencm3/stm32/common/st_usbfs_common.h
+ * Original author: Piotr Esden-Tempski <piotr@esden.net>. Thanks him very much.
  * @date 2021
  * @license FreeBSD
  */
@@ -48,24 +51,26 @@ namespace Zhele::Usb
      */
     enum class EndpointStatus : uint8_t
     {
-        Disable = 0x00, //< Disabled
-        Stall = 0x10, //< Stall
-        Nak = 0x20, //< Nak
-        Valid = 0x30, //< Valid
+        Disable = 0, //< Disabled
+        Stall = 1, //< Stall
+        Nak = 2, //< Nak
+        Valid = 3, //< Valid
     };
 
     /**
      * @brief Endpoint descriptor
      */
+    #pragma pack(push, 1)
     struct EndpointDescriptor
     {
-        static const uint8_t Length = 7;
-        static const DescriptorType Type = DescriptorType::Endpoint;
+        uint8_t Length = 7;
+        DescriptorType Type = DescriptorType::Endpoint;
         uint8_t Address;
         uint8_t Attributes;
         uint16_t MaxPacketSize;
         uint8_t Interval;
     };
+    #pragma pack(pop)
 
     /**
      * @brief Endpoint`s packet buffer descriptor.
@@ -115,12 +120,15 @@ namespace Zhele::Usb
         {
             Reg::Set((Number & 0x0f)
                 | static_cast<uint16_t>(GetNumber<static_cast<int>(Type), EndpointsTypesForEPR>::value));
+
+            SetRxStatus(EndpointStatus::Valid);
+            SetTxStatus(EndpointStatus::Nak);
         }
 
         static uint16_t FillDescriptor(EndpointDescriptor* descriptor)
         {
             *descriptor = EndpointDescriptor{
-                .Address = static_cast<uint8_t>(Number) | (static_cast<uint8_t>(Direction) << 7),
+                .Address = static_cast<uint8_t>(Number) | ((static_cast<uint8_t>(Direction) & 0x01) << 7),
                 .Attributes = static_cast<uint8_t>(Type) & 0x3,
                 .MaxPacketSize = MaxPacketSize,
                 .Interval = Interval};
@@ -142,15 +150,62 @@ namespace Zhele::Usb
 
         static void SetRxStatus(EndpointStatus status)
         {
-            Reg::Xor(static_cast<uint16_t>(status) << 12);
+            ToogleAndSet<USB_EPREG_MASK | USB_EPRX_STAT, USB_EP_CTR_TX | USB_EP_CTR_RX>(static_cast<uint16_t>(status) << 12);
+            //uint16_t tmp = Reg::Get();
+            //tmp ^= (status == EndpointStatus::Valid ? 0x3000 : 0x1000);
+            //tmp &= 0xbf8f;
+            //Reg::Set(tmp);
         }
         static void SetTxStatus(EndpointStatus status)
         {
-            Reg::Xor(static_cast<uint16_t>(status) << 4);
+            ToogleAndSet<USB_EPREG_MASK | USB_EPTX_STAT, USB_EP_CTR_TX | USB_EP_CTR_RX>(static_cast<uint16_t>(status) << 4);
+            //uint16_t tmp = Reg::Get();
+            //tmp ^= (status == EndpointStatus::Valid ? 0x0030 : 0x0010);
+            //tmp &= 0x8fbf;
+            //Reg::Set(tmp);
+        }
+        static void ClearCtrRx()
+        {
+            ClearRegBitMaskAndSet<USB_EPREG_MASK, USB_EP_CTR_TX>(USB_EP_CTR_RX);
+            //uint16_t tmp= Reg::Get();
+            //tmp &= ~USB_EP_CTR_RX; //погасим нужные флаги
+            //tmp &= 0x8f8f;// но сбросим тоогл биты
+            //Reg::Set(tmp);
+        }
+        static void ClearCtrTx()
+        {
+            ClearRegBitMaskAndSet<USB_EPREG_MASK, USB_EP_CTR_TX>(USB_EP_CTR_RX);
+            //uint16_t tmp= Reg::Get();
+            //tmp &= ~USB_EP_CTR_TX; //погасим нужные флаги
+            //tmp &= 0x8f8f;// но сбросим тоогл биты
+            //Reg::Set(tmp);
+        }
+
+        static void ClearTxDtog()
+        {
+            Reg::And(USB_EPREG_MASK | USB_EP_DTOG_TX);
+        }
+        static void ClearRxDtog()
+        {
+            Reg::And(USB_EPREG_MASK | USB_EP_DTOG_RX);
         }
 
         static void Handler();
     private:
+        template<uint16_t Mask, uint16_t ExtraBits = 0>
+        static void ToogleAndSet(uint16_t Bit)
+        {
+            uint16_t toggleMask = Reg::Get() & Mask;
+            toggleMask ^= Bit;
+            Reg::Set(toggleMask | ExtraBits);
+        }
+
+        template<uint16_t Mask, uint16_t ExtraBits = 0>
+        static void ClearRegBitMaskAndSet(uint16_t Bit)
+        {
+            uint16_t clrMask = Reg::Get() & Mask & ~Bit;
+            Reg::Set(clrMask | ExtraBits);
+        }
     };
 
     template<typename _Endpoint>
@@ -163,11 +218,11 @@ namespace Zhele::Usb
             _Endpoint::SetTxStatus(EndpointStatus::Valid);
         }
 
-        static void SendData(void* data, uint16_t size)
+        static void SendData(const void* data, uint16_t size)
         {
-            uint8_t* source = reinterpret_cast<uint8_t*>(data);
-            uint8_t* destination = reinterpret_cast<uint8_t*>(_Endpoint::TxBuffer);
-            for(uint32_t i = 0; i < size; ++i)
+            const uint16_t* source = reinterpret_cast<const uint16_t*>(data);
+            uint16_t* destination = reinterpret_cast<uint16_t*>(_Endpoint::TxBuffer);
+            for(uint16_t i = 0; i < (size + 1) / 2; ++i)
                 destination[i] = source[i];
 
             _Endpoint::TxBufferCount::Set(size);
@@ -201,7 +256,7 @@ namespace Zhele::Usb
     };
 
     template <uint8_t _Number, uint16_t _MaxPacketSize>
-    class ControlEndpointBase : public EndpointBase<_Number, EndpointDirection::Out, EndpointType::Control, _MaxPacketSize, 0>
+    class ControlEndpointBase : public EndpointBase<_Number, EndpointDirection::Bidirectional, EndpointType::Control, _MaxPacketSize, 0>
     {      
     };
 
@@ -213,8 +268,10 @@ namespace Zhele::Usb
     template<typename _Base, typename _Reg, uint32_t _BufferAddress, uint32_t _CountRegAddress>
     class UniDirectionalEndpoint : public Endpoint<_Base, _Reg>
     {
-        static constexpr void* Buffer = _BufferAddress;
+    public:
+        static constexpr uint32_t Buffer = _BufferAddress;
         using BufferCount = RegisterWrapper<_CountRegAddress, uint16_t>;
+        static void Handler();
     };
 
     template<typename _Base, typename _Reg, uint32_t _BufferAddress, uint32_t _CountRegAddress>
@@ -226,7 +283,7 @@ namespace Zhele::Usb
     template<typename _Base, typename _Reg, uint32_t _TxBufferAddress, uint32_t _TxCountRegAddress, uint32_t _RxBufferAddress, uint32_t _RxCountRegAddress>
     class BidirectionalEndpoint : public Endpoint<_Base, _Reg>
     {
-        using This = BidirectionalEndpoint<_Base, _Reg, _TxBufferAddress, _TxCountRegAddress, _RxBufferAddress,_RxCountRegAddress>;
+        using This = BidirectionalEndpoint<_Base, _Reg, _TxBufferAddress, _TxCountRegAddress, _RxBufferAddress, _RxCountRegAddress>;
     public:
         using Reg = _Reg;
         static constexpr uint32_t TxBuffer = _TxBufferAddress;

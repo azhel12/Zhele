@@ -14,10 +14,11 @@
 
 namespace Zhele::Usb
 {
+    #pragma pack(push, 1)
     struct InterfaceDescriptor
     {
-        static const uint8_t Length = 9;
-        static const DescriptorType Type = DescriptorType::Interface;
+        uint8_t Length = 9;
+        DescriptorType Type = DescriptorType::Interface;
         uint8_t Number;
         uint8_t AlternateSetting = 0;
         uint8_t EndpointsCount;
@@ -26,6 +27,7 @@ namespace Zhele::Usb
         uint8_t Protocol = 0;
         uint8_t StringIndex = 0;
     };
+    #pragma pack(pop)
     /**
      * @brief Implements interface
      * 
@@ -57,7 +59,7 @@ namespace Zhele::Usb
                 .Protocol = _Protocol
             };
             
-            EndpointDescriptor* endpointsDescriptors = reinterpret_cast<EndpointDescriptor*>(reinterpret_cast<uint8_t*>(descriptor) + sizeof(InterfaceDescriptor));
+            EndpointDescriptor* endpointsDescriptors = reinterpret_cast<EndpointDescriptor*>(++descriptor);
             totalLength += (_Endpoints::FillDescriptor(endpointsDescriptors++) + ...);
 
             return totalLength;
