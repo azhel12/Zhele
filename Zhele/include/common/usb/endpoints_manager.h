@@ -282,8 +282,8 @@ namespace Zhele::Usb
      */
     template<typename...>
     class EndpointsManagerBase;
-    template<typename... AllEndpoints, typename... BidirectionalAndBulkDoubleBufferedEndpoints, typename... RxEndpoints, typename... BulkDoubleBufferedTxEndpoints>
-    class EndpointsManagerBase<TypeList<AllEndpoints...>, TypeList<BidirectionalAndBulkDoubleBufferedEndpoints...>, TypeList<RxEndpoints...>, TypeList<BulkDoubleBufferedTxEndpoints...>>
+    template<typename... AllEndpoints, typename... BidirectionalAndBulkDoubleBufferedEndpoints, typename... RxEndpoints>
+    class EndpointsManagerBase<TypeList<AllEndpoints...>, TypeList<BidirectionalAndBulkDoubleBufferedEndpoints...>, TypeList<RxEndpoints...>>
     {
         using AllEndpointsList = TypeList<AllEndpoints...>;
 
@@ -305,7 +305,6 @@ namespace Zhele::Usb
                                 || Endpoint::Direction == EndpointDirection::Bidirectional
                                     ? 0
                                     : 4);
-        /// BDT base
         static const uint32_t BdtBase = PmaBufferBase;
     public:
         /// Extends endpoint (init addresses)
@@ -347,36 +346,56 @@ namespace Zhele::Usb
         static void Init()
         {
             memset(reinterpret_cast<void*>(BdtBase), 0x00, BdtSize);
-            // Init all endpoints offsets (and TX buffers for control and double-buffered bulk endpoints)
-            ((*(reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<AllEndpoints>)) = BufferOffset<AllEndpoints>), ...);
-            // Init RX buffer for control and bidirectional endpoints and second half-buffer for double-buffered bulk endpoints
-            ((*(reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<BidirectionalAndBulkDoubleBufferedEndpoints> + 4)) = (BufferOffset<BidirectionalAndBulkDoubleBufferedEndpoints> + BidirectionalAndBulkDoubleBufferedEndpoints::MaxPacketSize)), ...);
-            // Init RX_count buffer for RX endpoints
-            ((*(reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<RxEndpoints> + 2)) = (RxEndpoints::MaxPacketSize <= 62
-                                                                                            ? (RxEndpoints::MaxPacketSize / 2) << 10
-                                                                                            : 0x8000 | (RxEndpoints::MaxPacketSize / 32) << 10)), ...);
-            // Init RX_count buffer for control and bidirectional endpoints and second half-buffer for double-buffered bulk endpoints
-            ((*(reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<BidirectionalAndBulkDoubleBufferedEndpoints> + 6)) = (BidirectionalAndBulkDoubleBufferedEndpoints::MaxPacketSize <= 62
-                                                                                            ? (BidirectionalAndBulkDoubleBufferedEndpoints::MaxPacketSize / 2) << 10
-                                                                                            : 0x8000 | (BidirectionalAndBulkDoubleBufferedEndpoints::MaxPacketSize / 32) << 10)), ...);
-
-            // Set TX_count to 0 for TX double-buffered bulk
-            ((*(reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<BulkDoubleBufferedTxEndpoints> + 2)) = 0), ...);
-            ((*(reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<BulkDoubleBufferedTxEndpoints> + 6)) = 0), ...);
+            (InitTxAddressFieldInDescriptor<AllEndpoints>(), ...);
+            (InitRxAddressFieldInDescriptor<BidirectionalAndBulkDoubleBufferedEndpoints>(), ...);
+            (InitRxCountFieldInDescriptor<RxEndpoints>(), ...);
+            (InitSecondRxCountFieldInDescriptor<BidirectionalAndBulkDoubleBufferedEndpoints>(), ...);
+        }
+    private:
+        template<typename Endpoint>
+        static void InitTxAddressFieldInDescriptor()
+        {
+            *reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<Endpoint>) = BufferOffset<Endpoint>;
+        }
+        template<typename Endpoint>
+        static void InitRxAddressFieldInDescriptor()
+        {
+            *reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<Endpoint> + 4) = BufferOffset<Endpoint> + Endpoint::MaxPacketSize;
+        }
+        template<typename Endpoint>
+        static void InitRxCountFieldInDescriptor()
+        {
+            *reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<Endpoint> + 2) = CalculateRxCountValue<Endpoint>();
+        }
+        template<typename Endpoint>
+        static void InitSecondRxCountFieldInDescriptor()
+        {
+            *reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<Endpoint> + 6) = CalculateRxCountValue<Endpoint>();
+        }
+        template<typename Endpoint>
+        static constexpr uint16_t CalculateRxCountValue()
+        {
+             return Endpoint::MaxPacketSize <= 62
+                ? (Endpoint::MaxPacketSize / 2) << 10
+                : 0x8000 | ((Endpoint::MaxPacketSize / 32) << 10);
         }
     };
     
     template<typename Endpoints>
-    using EndpointsManager = EndpointsManagerBase<SortedUniqueEndpoints<Endpoints>,
-        typename Sample<IsBidirectionalOrBulkDoubleBufferedEndpoint, SortedUniqueEndpoints<Endpoints>>::type,
-        typename Sample<IsOutEndpoint, SortedUniqueEndpoints<Endpoints>>::type,
-        typename Sample<IsBulkDoubleBufferedTxEndpoint, SortedUniqueEndpoints<Endpoints>>::type>;
+    using EndpointsManager = EndpointsManagerBase
+    <
+        SortedUniqueEndpoints<Endpoints>,
+        Sample_t<IsBidirectionalOrBulkDoubleBufferedEndpoint, SortedUniqueEndpoints<Endpoints>>,
+        Sample_t<IsOutEndpoint, SortedUniqueEndpoints<Endpoints>>
+    >;
 
     template<typename... Endpoints>
-    using EndpointsInitializer = EndpointsManagerBase<SortedUniqueEndpoints<TypeList<Endpoints...>>,
+    using EndpointsInitializer = EndpointsManagerBase
+    <
+        SortedUniqueEndpoints<TypeList<Endpoints...>>,
         TypeList<>,
-        TypeList<>,
-        TypeList<>>;
+        TypeList<>
+    >;
 
     /**
      * @brief Static array of int8_t.

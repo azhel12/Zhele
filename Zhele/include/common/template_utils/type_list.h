@@ -296,6 +296,9 @@ namespace Zhele
             using type = typename DeleteAll<void, TypeList<typename Select<Predicate<Types>::value, Types, void>::value ...>>::type;
         };
 
+        template<template <typename> class Predicate, typename... Types>
+        using Sample_t = typename Sample<Predicate, Types...>::type;
+
         /**
          * @brief Search type by predicate
          */
