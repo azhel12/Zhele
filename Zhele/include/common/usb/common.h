@@ -14,6 +14,15 @@
 
 namespace Zhele::Usb
 {
+/// Thanks ST very much O_o
+#if defined (STM32F1) || defined (STM32F3)
+    #define PMA_ALIGN_MULTIPLIER 2
+    const unsigned PmaAlignMultiplier = 2;
+#else
+    #define PMA_ALIGN_MULTIPLIER 1
+    const unsigned PmaAlignMultiplier = 1;
+#endif
+
     /**
      * @brief Decription type constant
      */
@@ -93,6 +102,19 @@ namespace Zhele::Usb
      * @brief Setup packet.
      */
     #pragma pack(push, 1)
+#if PMA_ALIGN_MULTIPLIER == 2
+    struct SetupPacket
+    {
+        SetupRequestType RequestType;
+        StandartRequestCode Request;
+        uint16_t Dummy1;
+        uint16_t Value;
+        uint16_t Dummy2;
+        uint16_t Index;
+        uint16_t Dummy3;
+        uint16_t Length;
+    };
+#else
     struct SetupPacket
     {
         SetupRequestType RequestType;
@@ -101,7 +123,8 @@ namespace Zhele::Usb
         uint16_t Index;
         uint16_t Length;
     };
-    static_assert(sizeof(SetupPacket) == 8);
+#endif
+    //static_assert(sizeof(SetupPacket) == 8);
     #pragma pack(pop)
 }
 #endif // ZHELE_USB_COMMON_H

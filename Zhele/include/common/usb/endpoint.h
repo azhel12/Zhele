@@ -207,7 +207,7 @@ namespace Zhele::Usb
             const uint16_t* source = reinterpret_cast<const uint16_t*>(data);
             uint16_t* destination = reinterpret_cast<uint16_t*>(_Endpoint::TxBuffer);
             for(uint16_t i = 0; i < (size + 1) / 2; ++i)
-                destination[i] = source[i];
+                destination[PmaAlignMultiplier * i] = source[i];
 
             _Endpoint::TxBufferCount::Set(size);
             _Endpoint::SetTxStatus(EndpointStatus::Valid);
