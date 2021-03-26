@@ -2,6 +2,7 @@
 #include <exti.h>
 #include <iopins.h>
 #include <pinlist.h>
+#include <vector>
 #include <usb.h>
 
 using namespace Zhele;
@@ -23,12 +24,12 @@ using Report = HidReport<
         0x85, 0x01,                    //   REPORT_ID (1)
         0x09, 0x01,                    //   USAGE (Vendor Usage 1)
         0x91, 0x82,                    //   OUTPUT (Data,Var,Abs,Vol)
-        0xc0                            // END_COLLECTION
+        0xc0                           // END_COLLECTION
     >;
 
-using HidDesc = HidDescriptor<0x0200, Report>;
+using HidDesc = HidDescriptor<0x1001, Report>;
 
-using LedsControlEpBase = OutEndpointBase<1, EndpointType::Interrupt, 64, 32>;
+using LedsControlEpBase = OutEndpointBase<1, EndpointType::Interrupt, 4, 32>;
 using EpInitializer = EndpointsInitializer<DefaultEp0, LedsControlEpBase>;
 
 using Ep0 = EpInitializer::ExtendEndpoint<DefaultEp0>;
@@ -38,15 +39,17 @@ using Hid = HidInterface<0, 0, 0, 0, HidDesc, LedsControlEp>;
 using Config = HidConfiguration<0, 250, false, false, Report, Hid>;
 using MyDevice = Device<0x0200, DeviceClass::InterfaceSpecified, 0, 0, 0x0483, 0x5711, 0, Ep0, Config>;
 
+using Led = IO::Pc6; // Use Pc13 for BluePill.
+
 void ConfigureClock();
 void ConfigureLeds();
-void ConfigureExti();
 
 int main()
 {
     ConfigureClock();
     ConfigureLeds();
-    ConfigureExti();
+
+    static_assert(EndpointHandlers<TypeList<Ep0, LedsControlEp>>::_handlersIndexes[3] == 1);
 
     Zhele::IO::Porta::Enable();
     MyDevice::Enable();
@@ -70,25 +73,15 @@ void ConfigureClock()
 
 void ConfigureLeds()
 {
-    Portc::Enable();
-    using Leds = PinList<Pc6, Pc7, Pc8, Pc9>;
-    Leds::Enable();
-    Leds::SetConfiguration<Leds::Configuration::Out>();
-    Leds::SetDriverType<Leds::DriverType::PushPull>();
-    Leds::Set(0xff);
-}
-
-void ConfigureExti()
-{
-    Exti0::Init<Exti0::Trigger::Rising, Porta>();
-    Exti0::InitPin<Pa0>(Pa0::PullMode::PullDown);
-    Exti0::EnableInterrupt();
+    Led::Port::Enable();
+    Led::SetConfiguration<Led::Configuration::Out>();
+    Led::SetDriverType<Led::DriverType::PushPull>();
+    Led::Set();
 }
 
 template<>
 void LedsControlEp::Handler()
 {
-    //Pc7::Toggle();
     LedsControlEp::ClearCtrRx();
     uint8_t* buffer = reinterpret_cast<uint8_t*>(LedsControlEp::Buffer);
     bool needSet = buffer[1] != 0;
@@ -96,16 +89,7 @@ void LedsControlEp::Handler()
     switch(buffer[0])
     {
     case 1:
-        needSet ? IO::Pc6::Set() : IO::Pc6::Clear();
-        break;
-    case 2:
-        needSet ? IO::Pc7::Set() : IO::Pc7::Clear();
-        break;
-    case 3:
-        needSet ? IO::Pc8::Set() : IO::Pc8::Clear();
-        break;
-    case 4:
-        needSet ? IO::Pc9::Set() : IO::Pc9::Clear();
+        needSet ? Led::Set() : Led::Clear();
         break;
     }
 
@@ -116,22 +100,4 @@ extern "C" void USB_IRQHandler()
 {
     // Sorry, but you must write device`s CommonHandler call by yourself.
     MyDevice::CommonHandler();
-}
-
-uint16_t buffer[256];
-
-extern "C" void EXTI0_1_IRQHandler()
-{
-    /*
-    uint16_t* src = reinterpret_cast<uint16_t*>(USB_PMAADDR);
-    for(int i = 0; i < 256; ++i)
-    {
-        buffer[i] = src[i];
-    }
-
-    volatile uint32_t bufferAddres = reinterpret_cast<uint32_t>(buffer);
-    volatile int a = 42;
-
-    Exti0::ClearInterruptFlag();
-    */
 }
