@@ -319,8 +319,8 @@ namespace Zhele
             static const int value = Predicate<Head>::value
                 ? 0
                 : (Search<Predicate, TypeList<Tail...>>::value >= 0
-                    ? TypeIndex<Search, TypeList<Tail...>>::value + 1
-                    : TypeIndex<Search, TypeList<Tail...>>::value);
+                    ? Search<Predicate, TypeList<Tail...>>::value + 1
+                    : Search<Predicate, TypeList<Tail...>>::value);
         };
 
         // Thanks https://codereview.stackexchange.com/questions/131194/selection-sorting-a-type-list-compile-time
