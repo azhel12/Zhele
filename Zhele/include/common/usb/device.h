@@ -89,7 +89,6 @@ namespace Zhele::Usb
         static void Enable()
         {
             _ClockCtrl::Enable();
-
             EpBufferManager::Init();
 
             _Regs()->CNTR = USB_CNTR_CTRM | USB_CNTR_RESETM;
@@ -123,24 +122,22 @@ namespace Zhele::Usb
             {
                 Reset();
             }
-            if(_Regs()->ISTR & USB_ISTR_CTR)
+            if (_Regs()->ISTR & USB_ISTR_CTR)
             {
                 uint8_t endpoint = _Regs()->ISTR & USB_ISTR_EP_ID;
                 EpHandlers::Handle(endpoint, ((_Regs()->ISTR & USB_ISTR_DIR) != 0 ? EndpointDirection::Out : EndpointDirection::In));
             }
-
             NVIC_ClearPendingIRQ(_IRQNumber);
         }
 
         static void Reset()
         {
-            _Regs()->CNTR = USB_CNTR_CTRM | USB_CNTR_RESETM;
-            _Regs()->ISTR = 0;
-
             _Ep0::Reset();
             
             (_Configurations::Reset(), ...);
 
+            _Regs()->CNTR = USB_CNTR_CTRM | USB_CNTR_RESETM;
+            _Regs()->ISTR = 0;
             _Regs()->BTABLE = 0;
             _Regs()->DADDR = USB_DADDR_EF;
         }
@@ -180,7 +177,7 @@ namespace Zhele::Usb
                         }
                         case GetDescriptorParameter::HidReportDescriptor: {
                             uint16_t size = sizeof(GetType_t<0, Configurations>::HidReport::Data);
-                            _Ep0::Writer::SendData(GetType_t<0, Configurations>::HidReport::Data, setup->Length < size ? setup->Length : size);    
+                            _Ep0::Writer::SendData(GetType_t<0, Configurations>::HidReport::Data, setup->Length < size ? setup->Length : size);
                             break;
                         }
                         default:
@@ -190,7 +187,8 @@ namespace Zhele::Usb
                         break;
                     }
                     case StandartRequestCode::GetConfiguration: {
-                        _Ep0::Writer::SendData(0);
+                        uint16_t configuration = 0;
+                        _Ep0::Writer::SendData(&configuration, 1);
                         break;
                     }
                     case StandartRequestCode::SetConfiguration: {
@@ -219,18 +217,6 @@ namespace Zhele::Usb
     };
 
     IO_STRUCT_WRAPPER(USB, UsbRegs, USB_TypeDef);
-
-    template<
-        uint16_t _UsbVersion,
-        DeviceClass _Class,
-        uint8_t _SubClass,
-        uint8_t _Protocol,
-        uint16_t _VendorId,
-        uint16_t _ProductId,
-        uint16_t _DeviceReleaseNumber,
-        typename _Ep0,
-        typename... _Configurations>
-    using Device = DeviceBase<UsbRegs, USB_IRQn, Zhele::Clock::UsbClock, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Ep0, _Configurations...>;
 
     #define USB_DEVICE_TEMPLATE_ARGS template< \
             typename _Regs, \

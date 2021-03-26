@@ -298,9 +298,7 @@ namespace Zhele::Usb
         template<typename Endpoint>
         static constexpr uint32_t BdtCellOffset =
             EndpointEPRn<Endpoint, AllEndpointsList>::RegisterNumber * 8
-                                + (Endpoint::Type == EndpointType::Control
-                                || Endpoint::Type == EndpointType::ControlStatusOut
-                                || Endpoint::Type == EndpointType::BulkDoubleBuffered
+                                + (Endpoint::Type == EndpointType::BulkDoubleBuffered
                                 || Endpoint::Direction == EndpointDirection::In
                                 || Endpoint::Direction == EndpointDirection::Bidirectional
                                     ? 0
@@ -313,17 +311,17 @@ namespace Zhele::Usb
             typename Select<Endpoint::Type == EndpointType::Control || Endpoint::Type == EndpointType::ControlStatusOut,
             ControlEndpoint<Endpoint,
                 typename EndpointEPRn<Endpoint, TypeList<AllEndpoints...>>::type,
-                PmaBufferBase + BufferOffset<Endpoint>, // TxBuffer
-                PmaBufferBase + BdtCellOffset<Endpoint> + 2, // TxCount
-                PmaBufferBase + BufferOffset<Endpoint> + Endpoint::MaxPacketSize, // RxBuffer
-                PmaBufferBase + BdtCellOffset<Endpoint> + 6>, //RxCount
+                PmaBufferBase + PmaAlignMultiplier * BufferOffset<Endpoint>, // TxBuffer
+                PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 2), // TxCount
+                PmaBufferBase + PmaAlignMultiplier * (BufferOffset<Endpoint> + Endpoint::MaxPacketSize), // RxBuffer
+                PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 6)>, //RxCount
             typename Select<Endpoint::Direction == EndpointDirection::Bidirectional,
             BidirectionalEndpoint<Endpoint,
                 typename EndpointEPRn<Endpoint, TypeList<AllEndpoints...>>::type,
-                PmaBufferBase + BufferOffset<Endpoint>, // TxBuffer
-                PmaBufferBase + BdtCellOffset<Endpoint> + 2, // TxCount
-                PmaBufferBase + BufferOffset<Endpoint> + Endpoint::MaxPacketSize, // RxBuffer
-                PmaBufferBase + BdtCellOffset<Endpoint> + 6>, //RxCount
+                PmaBufferBase + PmaAlignMultiplier * BufferOffset<Endpoint>, // TxBuffer
+                PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 2), // TxCount
+                PmaBufferBase + PmaAlignMultiplier * (BufferOffset<Endpoint> + Endpoint::MaxPacketSize), // RxBuffer
+                PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 6)>, //RxCount
             typename Select<Endpoint::Type == EndpointType::BulkDoubleBuffered,
             BulkDoubleBufferedEndpoint<Endpoint,
                 typename EndpointEPRn<Endpoint, TypeList<AllEndpoints...>>::type,
@@ -339,13 +337,13 @@ namespace Zhele::Usb
             typename Select<Endpoint::Direction == EndpointDirection::Out,
             OutEndpoint<Endpoint,
                 typename EndpointEPRn<Endpoint, TypeList<AllEndpoints...>>::type,
-                PmaBufferBase + BufferOffset<Endpoint>, // Buffer
-                PmaBufferBase + BdtCellOffset<Endpoint> + 2>, // BufferCount
+                PmaBufferBase + PmaAlignMultiplier * BufferOffset<Endpoint>, // Buffer
+                PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 2)>, // BufferCount
             void>::value>::value>::value>::value>::value;
 
         static void Init()
         {
-            memset(reinterpret_cast<void*>(BdtBase), 0x00, BdtSize);
+            memset(reinterpret_cast<void*>(BdtBase), 0x00, PmaAlignMultiplier * BdtSize);
             (InitTxAddressFieldInDescriptor<AllEndpoints>(), ...);
             (InitRxAddressFieldInDescriptor<BidirectionalAndBulkDoubleBufferedEndpoints>(), ...);
             (InitRxCountFieldInDescriptor<RxEndpoints>(), ...);
@@ -355,22 +353,22 @@ namespace Zhele::Usb
         template<typename Endpoint>
         static void InitTxAddressFieldInDescriptor()
         {
-            *reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<Endpoint>) = BufferOffset<Endpoint>;
+            *reinterpret_cast<uint16_t*>(BdtBase + PmaAlignMultiplier * BdtCellOffset<Endpoint>) = BufferOffset<Endpoint>;
         }
         template<typename Endpoint>
         static void InitRxAddressFieldInDescriptor()
         {
-            *reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<Endpoint> + 4) = BufferOffset<Endpoint> + Endpoint::MaxPacketSize;
+            *reinterpret_cast<uint16_t*>(BdtBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 4)) = BufferOffset<Endpoint> + Endpoint::MaxPacketSize;
         }
         template<typename Endpoint>
         static void InitRxCountFieldInDescriptor()
         {
-            *reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<Endpoint> + 2) = CalculateRxCountValue<Endpoint>();
+            *reinterpret_cast<uint16_t*>(BdtBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 2)) = CalculateRxCountValue<Endpoint>();
         }
         template<typename Endpoint>
         static void InitSecondRxCountFieldInDescriptor()
         {
-            *reinterpret_cast<uint16_t*>(BdtBase + BdtCellOffset<Endpoint> + 6) = CalculateRxCountValue<Endpoint>();
+            *reinterpret_cast<uint16_t*>(BdtBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 6)) = CalculateRxCountValue<Endpoint>();
         }
         template<typename Endpoint>
         static constexpr uint16_t CalculateRxCountValue()
@@ -449,18 +447,21 @@ namespace Zhele::Usb
     public:
         using type = typename Int8_tArray_InsertBack<typename EndpointHandlersIndexes<Index - 1, Endpoints>::type, EndpointIndex>::type;
     };
-    template<typename... Endpoints>
-    class EndpointHandlersIndexes<-1, TypeList<Endpoints...>>
+    template<typename Endpoints>
+    class EndpointHandlersIndexes<-1, Endpoints>
     {
     public:
         using type = Int8_tArray<>;
     };
+
+    template<typename Endpoints>
+    const int8_t MaxEndpointNumber = GetType<Zhele::TemplateUtils::Length<SortedUniqueEndpoints<Endpoints>>::value - 1, SortedUniqueEndpoints<Endpoints>>::type::Number;
 
     /**
      * @brief Endpoint`s handlers.
      */
     template<typename Endpoints>
     using EndpointHandlers = EndpointHandlersBase<SortedUniqueEndpoints<Endpoints>,
-        typename EndpointHandlersIndexes<GetType<Zhele::TemplateUtils::Length<SortedUniqueEndpoints<Endpoints>>::value - 1, SortedUniqueEndpoints<Endpoints>>::type::Number * 2 + 1, SortedUniqueEndpoints<Endpoints>>::type>;
+        typename EndpointHandlersIndexes<MaxEndpointNumber<Endpoints> * 2 + 1, SortedUniqueEndpoints<Endpoints>>::type>;
 }
 #endif // ZHELE_USB_ENDPOINTS_MANAGER_H
