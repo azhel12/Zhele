@@ -1,8 +1,5 @@
 #include <clock.h>
-#include <exti.h>
 #include <iopins.h>
-#include <pinlist.h>
-#include <vector>
 #include <usb.h>
 
 using namespace Zhele;
@@ -48,8 +45,6 @@ int main()
 {
     ConfigureClock();
     ConfigureLeds();
-
-    static_assert(EndpointHandlers<TypeList<Ep0, LedsControlEp>>::_handlersIndexes[3] == 1);
 
     Zhele::IO::Porta::Enable();
     MyDevice::Enable();
