@@ -75,7 +75,7 @@ namespace Zhele::Usb
         class type
         {
         public:
-            static const bool value = (Endpoint::Number == Number && Endpoint::Direction == EndpointDirection::Out || Endpoint::Direction == EndpointDirection::Bidirectional);
+            static const bool value = Endpoint::Number == Number && (Endpoint::Direction == EndpointDirection::In || Endpoint::Direction == EndpointDirection::Bidirectional);
         };
     };
 
@@ -92,7 +92,7 @@ namespace Zhele::Usb
         class type
         {
         public:
-            static const bool value = (Endpoint::Number == Number && Endpoint::Direction == EndpointDirection::In || Endpoint::Direction == EndpointDirection::Bidirectional);
+            static const bool value = Endpoint::Number == Number && (Endpoint::Direction == EndpointDirection::Out || Endpoint::Direction == EndpointDirection::Bidirectional);
         };
     };
 
@@ -301,7 +301,7 @@ namespace Zhele::Usb
                                 + (Endpoint::Type == EndpointType::Control
                                 || Endpoint::Type == EndpointType::ControlStatusOut
                                 || Endpoint::Type == EndpointType::BulkDoubleBuffered
-                                || Endpoint::Direction == EndpointDirection::Out
+                                || Endpoint::Direction == EndpointDirection::In
                                 || Endpoint::Direction == EndpointDirection::Bidirectional
                                     ? 0
                                     : 4);
@@ -425,12 +425,13 @@ namespace Zhele::Usb
     template<typename... Endpoints, int8_t... Indexes>
     class EndpointHandlersBase<TypeList<Endpoints...>, Int8_tArray<Indexes...>>
     {
+    public:
         static constexpr EpRequestHandler _handlers[] = {Endpoints::Handler...};
         static constexpr int8_t _handlersIndexes[] = {Indexes...};
     public:
         inline static void Handle(uint8_t number, EndpointDirection direction)
         {
-            _handlers[_handlersIndexes[number + (direction == EndpointDirection::Out ? 1 : 0)]]();
+            _handlers[_handlersIndexes[2 * number + (direction == EndpointDirection::Out ? 1 : 0)]]();
         }
     };
 
@@ -440,23 +441,19 @@ namespace Zhele::Usb
      * @tparam Index Handler index.
      * @tparam Endpoints Unique sorted endpoints.
      */
-    template<int8_t, typename...>
-    class EndpointHandlersIndexes;
+    template<int8_t Index, typename Endpoints>
+    class EndpointHandlersIndexes
+    {
+        using Predicate = Select<Index % 2 == 0, IsTxOrBidirectionalEndpointWithNumber<Index / 2>, IsRxOrBidirectionalEndpointWithNumber<Index / 2>>::value;
+        static const int8_t EndpointIndex = Search<Predicate::template type, Endpoints>::value;
+    public:
+        using type = typename Int8_tArray_InsertBack<typename EndpointHandlersIndexes<Index - 1, Endpoints>::type, EndpointIndex>::type;
+    };
     template<typename... Endpoints>
     class EndpointHandlersIndexes<-1, TypeList<Endpoints...>>
     {
     public:
         using type = Int8_tArray<>;
-    };
-    template<int8_t Index, typename... Endpoints>
-    class EndpointHandlersIndexes<Index, TypeList<Endpoints...>>
-    {
-        static const int temp = Zhele::TemplateUtils::Length<TypeList<Endpoints...>>::value - 1;
-
-        using Predicate = Select<Index % 2 == 0, IsTxOrBidirectionalEndpointWithNumber<Index / 2>, IsRxOrBidirectionalEndpointWithNumber<Index / 2>>::value;
-        static const int8_t EndpointIndex = Search<Predicate::template type, TypeList<Endpoints...>>::value;
-    public:
-        using type = typename Int8_tArray_InsertBack<typename EndpointHandlersIndexes<Index - 1, TypeList<Endpoints...>>::type, EndpointIndex>::type;
     };
 
     /**
@@ -464,6 +461,6 @@ namespace Zhele::Usb
      */
     template<typename Endpoints>
     using EndpointHandlers = EndpointHandlersBase<SortedUniqueEndpoints<Endpoints>,
-        typename EndpointHandlersIndexes<GetType<Zhele::TemplateUtils::Length<SortedUniqueEndpoints<Endpoints>>::value - 1, SortedUniqueEndpoints<Endpoints>>::type::Number * 2 - 1, SortedUniqueEndpoints<Endpoints>>::type>;
+        typename EndpointHandlersIndexes<GetType<Zhele::TemplateUtils::Length<SortedUniqueEndpoints<Endpoints>>::value - 1, SortedUniqueEndpoints<Endpoints>>::type::Number * 2 + 1, SortedUniqueEndpoints<Endpoints>>::type>;
 }
 #endif // ZHELE_USB_ENDPOINTS_MANAGER_H

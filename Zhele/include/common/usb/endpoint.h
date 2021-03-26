@@ -162,7 +162,7 @@ namespace Zhele::Usb
         }
         static void ClearCtrTx()
         {
-            ClearRegBitMaskAndSet<USB_EPREG_MASK, USB_EP_CTR_TX>(USB_EP_CTR_RX);
+            ClearRegBitMaskAndSet<USB_EPREG_MASK, USB_EP_CTR_RX>(USB_EP_CTR_TX);
         }
 
         static void ClearTxDtog()

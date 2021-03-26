@@ -126,9 +126,7 @@ namespace Zhele::Usb
             if(_Regs()->ISTR & USB_ISTR_CTR)
             {
                 uint8_t endpoint = _Regs()->ISTR & USB_ISTR_EP_ID;
-                IO::Pc7::Toggle();
-                EpHandlers::Handle(endpoint, ((_Regs()->ISTR & USB_ISTR_DIR) != 0 ? EndpointDirection::In : EndpointDirection::Out));
-                //USB->ISTR &= ~USB_ISTR_CTR;
+                EpHandlers::Handle(endpoint, ((_Regs()->ISTR & USB_ISTR_DIR) != 0 ? EndpointDirection::Out : EndpointDirection::In));
             }
 
             NVIC_ClearPendingIRQ(_IRQNumber);
@@ -157,7 +155,6 @@ namespace Zhele::Usb
                     SetupPacket* setup = reinterpret_cast<SetupPacket*>(_Ep0::RxBuffer);
                     switch (setup->Request) {
                     case StandartRequestCode::GetStatus: {
-                        // Dummy answer. Remote wakeup and self-powered now not supported.
                         uint16_t status = 0;
                         _Ep0::Writer::SendData(&status, sizeof(status));
                         break;
@@ -192,8 +189,13 @@ namespace Zhele::Usb
                         }
                         break;
                     }
+                    case StandartRequestCode::GetConfiguration: {
+                        _Ep0::Writer::SendData(0);
+                        break;
+                    }
                     case StandartRequestCode::SetConfiguration: {
                         _Ep0::Writer::SendData(0);
+                        break;
                     }
                     default:
                         _Ep0::SetTxStatus(EndpointStatus::Stall);
