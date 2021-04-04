@@ -308,13 +308,6 @@ namespace Zhele::Usb
         /// Extends endpoint (init addresses)
         template<typename Endpoint>
         using ExtendEndpoint = 
-            typename Select<Endpoint::Type == EndpointType::Control || Endpoint::Type == EndpointType::ControlStatusOut,
-            ControlEndpoint<Endpoint,
-                typename EndpointEPRn<Endpoint, TypeList<AllEndpoints...>>::type,
-                PmaBufferBase + PmaAlignMultiplier * BufferOffset<Endpoint>, // TxBuffer
-                PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 2), // TxCount
-                PmaBufferBase + PmaAlignMultiplier * (BufferOffset<Endpoint> + Endpoint::MaxPacketSize), // RxBuffer
-                PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 6)>, //RxCount
             typename Select<Endpoint::Direction == EndpointDirection::Bidirectional,
             BidirectionalEndpoint<Endpoint,
                 typename EndpointEPRn<Endpoint, TypeList<AllEndpoints...>>::type,
@@ -339,7 +332,7 @@ namespace Zhele::Usb
                 typename EndpointEPRn<Endpoint, TypeList<AllEndpoints...>>::type,
                 PmaBufferBase + PmaAlignMultiplier * BufferOffset<Endpoint>, // Buffer
                 PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 2)>, // BufferCount
-            void>::value>::value>::value>::value>::value;
+            void>::value>::value>::value>::value;
 
         static void Init()
         {

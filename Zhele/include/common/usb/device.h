@@ -81,8 +81,6 @@ namespace Zhele::Usb
         using EpHandlers = EndpointHandlers<Append_t<This, Endpoints>>;
         
     public:
-        static uint8_t TempAddressStorage;
-
         template<typename T>
         static void SelectClockSource(T clockSource);
 
@@ -118,6 +116,8 @@ namespace Zhele::Usb
 
         static void CommonHandler()
         {
+            NVIC_ClearPendingIRQ(_IRQNumber);
+
             if(_Regs()->ISTR & USB_ISTR_RESET)
             {
                 Reset();
@@ -127,7 +127,6 @@ namespace Zhele::Usb
                 uint8_t endpoint = _Regs()->ISTR & USB_ISTR_EP_ID;
                 EpHandlers::Handle(endpoint, ((_Regs()->ISTR & USB_ISTR_DIR) != 0 ? EndpointDirection::Out : EndpointDirection::In));
             }
-            NVIC_ClearPendingIRQ(_IRQNumber);
         }
 
         static void Reset()
@@ -153,12 +152,15 @@ namespace Zhele::Usb
                     switch (setup->Request) {
                     case StandartRequestCode::GetStatus: {
                         uint16_t status = 0;
-                        _Ep0::Writer::SendData(&status, sizeof(status));
+                        _Ep0::SendData(&status, sizeof(status));
                         break;
                     }
                     case StandartRequestCode::SetAddress: {
-                        TempAddressStorage = setup->Value;
-                        _Ep0::Writer::SendData(0);
+                        uint16_t address = setup->Value;
+                        _Ep0::SendZLP([&address](){
+                            _Regs()->DADDR = USB_DADDR_EF | (address & USB_DADDR_ADD);
+                            _Ep0::SetRxStatus(EndpointStatus::Valid);
+                        });
                         break;
                     }
                     case StandartRequestCode::GetDescriptor: {
@@ -166,18 +168,18 @@ namespace Zhele::Usb
                         case GetDescriptorParameter::DeviceDescriptor: {
                             DeviceDescriptor tempDeviceDescriptor;
                             FillDescriptor(reinterpret_cast<DeviceDescriptor*>(&tempDeviceDescriptor));
-                            _Ep0::Writer::SendData(&tempDeviceDescriptor, setup->Length < sizeof(DeviceDescriptor) ? setup->Length : sizeof(DeviceDescriptor));
+                            _Ep0::SendData(&tempDeviceDescriptor, setup->Length < sizeof(DeviceDescriptor) ? setup->Length : sizeof(DeviceDescriptor));
                             break;
                         }
                         case GetDescriptorParameter::ConfigurationDescriptor: {
                             uint8_t temp[64];
                             uint16_t size = GetType<0, Configurations>::type::FillDescriptor(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]));
-                            _Ep0::Writer::SendData(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]), setup->Length < size ? setup->Length : size);
+                            _Ep0::SendData(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]), setup->Length < size ? setup->Length : size);
                             break;
                         }
                         case GetDescriptorParameter::HidReportDescriptor: {
                             uint16_t size = sizeof(GetType_t<0, Configurations>::HidReport::Data);
-                            _Ep0::Writer::SendData(GetType_t<0, Configurations>::HidReport::Data, setup->Length < size ? setup->Length : size);
+                            _Ep0::SendData(GetType_t<0, Configurations>::HidReport::Data, setup->Length < size ? setup->Length : size);
                             break;
                         }
                         default:
@@ -188,11 +190,11 @@ namespace Zhele::Usb
                     }
                     case StandartRequestCode::GetConfiguration: {
                         uint16_t configuration = 0;
-                        _Ep0::Writer::SendData(&configuration, 1);
+                        _Ep0::SendData(&configuration, 1);
                         break;
                     }
                     case StandartRequestCode::SetConfiguration: {
-                        _Ep0::Writer::SendData(0);
+                        _Ep0::SendZLP();
                         break;
                     }
                     default:
@@ -200,20 +202,13 @@ namespace Zhele::Usb
                         break;
                     }
                 }
-                _Ep0::SetRxStatus(EndpointStatus::Valid);
             }
             if(_Ep0::Reg::Get() & USB_EP_CTR_TX)
             {
                 _Ep0::ClearCtrTx();
-                if(TempAddressStorage != 0)
-                {
-                    _Regs()->DADDR = USB_DADDR_EF | (TempAddressStorage & USB_DADDR_ADD);
-                    TempAddressStorage = 0;
-                }
-                _Ep0::SetRxStatus(EndpointStatus::Valid);
+                _Ep0::HandleTx();
             }
         }
-    private:
     };
 
     IO_STRUCT_WRAPPER(USB, UsbRegs, USB_TypeDef);
@@ -233,8 +228,5 @@ namespace Zhele::Usb
             typename... _Configurations>
 
     #define USB_DEVICE_TEMPLATE_QUALIFIER DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Ep0, _Configurations...>
-
-    USB_DEVICE_TEMPLATE_ARGS
-    uint8_t USB_DEVICE_TEMPLATE_QUALIFIER::TempAddressStorage = 0x00;
 }
 #endif // ZHELE_USB_DEVICE_H
