@@ -317,8 +317,8 @@ namespace Zhele::Usb
 
     // Using std::function allows lambdas as callbacks, but takes ~1,2Kb flash and ~100 bytes RAM.
     // Please advise me best solution.
-    using InTransferCallback = std::function<void()>;
-    //using InTransferCallback = std::add_pointer_t<void()>;
+    //using InTransferCallback = std::function<void()>;
+    using InTransferCallback = std::add_pointer_t<void()>;
     template<typename _Base, typename _Reg, uint32_t _BufferAddress, uint32_t _CountRegAddress>
     class EndpointWithTxSupport
     {
@@ -327,6 +327,7 @@ namespace Zhele::Usb
     public:
         static void SendZLP(InTransferCallback callback = SetEpRxStatusValid)
         {
+            _bytesRemain = 0;
             _txCompleteCallback = callback;
             Writer::SendData(0);
         }
@@ -349,6 +350,7 @@ namespace Zhele::Usb
                 Writer::SendData(_dataToTransmit, _bytesRemain > _Base::MaxPacketSize ? _Base::MaxPacketSize : _bytesRemain);
                 return;
             }
+
             if(_txCompleteCallback)
             {
                 _txCompleteCallback();
@@ -444,6 +446,6 @@ namespace Zhele::Usb
         using Buffer1Count = RegisterWrapper<_Count1RegAddress, uint16_t>;
     };
 
-    using DefaultEp0 = ZeroEndpointBase<16>;
+    using DefaultEp0 = ZeroEndpointBase<8>;
 }
 #endif // ZHELE_USB_ENDPOINT_H

@@ -80,6 +80,8 @@ namespace Zhele::Usb
         using EpBufferManager = EndpointsManager<Append_t<_Ep0, Endpoints>>;
         using EpHandlers = EndpointHandlers<Append_t<This, Endpoints>>;
         
+
+        static uint8_t _tempAddressStorage;
     public:
         template<typename T>
         static void SelectClockSource(T clockSource);
@@ -156,9 +158,9 @@ namespace Zhele::Usb
                         break;
                     }
                     case StandartRequestCode::SetAddress: {
-                        uint16_t address = setup->Value;
-                        _Ep0::SendZLP([&address](){
-                            _Regs()->DADDR = USB_DADDR_EF | (address & USB_DADDR_ADD);
+                        _tempAddressStorage = setup->Value;                        
+                        _Ep0::SendZLP([](){
+                            _Regs()->DADDR = (USB_DADDR_EF | (_tempAddressStorage & USB_DADDR_ADD));
                             _Ep0::SetRxStatus(EndpointStatus::Valid);
                         });
                         break;
@@ -228,5 +230,8 @@ namespace Zhele::Usb
             typename... _Configurations>
 
     #define USB_DEVICE_TEMPLATE_QUALIFIER DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Ep0, _Configurations...>
+
+    USB_DEVICE_TEMPLATE_ARGS
+    uint8_t USB_DEVICE_TEMPLATE_QUALIFIER::_tempAddressStorage = 0x00;
 }
 #endif // ZHELE_USB_DEVICE_H
