@@ -73,13 +73,17 @@ namespace Zhele::Usb
     class DeviceBase : public _Ep0
     {
         using This = DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Ep0, _Configurations...>;
-        using Endpoints = Append_t<typename _Configurations::Endpoints...>;
+
         using Configurations = TypeList<_Configurations...>;
+        using Interfaces = Append_t<typename _Configurations::Interfaces...>; 
+        using Endpoints = Append_t<typename _Configurations::Endpoints...>;
+
+        // Removed some dependencies. Lets search first HID interface and consider it as main hid.
+        using HidInterface = GetType_t<Search<IsHidPredicate, Interfaces>::value, Interfaces>;
 
         // Replace Ep0 with this for correct handler register.
         using EpBufferManager = EndpointsManager<Append_t<_Ep0, Endpoints>>;
         using EpHandlers = EndpointHandlers<Append_t<This, Endpoints>>;
-        
 
         static uint8_t _tempAddressStorage;
     public:
@@ -180,8 +184,18 @@ namespace Zhele::Usb
                             break;
                         }
                         case GetDescriptorParameter::HidReportDescriptor: {
-                            uint16_t size = sizeof(GetType_t<0, Configurations>::HidReport::Data);
-                            _Ep0::SendData(GetType_t<0, Configurations>::HidReport::Data, setup->Length < size ? setup->Length : size);
+                            if constexpr(!std::is_same_v<HidInterface, void>)
+                            {
+                                // I know that sending local array to function is bad practic, but it works.
+                                // Left it here:) uint8_t* temp = (uint8_t*)malloc(128);
+                                uint8_t temp[HidInterface::ReportsSize()];
+                                uint16_t size = HidInterface::FillReports(temp);
+                                _Ep0::SendData(temp, setup->Length < size ? setup->Length : size);
+                            }
+                            else
+                            {
+                                _Ep0::SetTxStatus(EndpointStatus::Stall);
+                            }
                             break;
                         }
                         default:

@@ -53,6 +53,8 @@ namespace Zhele::Usb
         VendorSpecified = 0xff
     };
 
+    using InterfaceClass = DeviceClass;
+
     /**
      * @brief USB Standard Request Codes
      */

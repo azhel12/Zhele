@@ -22,7 +22,7 @@ namespace Zhele::Usb
         uint8_t Number;
         uint8_t AlternateSetting = 0;
         uint8_t EndpointsCount;
-        uint8_t Class = 0;
+        InterfaceClass Class = DeviceClass::InterfaceSpecified;
         uint8_t SubClass = 0;
         uint8_t Protocol = 0;
         uint8_t StringIndex = 0;
@@ -34,12 +34,12 @@ namespace Zhele::Usb
      * @tparam _Number Interface number
      * 
      */
-    template <uint8_t _Number, uint8_t _AlternateSetting = 0, uint8_t _Class = 0, uint8_t _SubClass = 0, uint8_t _Protocol = 0, typename... _Endpoints>
+    template <uint8_t _Number, uint8_t _AlternateSetting = 0, InterfaceClass _Class = InterfaceClass::InterfaceSpecified, uint8_t _SubClass = 0, uint8_t _Protocol = 0, typename... _Endpoints>
     class Interface
     {
     public:
         using Endpoints = Zhele::TemplateUtils::TypeList<_Endpoints...>;
-        static const uint8_t EndpointsCount = ((_Endpoints::Direction == EndpointDirection::Bidirectional ? 2 : 1) + ...);
+        static const uint8_t EndpointsCount = (0 + ... + (_Endpoints::Direction == EndpointDirection::Bidirectional ? 2 : 1));
 
         static void Reset()
         {
@@ -60,7 +60,7 @@ namespace Zhele::Usb
             };
             
             EndpointDescriptor* endpointsDescriptors = reinterpret_cast<EndpointDescriptor*>(++descriptor);
-            totalLength += (_Endpoints::FillDescriptor(endpointsDescriptors++) + ...);
+            totalLength += (0 + ... + _Endpoints::FillDescriptor(endpointsDescriptors++));
 
             return totalLength;
         }

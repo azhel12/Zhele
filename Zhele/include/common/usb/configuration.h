@@ -45,6 +45,7 @@ namespace Zhele::Usb
     class Configuration
     {
     public:
+        using Interfaces = Zhele::TemplateUtils::TypeList<_Interfaces...>;
         using Endpoints = Zhele::TemplateUtils::Append_t<typename _Interfaces::Endpoints...>;
 
         static void Reset()
