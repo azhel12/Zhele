@@ -86,9 +86,18 @@ namespace Zhele::Usb
     };
 
     /**
-     * @brief HID interface
+     * @brief Implements HID interface
      * 
+     * @tparam _Number Interface number
+     * @tparam _AlternateSetting Interface alternate setting
+     * @tparam _Class Interface class
+     * @tparam _SubClass Interface subclass
+     * @tparam _Protocol Interface protocol
+     * @tparam _HidImpl HidImpl instance
+     * @tparam _Ep0 Zero endpoint instance
+     * @tparam _Endpoints Endpoints 
      * 
+     */
     template <uint8_t _Number, uint8_t _AlternateSetting, uint8_t _SubClass, uint8_t _Protocol, typename _HidImpl, typename _Ep0, typename... _Endpoints>
     class HidInterface : public Interface<_Number, _AlternateSetting, InterfaceClass::Hid, _SubClass, _Protocol, _Ep0, _Endpoints...>
     {
@@ -96,6 +105,12 @@ namespace Zhele::Usb
     public:
         using Endpoints = Base::Endpoints;
 
+        /**
+         * @brief Interface setup request handler
+         * 
+         * @par Returns
+         *  Nothing
+         */
         static void SetupHandler()
         {
             SetupPacket* setup = reinterpret_cast<SetupPacket*>(_Ep0::RxBuffer);
@@ -109,6 +124,14 @@ namespace Zhele::Usb
             }
         }
 
+        /**
+         * @brief Fills descriptor
+         * 
+         * @param [out] descriptor Destination memory
+         * 
+         * @par Returns
+         *  Nothing
+         */
         static uint16_t FillDescriptor(InterfaceDescriptor* descriptor)
         {
             uint16_t totalLength = sizeof(InterfaceDescriptor);
@@ -136,23 +159,28 @@ namespace Zhele::Usb
             return totalLength;
         }
 
+        /**
+         * @brief Returns reports size
+         * 
+         * @returns Reports size
+         */
         static constexpr uint16_t ReportsSize()
         {
             return _HidImpl::ReportsSize();
         }
 
+        /**
+         * @brief Fills reports
+         * 
+         * @param [out] descriptor Destination memory
+         * 
+         * @returns Total bytes written
+         */
         static uint16_t FillReports(uint8_t* destination)
         {
             return _HidImpl::FillReports(destination);
         }
     private:
-    };
-
-    template<typename T>
-    class IsHidPredicate
-    {
-    public:
-        static const bool value = std::is_base_of_v<HidTag, T>;
     };
 }
 #endif // ZHELE_USB_HID_H

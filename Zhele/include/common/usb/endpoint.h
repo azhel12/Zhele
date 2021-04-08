@@ -166,7 +166,7 @@ namespace Zhele::Usb
         static void Reset()
         {
             Reg::Set((Number & 0x0f)
-                | static_cast<uint16_t>(GetNumber<static_cast<int>(Type), EndpointsTypesForEPR>::value));
+                | static_cast<uint16_t>(Zhele::TemplateUtils::GetNumber<static_cast<int>(Type), EndpointsTypesForEPR>::value));
 
             SetRxStatus(EndpointStatus::Valid);
             SetTxStatus(EndpointStatus::Nak);

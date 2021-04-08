@@ -14,6 +14,7 @@
 #include "endpoint.h"
 
 #include "../template_utils/type_list.h"
+#include "../template_utils/static_array.h"
 
 namespace Zhele::Usb
 {
@@ -116,7 +117,7 @@ namespace Zhele::Usb
     template<typename...>
     class InterfaceHandlersBase;
     template<typename... Interfaces, int8_t... Indexes>
-    class InterfaceHandlersBase<TypeList<Interfaces...>, Zhele::TemplateUtils::Int8_tArray<Indexes...>>
+    class InterfaceHandlersBase<Zhele::TemplateUtils::TypeList<Interfaces...>, Zhele::TemplateUtils::Int8_tArray<Indexes...>>
     {
     public:
         static constexpr InterfaceSetupRequestHandler _handlers[] = {Interfaces::SetupHandler...};
@@ -136,13 +137,13 @@ namespace Zhele::Usb
     {};
 
     template<typename Interfaces>
-    using InterfacesSortedByNumber = typename TypeListSort<InterfaceNumberComparator, Interfaces>::type;
+    using InterfacesSortedByNumber = typename Zhele::TemplateUtils::TypeListSort<InterfaceNumberComparator, Interfaces>::type;
 
     /**
      * @brief Unique interfaces sorted by numbers.
      */
     template<typename Interfaces>
-    using SortedUniqueInterfaces = InterfacesSortedByNumber<typename Unique<Interfaces>::type>;
+    using SortedUniqueInterfaces = InterfacesSortedByNumber<typename Zhele::TemplateUtils::Unique<Interfaces>::type>;
 
     /**
      * @brief Predicate for search interface by number
@@ -171,19 +172,19 @@ namespace Zhele::Usb
     class InterfaceHandlersIndexes
     {
         using Predicate = IsInterfaceWithNumber<Index>;
-        static const int8_t InterfaceIndex = Search<Predicate::template type, Interfaces>::value;
+        static const int8_t InterfaceIndex = Zhele::TemplateUtils::Search<Predicate::template type, Interfaces>::value;
     public:
-        using type = typename Int8_tArray_InsertBack<typename InterfaceHandlersIndexes<Index - 1, Interfaces>::type, InterfaceIndex>::type;
+        using type = typename Zhele::TemplateUtils::Int8_tArray_InsertBack<typename InterfaceHandlersIndexes<Index - 1, Interfaces>::type, InterfaceIndex>::type;
     };
     template<typename Interfaces>
     class InterfaceHandlersIndexes<-1, Interfaces>
     {
     public:
-        using type = Int8_tArray<>;
+        using type = Zhele::TemplateUtils::Int8_tArray<>;
     };
 
     template<typename Interfaces>
-    const int8_t MaxInterfaceNumber = GetType<Zhele::TemplateUtils::Length<SortedUniqueInterfaces<Interfaces>>::value - 1, SortedUniqueInterfaces<Interfaces>>::type::Number;
+    const int8_t MaxInterfaceNumber = Zhele::TemplateUtils::GetType<Zhele::TemplateUtils::Length<SortedUniqueInterfaces<Interfaces>>::value - 1, SortedUniqueInterfaces<Interfaces>>::type::Number;
 
     /**
      * @brief Interface`s handlers.
