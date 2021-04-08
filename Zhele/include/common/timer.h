@@ -45,25 +45,25 @@ namespace Zhele::Timers
             /// All timer`s interrupts
             enum class Interrupt
             {
-                Update = TIM_DIER_UIE,	//< update event (overflow)
-                CC1 = TIM_DIER_CC1IE,	//< Capture compare (1 channel)
-                CC2 = TIM_DIER_CC2IE,	//< Capture compare (2 channel)
-                CC3 = TIM_DIER_CC3IE,	//< Capture compare (3 channel)
-                CC4 = TIM_DIER_CC4IE,	//< Capture compare (4 channel)
-                COM = TIM_DIER_COMIE,	//< COM interrupt
-                Trigger = TIM_DIER_TIE,	//< Trigger output
-                Break = TIM_DIER_BIE,	//< Break
+                Update = TIM_DIER_UIE,	///< update event (overflow)
+                CC1 = TIM_DIER_CC1IE,	///< Capture compare (1 channel)
+                CC2 = TIM_DIER_CC2IE,	///< Capture compare (2 channel)
+                CC3 = TIM_DIER_CC3IE,	///< Capture compare (3 channel)
+                CC4 = TIM_DIER_CC4IE,	///< Capture compare (4 channel)
+                COM = TIM_DIER_COMIE,	///< COM interrupt
+                Trigger = TIM_DIER_TIE,	///< Trigger output
+                Break = TIM_DIER_BIE,	///< Break
             };
             DECLARE_ENUM_OPERATIONS_IN_CLASS(Interrupt)
 
             /// Timer counter mode
             enum class CounterMode
             {
-                Up = 0x00000000U,	//< count up
-                Down = TIM_CR1_DIR,	//< count down
-                CenterAligned1 = TIM_CR1_CMS_0,	//< center aligned, interrupt with counting down
-                CenterAligned2 = TIM_CR1_CMS_1, //< center aligned, interrupt with counting up
-                CenterAligned3 = TIM_CR1_CMS //< center aligned, interrupt with both
+                Up = 0x00000000U,	///< count up
+                Down = TIM_CR1_DIR,	///< count down
+                CenterAligned1 = TIM_CR1_CMS_0,	///< center aligned, interrupt with counting down
+                CenterAligned2 = TIM_CR1_CMS_1, ///< center aligned, interrupt with counting up
+                CenterAligned3 = TIM_CR1_CMS ///< center aligned, interrupt with both
 
             };
 

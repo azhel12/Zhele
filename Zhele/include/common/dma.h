@@ -50,30 +50,30 @@ namespace Zhele
         enum Mode
         {
         #if defined (DMA_CCR_EN)
-            PriorityLow = 0, //< Low priority
-            PriorityMedium = DMA_CCR_PL_0, //< Medium priority
-            PriorityHigh = DMA_CCR_PL_1, //< High priority
-            PriorityVeryHigh = DMA_CCR_PL_1 | DMA_CCR_PL_0, //< Very high priority
+            PriorityLow = 0, ///< Low priority
+            PriorityMedium = DMA_CCR_PL_0, ///< Medium priority
+            PriorityHigh = DMA_CCR_PL_1, ///< High priority
+            PriorityVeryHigh = DMA_CCR_PL_1 | DMA_CCR_PL_0, ///< Very high priority
             
-            MSize8Bits = 0,	//< Memory size 8 bits
-            MSize16Bits = DMA_CCR_MSIZE_0, //< Memory size 16 bits
-            MSize32Bits = DMA_CCR_MSIZE_1, //< Memory size 32 bits
+            MSize8Bits = 0,	///< Memory size 8 bits
+            MSize16Bits = DMA_CCR_MSIZE_0, ///< Memory size 16 bits
+            MSize32Bits = DMA_CCR_MSIZE_1, ///< Memory size 32 bits
             
-            PSize8Bits = 0,	//< Peripheral size 8 bits
-            PSize16Bits = DMA_CCR_PSIZE_0, //< Peripheral size 16 bits
-            PSize32Bits = DMA_CCR_PSIZE_1, //< Peripheral size 32 bits
+            PSize8Bits = 0,	///< Peripheral size 8 bits
+            PSize16Bits = DMA_CCR_PSIZE_0, ///< Peripheral size 16 bits
+            PSize32Bits = DMA_CCR_PSIZE_1, ///< Peripheral size 32 bits
             
-            MemIncrement = DMA_CCR_MINC, //< Enable memory increment
-            PeriphIncrement = DMA_CCR_PINC,	//< Peripheral increment
-            Circular = DMA_CCR_CIRC, //< Circular transfer
+            MemIncrement = DMA_CCR_MINC, ///< Enable memory increment
+            PeriphIncrement = DMA_CCR_PINC,	///< Peripheral increment
+            Circular = DMA_CCR_CIRC, ///< Circular transfer
             
-            Periph2Mem = 0,	//< Peripheral to memory transfer
-            Mem2Periph = DMA_CCR_DIR, //< Memory to peripheral transfer
-            Mem2Mem = DMA_CCR_MEM2MEM, //< Memory to memory transfer
+            Periph2Mem = 0,	///< Peripheral to memory transfer
+            Mem2Periph = DMA_CCR_DIR, ///< Memory to peripheral transfer
+            Mem2Mem = DMA_CCR_MEM2MEM, ///< Memory to memory transfer
             
-            TransferErrorInterrupt = DMA_CCR_TEIE,	//< Transfer error interrupt
-            HalfTransferInterrupt = DMA_CCR_HTIE,	//< Half transfer interrupt
-            TransferCompleteInterrupt = DMA_CCR_TCIE	//< Transfer complete interrupt
+            TransferErrorInterrupt = DMA_CCR_TEIE,	///< Transfer error interrupt
+            HalfTransferInterrupt = DMA_CCR_HTIE,	///< Half transfer interrupt
+            TransferCompleteInterrupt = DMA_CCR_TCIE	///< Transfer complete interrupt
         #endif
         #if defined(DMA_SxCR_EN)
             PriorityLow = 0,
@@ -127,10 +127,10 @@ namespace Zhele
             size(0)
         {}
 
-        TransferCallback transferCallback; //< Transfer complete/error callback pointer
+        TransferCallback transferCallback; ///< Transfer complete/error callback pointer
 
-        void *data;	//< Data buffer
-        uint16_t size; //< Data buffer size
+        void *data;	///< Data buffer
+        uint16_t size; ///< Data buffer size
 
         /**
          * @brief Transfer complete handler. Call user`s callback if it has been set.

@@ -108,11 +108,11 @@ namespace Zhele
         {
             NoInterrupt = 0,
         #if defined (USART_SR_PE)
-            ParityErrorInt = USART_SR_PE,	//< Parity error
-            TxEmptyInt     = USART_SR_TXE,	//< Transmission register empty
-            TxCompleteInt  = USART_SR_TC,	//< Transmission complete
-            RxNotEmptyInt  = USART_SR_RXNE,	//< Read data register not empty
-            IdleInt        = USART_SR_IDLE,	//< Idle mode (all operations finished)
+            ParityErrorInt = USART_SR_PE,	///< Parity error
+            TxEmptyInt     = USART_SR_TXE,	///< Transmission register empty
+            TxCompleteInt  = USART_SR_TC,	///< Transmission complete
+            RxNotEmptyInt  = USART_SR_RXNE,	///< Read data register not empty
+            IdleInt        = USART_SR_IDLE,	///< Idle mode (all operations finished)
 
             LineBreakInt   = USART_SR_LBD,
 
@@ -120,11 +120,11 @@ namespace Zhele
             CtsInt         = USART_SR_CTS,
         #endif
         #if defined (USART_ISR_PE)
-            ParityErrorInt = USART_ISR_PE,	//< Parity error
-            TxEmptyInt     = USART_ISR_TXE,	//< Transmission register empty
-            TxCompleteInt  = USART_ISR_TC,	//< Transmission complete
-            RxNotEmptyInt  = USART_ISR_RXNE,	//< Read data register not empty
-            IdleInt        = USART_ISR_IDLE,	//< Idle mode (all operations finished)
+            ParityErrorInt = USART_ISR_PE,	///< Parity error
+            TxEmptyInt     = USART_ISR_TXE,	///< Transmission register empty
+            TxCompleteInt  = USART_ISR_TC,	///< Transmission complete
+            RxNotEmptyInt  = USART_ISR_RXNE,	///< Read data register not empty
+            IdleInt        = USART_ISR_IDLE,	///< Idle mode (all operations finished)
             #if defined(USART_ISR_LBD)
             LineBreakInt   = USART_ISR_LBD,
             #else

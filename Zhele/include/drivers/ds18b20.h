@@ -27,9 +27,9 @@ namespace Zhele::Drivers
          */
         enum Commands : uint8_t
         {
-            ConvertTemperature = 0x44, //< Start temperature convert (measure)
-            ReadScratchPad = 0xbe, //< Read sensor memory
-            WriteScratchPad = 0x4e, //< Write sensor memory (resolution, etc)
+            ConvertTemperature = 0x44, ///< Start temperature convert (measure)
+            ReadScratchPad = 0xbe, ///< Read sensor memory
+            WriteScratchPad = 0x4e, ///< Write sensor memory (resolution, etc)
         };
 
         /**

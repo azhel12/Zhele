@@ -20,7 +20,7 @@ namespace Zhele::Drivers
 	template <typename _I2CBus>
 	class Ds1307
 	{
-		const static uint8_t  Ds1307Address = (0xD0 >> 1); //< I2C address in 7-bit mode
+		const static uint8_t  Ds1307Address = (0xD0 >> 1); ///< I2C address in 7-bit mode
 
 		// Registers location
 		enum Registers
@@ -48,13 +48,13 @@ namespace Zhele::Drivers
 	public:
 		struct Time
 		{
-			uint8_t Seconds; //< Seconds parameter, from 00 to 59
-			uint8_t Minutes; //< Minutes parameter, from 00 to 59
-			uint8_t Hours; //< Hours parameter, 24Hour mode, 00 to 23
-			uint8_t Weekday; //< Day in a week, from 1 to 7
-			uint8_t Day; //< Day in a month, 1 to 31
-			uint8_t Month; //< Month in a year, 1 to 12
-			uint8_t Year; //< Year parameter, 00 to 99, 00 is 2000 and 99 is 2099
+			uint8_t Seconds; ///< Seconds parameter, from 00 to 59
+			uint8_t Minutes; ///< Minutes parameter, from 00 to 59
+			uint8_t Hours; ///< Hours parameter, 24Hour mode, 00 to 23
+			uint8_t Weekday; ///< Day in a week, from 1 to 7
+			uint8_t Day; ///< Day in a month, 1 to 31
+			uint8_t Month; ///< Month in a year, 1 to 12
+			uint8_t Year; ///< Year parameter, 00 to 99, 00 is 2000 and 99 is 2099
 		};
 
 		/**

@@ -46,17 +46,17 @@ namespace Zhele
             // Port driver type
             enum DriverType
             {
-                PushPull = 0,	//< Push-pull
-                OpenDrain = 1	//< Open-drain
+                PushPull = 0,	///< Push-pull
+                OpenDrain = 1	///< Open-drain
             };
 
             // Port speed
             enum Speed
             {
-                Slow = 0, //< Slow (< 2 MHz)
-                Medium = 1, //< Medium (< 10 MHz)
-                Fast = 2, //< Fast (< 50MHz)
-                Fastest = 3 //< Fastest (< 50MHz)
+                Slow = 0, ///< Slow (< 2 MHz)
+                Medium = 1, ///< Medium (< 10 MHz)
+                Fast = 2, ///< Fast (< 50MHz)
+                Fastest = 3 ///< Fastest (< 50MHz)
             };
 
             static constexpr inline unsigned UnpackConfig2bits(unsigned mask, unsigned value, unsigned configuration)

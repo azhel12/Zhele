@@ -30,14 +30,14 @@ namespace Zhele
              */
             enum ClockDivider
             {
-                Div2	= 0, //< Divide to 2
-                Div4	= 1 << SPI_CR1_BR_Pos, //< Divide to 4
-                Div8	= 2 << SPI_CR1_BR_Pos, //< Divide to 8
-                Div16	= 3 << SPI_CR1_BR_Pos, //< Divide to 16
-                Div32	= 4 << SPI_CR1_BR_Pos, //< Divide to 32
-                Div64	= 5 << SPI_CR1_BR_Pos, //< Divide to 64
-                Div128	= 6 << SPI_CR1_BR_Pos, //< Divide to 128
-                Div256	= 7 << SPI_CR1_BR_Pos, //< Divide to 256
+                Div2	= 0, ///< Divide to 2
+                Div4	= 1 << SPI_CR1_BR_Pos, ///< Divide to 4
+                Div8	= 2 << SPI_CR1_BR_Pos, ///< Divide to 8
+                Div16	= 3 << SPI_CR1_BR_Pos, ///< Divide to 16
+                Div32	= 4 << SPI_CR1_BR_Pos, ///< Divide to 32
+                Div64	= 5 << SPI_CR1_BR_Pos, ///< Divide to 64
+                Div128	= 6 << SPI_CR1_BR_Pos, ///< Divide to 128
+                Div256	= 7 << SPI_CR1_BR_Pos, ///< Divide to 256
                 Fastest = Div2,
                 Fast	= Div8,
                 Medium	= Div32,
@@ -58,8 +58,8 @@ namespace Zhele
              */
             enum SlaveControl
             {
-                SoftSlaveControl	= SPI_CR1_SSM, //< SS soft (manual) control
-                AutoSlaveControl	= 0 //< SS auto (device) control
+                SoftSlaveControl	= SPI_CR1_SSM, ///< SS soft (manual) control
+                AutoSlaveControl	= 0 ///< SS auto (device) control
             };
 
             /**
@@ -67,9 +67,9 @@ namespace Zhele
              */
             enum Mode
             {
-                Master				= SPI_CR1_MSTR | (SPI_CR2_SSOE << 16),	 //< Master
-                MultiMaster			= SPI_CR1_MSTR,	//< Multi master
-                Slave				= 0	//< Slave
+                Master				= SPI_CR1_MSTR | (SPI_CR2_SSOE << 16),	 ///< Master
+                MultiMaster			= SPI_CR1_MSTR,	///< Multi master
+                Slave				= 0	///< Slave
             };
 
             /**
@@ -109,8 +109,8 @@ namespace Zhele
              */
             enum ClockPolarity
             {
-                ClockPolarityLow	= 0, //< Low
-                ClockPolarityHigh	= SPI_CR1_CPOL //< High
+                ClockPolarityLow	= 0, ///< Low
+                ClockPolarityHigh	= SPI_CR1_CPOL ///< High
             };
             
             /**
@@ -118,8 +118,8 @@ namespace Zhele
              */
             enum ClockPhase
             {
-                ClockPhaseLeadingEdge = 0, //< Leading
-                ClockPhaseFallingEdge	 = SPI_CR1_CPHA //<Falling
+                ClockPhaseLeadingEdge = 0, ///< Leading
+                ClockPhaseFallingEdge	 = SPI_CR1_CPHA ///<Falling
             };
             
             /**
@@ -127,8 +127,8 @@ namespace Zhele
              */
             enum BitOrder
             {
-                LsbFirst			= SPI_CR1_LSBFIRST, //< LSB
-                MsbFirst			= 0 //< MSB
+                LsbFirst			= SPI_CR1_LSBFIRST, ///< LSB
+                MsbFirst			= 0 ///< MSB
             };
         };
         

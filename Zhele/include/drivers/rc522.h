@@ -39,28 +39,28 @@ namespace Zhele
              */
             enum class Commands : uint8_t
             {
-                Idle = 0x00, //< No action
-                CalculateCRC = 0x03, //< CRC calculate
-                Transmit = 0x04, //< Transmit data
-                Receive = 0x08, //< Receive data
-                Transceive = 0x0c, //< Transmit and receive data
-                Auth = 0x0e, //< Authentication
-                Reset = 0x0f, //< Reset
+                Idle = 0x00, ///< No action
+                CalculateCRC = 0x03, ///< CRC calculate
+                Transmit = 0x04, ///< Transmit data
+                Receive = 0x08, ///< Receive data
+                Transceive = 0x0c, ///< Transmit and receive data
+                Auth = 0x0e, ///< Authentication
+                Reset = 0x0f, ///< Reset
 
                 // Mifare_One card commands
-                RequestIdl = 0x26, //< Find the antenna does not enter hibernation
-                RequestAll = 0x52,  //< Find all the cards antenna area
-                AntiCollision = 0x93, //< Anti-collision
-                SelectTag = 0x93, //< Selection card
-                AuthA = 0x60, //< Authentication key A
-                AuthB = 0x61, //< Authentication key B
-                Read = 0x30, //< Read block
-                Write = 0xa0, //< Send block
-                Decrement = 0xc0, //< Debit
-                Increment = 0xc1, //< Recharge
-                Restore = 0xc2, //< Transfer block data to buffer
-                Transfer = 0xb0, //< Save data in buffer
-                Halt = 0x50 //< Sleep
+                RequestIdl = 0x26, ///< Find the antenna does not enter hibernation
+                RequestAll = 0x52,  ///< Find all the cards antenna area
+                AntiCollision = 0x93, ///< Anti-collision
+                SelectTag = 0x93, ///< Selection card
+                AuthA = 0x60, ///< Authentication key A
+                AuthB = 0x61, ///< Authentication key B
+                Read = 0x30, ///< Read block
+                Write = 0xa0, ///< Send block
+                Decrement = 0xc0, ///< Debit
+                Increment = 0xc1, ///< Recharge
+                Restore = 0xc2, ///< Transfer block data to buffer
+                Transfer = 0xb0, ///< Save data in buffer
+                Halt = 0x50 ///< Sleep
             };
 
             /**
@@ -69,57 +69,57 @@ namespace Zhele
             enum class Registers : uint8_t
             {
                 //Page 0 : Command and status
-                Command = 0x01, //< Start and stop command execution
-                ComInterruptEnable = 0x02, //< Enable and disable interrupt request control bits
-                DivInterruptEnable = 0x03, //< Enable and disable interrupt request control bits
-                ComIrq = 0x04, //< Interrupt request bits
-                DivIrq = 0x05, //< Interrupt request bits
-                Error = 0x06, //< Error bits showing the error status of the last command executed
-                Status1 = 0x07, //< Communication status bits
-                Status2 = 0x08, //< Receiver and transmitter status bits
-                FifoData = 0x09, //< Input and output of 64 byte FIFO buffer
-                FifoLevel = 0x0a, //< Number of bytes stored in the FIFO buffer
-                WaterLevel = 0x0b, //< Level for FIFO underflow and overflow warning
-                Control = 0x0c, //< Miscellaneous control registers
-                BitFraming = 0x0d, //< Adjustments for bit-oriented frames
-                Collision = 0x0e, //< Bit position of the first bit-collision detected on the RF interface
+                Command = 0x01, ///< Start and stop command execution
+                ComInterruptEnable = 0x02, ///< Enable and disable interrupt request control bits
+                DivInterruptEnable = 0x03, ///< Enable and disable interrupt request control bits
+                ComIrq = 0x04, ///< Interrupt request bits
+                DivIrq = 0x05, ///< Interrupt request bits
+                Error = 0x06, ///< Error bits showing the error status of the last command executed
+                Status1 = 0x07, ///< Communication status bits
+                Status2 = 0x08, ///< Receiver and transmitter status bits
+                FifoData = 0x09, ///< Input and output of 64 byte FIFO buffer
+                FifoLevel = 0x0a, ///< Number of bytes stored in the FIFO buffer
+                WaterLevel = 0x0b, ///< Level for FIFO underflow and overflow warning
+                Control = 0x0c, ///< Miscellaneous control registers
+                BitFraming = 0x0d, ///< Adjustments for bit-oriented frames
+                Collision = 0x0e, ///< Bit position of the first bit-collision detected on the RF interface
 
                 // Page 1: Command
-                Mode = 0x11, //< Defines general modes for transmitting and receiving
-                TxMode = 0x12, //< Defines transmission data rate and framing
-                RxMode = 0x13, //< Defines reception data rate and framing
-                TxControl = 0x14, //< Controls the logical behavior of the antenna driver pins TX1 and TX2
-                TxASK = 0x15, //< Controls the setting of the transmission modulation
-                TxSelect = 0x16, //< Selects the internal sources for the antenna driver
-                RxSelect = 0x17, //< Selects internal receiver settings
-                RxThreshold = 0x18, //< Selects thresholds for the bit decoder
-                Demodulator = 0x19, //< Defines demodulator settings
-                MfTx = 0x1c, //< Controls some MIFARE communication transmit parameters
-                MfRx = 0x1c, //< Controls some MIFARE communication receive parameters
-                SerialSpeed = 0x1f, //< Selects the speed of the serial UART interface
+                Mode = 0x11, ///< Defines general modes for transmitting and receiving
+                TxMode = 0x12, ///< Defines transmission data rate and framing
+                RxMode = 0x13, ///< Defines reception data rate and framing
+                TxControl = 0x14, ///< Controls the logical behavior of the antenna driver pins TX1 and TX2
+                TxASK = 0x15, ///< Controls the setting of the transmission modulation
+                TxSelect = 0x16, ///< Selects the internal sources for the antenna driver
+                RxSelect = 0x17, ///< Selects internal receiver settings
+                RxThreshold = 0x18, ///< Selects thresholds for the bit decoder
+                Demodulator = 0x19, ///< Defines demodulator settings
+                MfTx = 0x1c, ///< Controls some MIFARE communication transmit parameters
+                MfRx = 0x1c, ///< Controls some MIFARE communication receive parameters
+                SerialSpeed = 0x1f, ///< Selects the speed of the serial UART interface
 
                 // Page 2: Configuration
-                CRCResultMSB = 0x21, //< MSB value of CRC calculation
-                CRCResultLSB = 0x22, //< LSB value of CRC calculation
-                ModWidth = 0x24, //< Controls the ModWidth setting
-                RfConfig = 0x26, //< Configures the receiver gain
-                GsConfig = 0x27, //< Selects the conductance of the antenna driver pins TX1 and TX2 for modulation
-                CWGsP = 0x28, //< Defines the conductance of the p-driver output during periods of no modulation
-                ModGsP = 0x29, //< Defines the conductance of the p-driver output during periods of modulation
-                TMode = 0x2a, //< Defines settings for the internal timer
-                TPrescaler = 0x2b, //< Defines settings for the internal timer
-                TReloadHigh = 0x2c, //< Defines the high part of 16-bit timer reload value
-                TReloadLow = 0x2d, //< Defines the low part of 16-bit timer reload value
-                TCounterHigh = 0x2e, //< Shows the high part 16-bit timer value
-                TCounterLow = 0x2f, //< Shows the low part 16-bit timer value
+                CRCResultMSB = 0x21, ///< MSB value of CRC calculation
+                CRCResultLSB = 0x22, ///< LSB value of CRC calculation
+                ModWidth = 0x24, ///< Controls the ModWidth setting
+                RfConfig = 0x26, ///< Configures the receiver gain
+                GsConfig = 0x27, ///< Selects the conductance of the antenna driver pins TX1 and TX2 for modulation
+                CWGsP = 0x28, ///< Defines the conductance of the p-driver output during periods of no modulation
+                ModGsP = 0x29, ///< Defines the conductance of the p-driver output during periods of modulation
+                TMode = 0x2a, ///< Defines settings for the internal timer
+                TPrescaler = 0x2b, ///< Defines settings for the internal timer
+                TReloadHigh = 0x2c, ///< Defines the high part of 16-bit timer reload value
+                TReloadLow = 0x2d, ///< Defines the low part of 16-bit timer reload value
+                TCounterHigh = 0x2e, ///< Shows the high part 16-bit timer value
+                TCounterLow = 0x2f, ///< Shows the low part 16-bit timer value
 
                 // Page 3: Test register
-                TestSel1 = 0x31, //< General test signal configuration
-                TestSel2 = 0x32, //< General test signal configuration
-                TestPinEnable = 0x33, //< Enables pin output driver on pins D1 to D7
-                TestPinValue = 0x34, //< Defines the values for D1 to D7 when it is used as an I/O bus
-                TestBus = 0x25, //< Shows the status of the internal test bus
-                AutoTest = 0x26, //< Controls the digital self test
+                TestSel1 = 0x31, ///< General test signal configuration
+                TestSel2 = 0x32, ///< General test signal configuration
+                TestPinEnable = 0x33, ///< Enables pin output driver on pins D1 to D7
+                TestPinValue = 0x34, ///< Defines the values for D1 to D7 when it is used as an I/O bus
+                TestBus = 0x25, ///< Shows the status of the internal test bus
+                AutoTest = 0x26, ///< Controls the digital self test
                 Version = 0x37, // Software version
             };
 

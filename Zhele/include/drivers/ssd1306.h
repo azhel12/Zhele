@@ -25,16 +25,16 @@ namespace Zhele::Drivers
         // Ssd1306 commands
         enum Commands : uint8_t
         {
-            SetMemoryMode = 0x20, //< Set Memory Addressing Mode
-            On = 0xAF, //< Display On
-            Off = 0xAE, //< Display off
+            SetMemoryMode = 0x20, ///< Set Memory Addressing Mode
+            On = 0xAF, ///< Display On
+            Off = 0xAE, ///< Display off
         };       
 
     public:
         enum class Pixel : bool
         {
-            Off = false, //< Pixel off (black)
-            On = true //< Pixel on (color depends of LCD used)
+            Off = false, ///< Pixel off (black)
+            On = true ///< Pixel on (color depends of LCD used)
         };
 
         /**

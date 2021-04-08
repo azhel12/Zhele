@@ -56,15 +56,15 @@ namespace Zhele::Clock
         // AHB prescaler values
         enum Prescaler
         {
-            Div1 = RCC_CFGR_HPRE_DIV1 >> AhbPrescalerBitFieldOffset, //< No divide (prescaler = 1)
-            Div2 = RCC_CFGR_HPRE_DIV2 >> AhbPrescalerBitFieldOffset, //< Prescaler = 2
-            Div4 = RCC_CFGR_HPRE_DIV4 >> AhbPrescalerBitFieldOffset, //< Prescaler = 4
-            Div8 = RCC_CFGR_HPRE_DIV8 >> AhbPrescalerBitFieldOffset, //< Prescaler = 8
-            Div16 = RCC_CFGR_HPRE_DIV16 >> AhbPrescalerBitFieldOffset, //< Prescaler = 16
-            Div64 = RCC_CFGR_HPRE_DIV64 >> AhbPrescalerBitFieldOffset, //< Prescaler = 64
-            Div128 = RCC_CFGR_HPRE_DIV128 >> AhbPrescalerBitFieldOffset, //< Prescaler = 128
-            Div256 = RCC_CFGR_HPRE_DIV256 >> AhbPrescalerBitFieldOffset, //< Prescaler = 256
-            Div512 = RCC_CFGR_HPRE_DIV512 >> AhbPrescalerBitFieldOffset //< Prescaler = 512
+            Div1 = RCC_CFGR_HPRE_DIV1 >> AhbPrescalerBitFieldOffset, ///< No divide (prescaler = 1)
+            Div2 = RCC_CFGR_HPRE_DIV2 >> AhbPrescalerBitFieldOffset, ///< Prescaler = 2
+            Div4 = RCC_CFGR_HPRE_DIV4 >> AhbPrescalerBitFieldOffset, ///< Prescaler = 4
+            Div8 = RCC_CFGR_HPRE_DIV8 >> AhbPrescalerBitFieldOffset, ///< Prescaler = 8
+            Div16 = RCC_CFGR_HPRE_DIV16 >> AhbPrescalerBitFieldOffset, ///< Prescaler = 16
+            Div64 = RCC_CFGR_HPRE_DIV64 >> AhbPrescalerBitFieldOffset, ///< Prescaler = 64
+            Div128 = RCC_CFGR_HPRE_DIV128 >> AhbPrescalerBitFieldOffset, ///< Prescaler = 128
+            Div256 = RCC_CFGR_HPRE_DIV256 >> AhbPrescalerBitFieldOffset, ///< Prescaler = 256
+            Div512 = RCC_CFGR_HPRE_DIV512 >> AhbPrescalerBitFieldOffset ///< Prescaler = 512
         };
 
         static ClockFrequenceT ClockFreq()
@@ -97,11 +97,11 @@ namespace Zhele::Clock
          */
         enum Prescaler
         {
-            Div1 = RCC_CFGR_PPRE_DIV1 >> ApbPrescalerBitFieldOffset, //< No divide (prescaler = 1)
-            Div2 = RCC_CFGR_PPRE_DIV2 >> ApbPrescalerBitFieldOffset, //< Prescaler = 2
-            Div4 = RCC_CFGR_PPRE_DIV4 >> ApbPrescalerBitFieldOffset, //< Prescaler = 4
-            Div8 = RCC_CFGR_PPRE_DIV8 >> ApbPrescalerBitFieldOffset, //< Prescaler = 8
-            Div16 = RCC_CFGR_PPRE_DIV16 >> ApbPrescalerBitFieldOffset, //< Prescaler = 16
+            Div1 = RCC_CFGR_PPRE_DIV1 >> ApbPrescalerBitFieldOffset, ///< No divide (prescaler = 1)
+            Div2 = RCC_CFGR_PPRE_DIV2 >> ApbPrescalerBitFieldOffset, ///< Prescaler = 2
+            Div4 = RCC_CFGR_PPRE_DIV4 >> ApbPrescalerBitFieldOffset, ///< Prescaler = 4
+            Div8 = RCC_CFGR_PPRE_DIV8 >> ApbPrescalerBitFieldOffset, ///< Prescaler = 8
+            Div16 = RCC_CFGR_PPRE_DIV16 >> ApbPrescalerBitFieldOffset, ///< Prescaler = 16
         };
 
         static ClockFrequenceT ClockFreq()
@@ -133,7 +133,7 @@ namespace Zhele::Clock
          */
         enum ClockSource
         {
-            Apb2 = 0, //< APB2
+            Apb2 = 0, ///< APB2
         };
         
         /**
@@ -141,8 +141,8 @@ namespace Zhele::Clock
          */
         enum Prescaler
         {
-            Div2 = RCC_CFGR_ADCPRE_DIV2 >> AdcPrescalerBitFieldOffset, //< Prescaler = 2
-            Div4 = RCC_CFGR_ADCPRE_DIV4 >> AdcPrescalerBitFieldOffset, //< Prescaler = 4
+            Div2 = RCC_CFGR_ADCPRE_DIV2 >> AdcPrescalerBitFieldOffset, ///< Prescaler = 2
+            Div4 = RCC_CFGR_ADCPRE_DIV4 >> AdcPrescalerBitFieldOffset, ///< Prescaler = 4
         };
         
         /**

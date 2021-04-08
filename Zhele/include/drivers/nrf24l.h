@@ -23,32 +23,32 @@ namespace Zhele::Drivers
          */
         enum class Registers : uint8_t
         {
-            Configuration = 0x00, //< Configuration register
-            EnableAutoAcknowledgment = 0x01, //< Enable "Auto Acknowledgment" Function
-            EnableRxAddresses = 0x02, //< Enable RX Addresses
-            AddressWidth = 0x03, //< Address width settings
-            AutoRetransmission = 0x04, //< Automatic retransmission settings
-            RfChannel = 0x05, //< RF channel
-            RfSetup = 0x06, //< RF settings
-            Status = 0x07, //< Status register
-            ObserveTx = 0x08, //< Transmit observe
-            CarrierDetect = 0x09, //< CarrierDetect
-            RxAddress0 = 0x0a, //< Receive address data pipe 0. 5 Bytes maximum length
-            RxAddress1 = 0x0b, //< Receive address data pipe 1. 5 Bytes maximum length
-            RxAddress2 = 0x0c, //< Receive address data pipe 2. 5 Only LSB
-            RxAddress3 = 0x0d, //< Receive address data pipe 3. 5 Only LSB
-            RxAddress4 = 0x0e, //< Receive address data pipe 4. 5 Only LSB
-            RxAddress5 = 0x0f, //< Receive address data pipe 5. 5 Only LSB
-            TxAddress = 0x10, //< Transmit address. Used for PTX device
-            RxPayload0 = 0x11, //< Number of bytes in RX payload id data pipe 0 (0 - pipe no used, 1..32 - data size in bytes)
-            RxPayload1 = 0x12, //< Number of bytes in RX payload id data pipe 1 (0 - pipe no used, 1..32 - data size in bytes)
-            RxPayload2 = 0x13, //< Number of bytes in RX payload id data pipe 2 (0 - pipe no used, 1..32 - data size in bytes)
-            RxPayload3 = 0x14, //< Number of bytes in RX payload id data pipe 3 (0 - pipe no used, 1..32 - data size in bytes)
-            RxPayload4 = 0x15, //< Number of bytes in RX payload id data pipe 4 (0 - pipe no used, 1..32 - data size in bytes)
-            RxPayload5 = 0x16, //< Number of bytes in RX payload id data pipe 5 (0 - pipe no used, 1..32 - data size in bytes)
-            FifoStatus = 0x17, //< FIFO status register
-            DynamicPayload = 0x1c, //< Dynamic payload setting
-            Feature = 0x1d //< Reserved
+            Configuration = 0x00, ///< Configuration register
+            EnableAutoAcknowledgment = 0x01, ///< Enable "Auto Acknowledgment" Function
+            EnableRxAddresses = 0x02, ///< Enable RX Addresses
+            AddressWidth = 0x03, ///< Address width settings
+            AutoRetransmission = 0x04, ///< Automatic retransmission settings
+            RfChannel = 0x05, ///< RF channel
+            RfSetup = 0x06, ///< RF settings
+            Status = 0x07, ///< Status register
+            ObserveTx = 0x08, ///< Transmit observe
+            CarrierDetect = 0x09, ///< CarrierDetect
+            RxAddress0 = 0x0a, ///< Receive address data pipe 0. 5 Bytes maximum length
+            RxAddress1 = 0x0b, ///< Receive address data pipe 1. 5 Bytes maximum length
+            RxAddress2 = 0x0c, ///< Receive address data pipe 2. 5 Only LSB
+            RxAddress3 = 0x0d, ///< Receive address data pipe 3. 5 Only LSB
+            RxAddress4 = 0x0e, ///< Receive address data pipe 4. 5 Only LSB
+            RxAddress5 = 0x0f, ///< Receive address data pipe 5. 5 Only LSB
+            TxAddress = 0x10, ///< Transmit address. Used for PTX device
+            RxPayload0 = 0x11, ///< Number of bytes in RX payload id data pipe 0 (0 - pipe no used, 1..32 - data size in bytes)
+            RxPayload1 = 0x12, ///< Number of bytes in RX payload id data pipe 1 (0 - pipe no used, 1..32 - data size in bytes)
+            RxPayload2 = 0x13, ///< Number of bytes in RX payload id data pipe 2 (0 - pipe no used, 1..32 - data size in bytes)
+            RxPayload3 = 0x14, ///< Number of bytes in RX payload id data pipe 3 (0 - pipe no used, 1..32 - data size in bytes)
+            RxPayload4 = 0x15, ///< Number of bytes in RX payload id data pipe 4 (0 - pipe no used, 1..32 - data size in bytes)
+            RxPayload5 = 0x16, ///< Number of bytes in RX payload id data pipe 5 (0 - pipe no used, 1..32 - data size in bytes)
+            FifoStatus = 0x17, ///< FIFO status register
+            DynamicPayload = 0x1c, ///< Dynamic payload setting
+            Feature = 0x1d ///< Reserved
         };
 
         /**
@@ -92,32 +92,32 @@ namespace Zhele::Drivers
             /// RX/TX control
             PrimRxPos = 0,
             PrimRxMask = 1 << PrimRxPos,
-            PRX = PrimRxMask, //< Receive
-            PTX = 0, //< Transmit
+            PRX = PrimRxMask, ///< Receive
+            PTX = 0, ///< Transmit
 
             /// Power up
             PowerUpPos = 1,
             PowerUpMask = 1 << PowerUpPos,
-            PowerUp = PowerUpMask, //< Power up
-            PowerDown = 0, //< Power down
+            PowerUp = PowerUpMask, ///< Power up
+            PowerDown = 0, ///< Power down
 
             /// CRC encoding scheme.
             CRCOPos = 2,
             CRCOMask = 1 << CRCOPos,
-            CRCScheme2Bytes = CRCOMask, //< 2-bytes CRC
-            CRCScheme1Byte = 0, //< 1-byte CRC
+            CRCScheme2Bytes = CRCOMask, ///< 2-bytes CRC
+            CRCScheme1Byte = 0, ///< 1-byte CRC
 
             /// Enable CRC
             EnableCRCPos = 3,
             EnableCRCMask = 1 << EnableCRCPos,
-            EnableCRC = EnableCRCMask, //< Enable CRC
-            DisableCRC = 0, //< Disable CRC
+            EnableCRC = EnableCRCMask, ///< Enable CRC
+            DisableCRC = 0, ///< Disable CRC
 
             /// MAX_RT (maximum retransmit count) interrupt setup
             MaxRtInterruptPos = 4,
             MaxRtInterruptMask = 1 << MaxRtInterruptPos,
-            MaxRtInterruptDisable = MaxRtInterruptMask, //< Max retransmission count interrupt enable
-            MaxRtInterruptEnable = 0, //< Max retransmission count interrupt disable
+            MaxRtInterruptDisable = MaxRtInterruptMask, ///< Max retransmission count interrupt enable
+            MaxRtInterruptEnable = 0, ///< Max retransmission count interrupt disable
 
             /// TX_DS (ACK packet is received, no payload) interrupt setup
             TxDsInterruptPos = 5,
@@ -139,33 +139,33 @@ namespace Zhele::Drivers
         {
             EnableAutoAcknowledgmentPipe0Pos = 0,
             EnableAutoAcknowledgmentPipe0Mask = 1 << EnableAutoAcknowledgmentPipe0Pos,
-            EnableAutoAcknowledgmentPipe0 = EnableAutoAcknowledgmentPipe0Mask, 	//< Enable auto acknowledgment data pipe 0
-            DisableAutoAcknowledgmentPipe0 = 0, //< Disable auto acknowledgment data pipe 0
+            EnableAutoAcknowledgmentPipe0 = EnableAutoAcknowledgmentPipe0Mask, 	///< Enable auto acknowledgment data pipe 0
+            DisableAutoAcknowledgmentPipe0 = 0, ///< Disable auto acknowledgment data pipe 0
 
             EnableAutoAcknowledgmentPipe1Pos = 0,
             EnableAutoAcknowledgmentPipe1Mask = 1 << EnableAutoAcknowledgmentPipe1Pos,
-            EnableAutoAcknowledgmentPipe1 = EnableAutoAcknowledgmentPipe1Mask, 	//< Enable auto acknowledgment data pipe 1
-            DisableAutoAcknowledgmentPipe1 = 0, //< Disable auto acknowledgment data pipe 1
+            EnableAutoAcknowledgmentPipe1 = EnableAutoAcknowledgmentPipe1Mask, 	///< Enable auto acknowledgment data pipe 1
+            DisableAutoAcknowledgmentPipe1 = 0, ///< Disable auto acknowledgment data pipe 1
 
             EnableAutoAcknowledgmentPipe2Pos = 0,
             EnableAutoAcknowledgmentPipe2Mask = 1 << EnableAutoAcknowledgmentPipe2Pos,
-            EnableAutoAcknowledgmentPipe2 = EnableAutoAcknowledgmentPipe2Mask, 	//< Enable auto acknowledgment data pipe 2
-            DisableAutoAcknowledgmentPipe2 = 0, //< Disable auto acknowledgment data pipe 2
+            EnableAutoAcknowledgmentPipe2 = EnableAutoAcknowledgmentPipe2Mask, 	///< Enable auto acknowledgment data pipe 2
+            DisableAutoAcknowledgmentPipe2 = 0, ///< Disable auto acknowledgment data pipe 2
 
             EnableAutoAcknowledgmentPipe3Pos = 0,
             EnableAutoAcknowledgmentPipe3Mask = 1 << EnableAutoAcknowledgmentPipe3Pos,
-            EnableAutoAcknowledgmentPipe3 = EnableAutoAcknowledgmentPipe3Mask, 	//< Enable auto acknowledgment data pipe 3
-            DisableAutoAcknowledgmentPipe3 = 0, //< Disable auto acknowledgment data pipe 3
+            EnableAutoAcknowledgmentPipe3 = EnableAutoAcknowledgmentPipe3Mask, 	///< Enable auto acknowledgment data pipe 3
+            DisableAutoAcknowledgmentPipe3 = 0, ///< Disable auto acknowledgment data pipe 3
 
             EnableAutoAcknowledgmentPipe4Pos = 0,
             EnableAutoAcknowledgmentPipe4Mask = 1 << EnableAutoAcknowledgmentPipe4Pos,
-            EnableAutoAcknowledgmentPipe4 = EnableAutoAcknowledgmentPipe4Mask, 	//< Enable auto acknowledgment data pipe 4
-            DisableAutoAcknowledgmentPipe4 = 0, //< Disable auto acknowledgment data pipe 4
+            EnableAutoAcknowledgmentPipe4 = EnableAutoAcknowledgmentPipe4Mask, 	///< Enable auto acknowledgment data pipe 4
+            DisableAutoAcknowledgmentPipe4 = 0, ///< Disable auto acknowledgment data pipe 4
 
             EnableAutoAcknowledgmentPipe5Pos = 0,
             EnableAutoAcknowledgmentPipe5Mask = 1 << EnableAutoAcknowledgmentPipe5Pos,
-            EnableAutoAcknowledgmentPipe5 = EnableAutoAcknowledgmentPipe5Mask, 	//< Enable auto acknowledgment data pipe 5
-            DisableAutoAcknowledgmentPipe5 = 0, //< Disable auto acknowledgment data pipe 5
+            EnableAutoAcknowledgmentPipe5 = EnableAutoAcknowledgmentPipe5Mask, 	///< Enable auto acknowledgment data pipe 5
+            DisableAutoAcknowledgmentPipe5 = 0, ///< Disable auto acknowledgment data pipe 5
         };
 
         /**
@@ -175,33 +175,33 @@ namespace Zhele::Drivers
         {
             EnableRxPipe0Pos = 0,
             EnableRxPipe0Mask = 1 << EnableRxPipe0Pos,
-            EnableRxPipe0 = EnableRxPipe0Mask,  	//< Enable auto acknowledgment data pipe 0
-            DisableRxPipe0 = 0,  //< Disable auto acknowledgment data pipe 0
+            EnableRxPipe0 = EnableRxPipe0Mask,  	///< Enable auto acknowledgment data pipe 0
+            DisableRxPipe0 = 0,  ///< Disable auto acknowledgment data pipe 0
 
             EnableRxPipe1Pos = 0,
             EnableRxPipe1Mask = 1 << EnableRxPipe1Pos,
-            EnableRxPipe1 = EnableRxPipe1Mask,  	//< Enable auto acknowledgment data pipe 1
-            DisableRxPipe1 = 0,  //< Disable auto acknowledgment data pipe 1
+            EnableRxPipe1 = EnableRxPipe1Mask,  	///< Enable auto acknowledgment data pipe 1
+            DisableRxPipe1 = 0,  ///< Disable auto acknowledgment data pipe 1
 
             EnableRxPipe2Pos = 0,
             EnableRxPipe2Mask = 1 << EnableRxPipe2Pos,
-            EnableRxPipe2 = EnableRxPipe2Mask,  	//< Enable auto acknowledgment data pipe 2
-            DisableRxPipe2 = 0,  //< Disable auto acknowledgment data pipe 2
+            EnableRxPipe2 = EnableRxPipe2Mask,  	///< Enable auto acknowledgment data pipe 2
+            DisableRxPipe2 = 0,  ///< Disable auto acknowledgment data pipe 2
 
             EnableRxPipe3Pos = 0,
             EnableRxPipe3Mask = 1 << EnableRxPipe3Pos,
-            EnableRxPipe3 = EnableRxPipe3Mask,  	//< Enable auto acknowledgment data pipe 3
-            DisableRxPipe3 = 0,  //< Disable auto acknowledgment data pipe 3
+            EnableRxPipe3 = EnableRxPipe3Mask,  	///< Enable auto acknowledgment data pipe 3
+            DisableRxPipe3 = 0,  ///< Disable auto acknowledgment data pipe 3
 
             EnableRxPipe4Pos = 0,
             EnableRxPipe4Mask = 1 << EnableRxPipe4Pos,
-            EnableRxPipe4 = EnableRxPipe4Mask,  	//< Enable auto acknowledgment data pipe 4
-            DisableRxPipe4 = 0,  //< Disable auto acknowledgment data pipe 4
+            EnableRxPipe4 = EnableRxPipe4Mask,  	///< Enable auto acknowledgment data pipe 4
+            DisableRxPipe4 = 0,  ///< Disable auto acknowledgment data pipe 4
 
             EnableRxPipe5Pos = 0,
             EnableRxPipe5Mask = 1 << EnableRxPipe5Pos,
-            EnableRxPipe5 = EnableRxPipe5Mask,  	//< Enable auto acknowledgment data pipe 5
-            DisableRxPipe5 = 0,  //< Disable auto acknowledgment data pipe 5
+            EnableRxPipe5 = EnableRxPipe5Mask,  	///< Enable auto acknowledgment data pipe 5
+            DisableRxPipe5 = 0,  ///< Disable auto acknowledgment data pipe 5
         };
 
         /**
@@ -211,9 +211,9 @@ namespace Zhele::Drivers
         {
             AddressWidthPos = 0,
             AddressWidthMask = 2 << AddressWidthPos,
-            AddressWidth3Bytes = 0x01, //< Address width = 3 bytes
-            AddressWidth4Bytes = 0x02, //< Address width = 4 bytes
-            AddressWidth5Bytes = 0x03, //< Address width = 5 bytes
+            AddressWidth3Bytes = 0x01, ///< Address width = 3 bytes
+            AddressWidth4Bytes = 0x02, ///< Address width = 4 bytes
+            AddressWidth5Bytes = 0x03, ///< Address width = 5 bytes
         };
 
         /**
@@ -223,23 +223,23 @@ namespace Zhele::Drivers
         {
             RxEmptyPos = 0,
             RxEmptyMask = 1 << RxEmptyPos,
-            RxEmpty = RxEmptyMask, //< RX FIFO empty
-            RxNotEmpty = 0,	//< Data in RX FIFO
+            RxEmpty = RxEmptyMask, ///< RX FIFO empty
+            RxNotEmpty = 0,	///< Data in RX FIFO
 
             RxFullPos = 1,
             RxFullMask = 1 << RxFullPos,
-            RxFull = RxFullMask, //< RX FIFO full
-            RxNotFull = 0, //< Available locations in RX FIFO
+            RxFull = RxFullMask, ///< RX FIFO full
+            RxNotFull = 0, ///< Available locations in RX FIFO
 
             TxEmptyPos = 4,
             TxEmptyMask = 1 << TxEmptyPos,
-            TxEmpty = TxEmptyMask, //< TX FIFO empty
-            TxNotEmpty = 0, //< Data in TX FIFO
+            TxEmpty = TxEmptyMask, ///< TX FIFO empty
+            TxNotEmpty = 0, ///< Data in TX FIFO
 
             FifoFullPos = 5,
             FifoFullMask = 1 << FifoFullPos,
-            FifoFull = FifoFullMask, //< TX FIFO full
-            FifoNotFull = 0, //< Available locations in TX FIFO
+            FifoFull = FifoFullMask, ///< TX FIFO full
+            FifoNotFull = 0, ///< Available locations in TX FIFO
 
             TxReusePos = 6,
             TxReuseMask = 1 << TxReusePos,
@@ -251,16 +251,16 @@ namespace Zhele::Drivers
         {
             RfPowerPos = 1,
             RfPowerMask = 0b11 << RfPowerPos, // 2 bits
-            RfPowerM18dBm = 0b00 << RfPowerPos, //< Power -18dBm
-            RfPowerM12dBm = 0b01 << RfPowerPos, //< Power -12dBm
-            RfPowerM6dBm = 0b10 << RfPowerPos, //< Power -6dBm
-            RfPower0dBm = 0b11 << RfPowerPos, //< Power 0dBm
+            RfPowerM18dBm = 0b00 << RfPowerPos, ///< Power -18dBm
+            RfPowerM12dBm = 0b01 << RfPowerPos, ///< Power -12dBm
+            RfPowerM6dBm = 0b10 << RfPowerPos, ///< Power -6dBm
+            RfPower0dBm = 0b11 << RfPowerPos, ///< Power 0dBm
 
             RfDataRatePos = 3,
             RfDataRateMask = 0b101 << RfDataRatePos,	// Its strange that Data rate field has two bits, but it is 3 and 5 O_O
-            RfDataRate1Mbps = 0b000 << RfDataRatePos, //< Data rate 1Mbps
-            RfDataRate2Mbps = 0b001 << RfDataRatePos, //< Data rate 2Mbps
-            RfDataRate250Kbps = 0b100 << RfDataRatePos, //< Data rate 250Kbps
+            RfDataRate1Mbps = 0b000 << RfDataRatePos, ///< Data rate 1Mbps
+            RfDataRate2Mbps = 0b001 << RfDataRatePos, ///< Data rate 2Mbps
+            RfDataRate250Kbps = 0b100 << RfDataRatePos, ///< Data rate 250Kbps
         };
 
         /**
@@ -270,8 +270,8 @@ namespace Zhele::Drivers
         {
             TxFullPos = 0,
             TxFullMask = 1 << TxFullPos,
-            TxFull = TxFullMask, //< TX FIFO full
-            TxNotFull = 0, //< Available locations in TX FIFO
+            TxFull = TxFullMask, ///< TX FIFO full
+            TxNotFull = 0, ///< Available locations in TX FIFO
 
             RxPipeNumberPos = 1,
             RxPipeNumberMask = 0b111 << RxPipeNumberPos,
@@ -279,27 +279,27 @@ namespace Zhele::Drivers
 
             MaxRtPos = 4,
             MaxRtMask = 1 << MaxRtPos,
-            MaxRt = MaxRtMask, //< Maximum number of retransmit interrupt caused
-            NoMaxRt = 0, //< No maximum number of retransmit interrupt caused
+            MaxRt = MaxRtMask, ///< Maximum number of retransmit interrupt caused
+            NoMaxRt = 0, ///< No maximum number of retransmit interrupt caused
 
             TxDataSendPos = 5,
             TxDataSendMask = 1 << TxDataSendPos,
-            TxDataSend = TxDataSendMask, //< Data send interrupt. If auto-ack enabled, this bit is set high only when ACK is received. Write 1 to clear
-            TxDataNotSend = 0, //< No data send interrupt
+            TxDataSend = TxDataSendMask, ///< Data send interrupt. If auto-ack enabled, this bit is set high only when ACK is received. Write 1 to clear
+            TxDataNotSend = 0, ///< No data send interrupt
 
             RxDrPos = 6,
             RxDrMask = 1 << RxDrPos,
-            RxDr = RxDrMask, //< RX data ready
-            NoRxDr = 0, //< RX data not ready
+            RxDr = RxDrMask, ///< RX data ready
+            NoRxDr = 0, ///< RX data not ready
 
 
         };
 
         enum class TransmitStatus : uint8_t
         {
-            Lost = 0x00, //< Message is lost
-            Ok = 0x01, //< Success sent
-            Sending = 0xff //< Still sending
+            Lost = 0x00, ///< Message is lost
+            Ok = 0x01, ///< Success sent
+            Sending = 0xff ///< Still sending
         };
 
         /**
@@ -307,9 +307,9 @@ namespace Zhele::Drivers
          */
         enum class DataRate : uint8_t
         {
-            DataRate2M = RfDataRate2Mbps, //< 2Mbps
-            DataRate1M = RfDataRate1Mbps, //< 1Mbps
-            DataRate250K = RfDataRate250Kbps //< 250Kbps
+            DataRate2M = RfDataRate2Mbps, ///< 2Mbps
+            DataRate1M = RfDataRate1Mbps, ///< 1Mbps
+            DataRate250K = RfDataRate250Kbps ///< 250Kbps
         };
 
         /**
@@ -317,10 +317,10 @@ namespace Zhele::Drivers
          */
         enum class OutputPower : uint8_t
         {
-            OutputPowerM18dBm = RfPowerM18dBm, //< -18dBm
-            OutputPowerM12dBm = RfPowerM12dBm, //< -12dBm
-            OutputPowerM6dBm = RfPowerM6dBm, //< -6dBm
-            OutputPower0dBm = RfPower0dBm, //< 0dBm
+            OutputPowerM18dBm = RfPowerM18dBm, ///< -18dBm
+            OutputPowerM12dBm = RfPowerM12dBm, ///< -12dBm
+            OutputPowerM6dBm = RfPowerM6dBm, ///< -6dBm
+            OutputPower0dBm = RfPower0dBm, ///< 0dBm
         };
     };
 

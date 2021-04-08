@@ -65,14 +65,14 @@ namespace Zhele::Drivers
          */
         enum Command
         {
-            ClearDisplay   = 0x01, //< Clear display
-            ReturnHome     = 0x02, //< Return cursor home
-            EntryModeSet   = 0x04, //< Set entry mode
-            DisplayControl = 0x08, //< Control display
-            CursorShift    = 0x10, //< Shift cursor
-            FunctionSet    = 0x20, //< Set function
-            SetCGRamAddr   = 0x40, //< Set CGRam address
-            SetDDRamAddr   = 0x80, //< Set DDram address
+            ClearDisplay   = 0x01, ///< Clear display
+            ReturnHome     = 0x02, ///< Return cursor home
+            EntryModeSet   = 0x04, ///< Set entry mode
+            DisplayControl = 0x08, ///< Control display
+            CursorShift    = 0x10, ///< Shift cursor
+            FunctionSet    = 0x20, ///< Set function
+            SetCGRamAddr   = 0x40, ///< Set CGRam address
+            SetDDRamAddr   = 0x80, ///< Set DDram address
         };
 
         /**
@@ -80,10 +80,10 @@ namespace Zhele::Drivers
          */
         enum EntryMode
         {
-            Right          = 0x00, //< Right alignment
-            Left           = 0x02, //< Left alignment
-            ShiftIncrement = 0x01, //< Shit increment
-            ShiftDecrement = 0x00 //< Shit decrement
+            Right          = 0x00, ///< Right alignment
+            Left           = 0x02, ///< Left alignment
+            ShiftIncrement = 0x01, ///< Shit increment
+            ShiftDecrement = 0x00 ///< Shit decrement
         };
 
         /**
@@ -91,12 +91,12 @@ namespace Zhele::Drivers
          */
         enum FunctionSet : uint8_t
         {
-            Bit8Mode = 0x10, //< 8-bit mode
-            Bit4Mode = 0x00, //< 4-bit mode
-            Line2    = 0x08, //< 2-lines
-            Line1    = 0x00, //< 1 line
-            Dots5x10 = 0x04, //< Character size 5x10
-            Dots5x8  = 0x00 //< Character size 5x8
+            Bit8Mode = 0x10, ///< 8-bit mode
+            Bit4Mode = 0x00, ///< 4-bit mode
+            Line2    = 0x08, ///< 2-lines
+            Line1    = 0x00, ///< 1 line
+            Dots5x10 = 0x04, ///< Character size 5x10
+            Dots5x8  = 0x00 ///< Character size 5x8
         };
     public:
         /**
@@ -104,12 +104,12 @@ namespace Zhele::Drivers
          */
         enum PowerControl : uint8_t
         {
-            DisplayOn  = 0x04, //< On
-            DisplayOff = 0x00, //< Off
-            CursorOn   = 0x02, //< Cursor on
-            CursorOff  = 0x00, //< Cursor off
-            BlinkOn    = 0x01, //< Cursor blink on
-            BlinkOff   = 0x00 //< Cursor blink off
+            DisplayOn  = 0x04, ///< On
+            DisplayOff = 0x00, ///< Off
+            CursorOn   = 0x02, ///< Cursor on
+            CursorOff  = 0x00, ///< Cursor off
+            BlinkOn    = 0x01, ///< Cursor blink on
+            BlinkOff   = 0x00 ///< Cursor blink off
         };
 
         /**

@@ -222,8 +222,8 @@ namespace Zhele
              */
             enum ClockSource
             {
-                Internal,   //< Use internal oscillator (HSI) divided 2
-                External	//< Use external oscillator (HSE)
+                Internal,   ///< Use internal oscillator (HSI) divided 2
+                External	///< Use external oscillator (HSE)
             };
 
             /**
@@ -454,18 +454,18 @@ namespace Zhele
             /// Clock source
             enum ClockSource
             {
-                Internal,	//< HSI
-                External,	//< HSE
-                Pll,		//< PLL
+                Internal,	///< HSI
+                External,	///< HSE
+                Pll,		///< PLL
             };
 
             /// Error codes for class methods
             enum ErrorCode
             {
-                Success,			//< Success (no error)
-                ClockSourceFailed,	//< Fail to enable clock source
-                InvalidClockSource,	//< Invalid clock source (not HSI, HSE or PLL)
-                ClockSelectFailed	//< Fail to select clock source
+                Success,			///< Success (no error)
+                ClockSourceFailed,	///< Fail to enable clock source
+                InvalidClockSource,	///< Invalid clock source (not HSI, HSE or PLL)
+                ClockSelectFailed	///< Fail to select clock source
             };
             
         public:

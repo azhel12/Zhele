@@ -31,28 +31,28 @@ namespace Zhele
     // Result of i2c class operation
     enum class I2cStatus :uint8_t
     {
-        Success,	//< Success (no error)
-        Overflow,	//< Buffer overflow
-        Timeout,	//< Operation timeout
-        BusError,	//< I2c bus error
-        ArbitrationError,	//< Bus arbitration error
-        ArgumentError,	//< Invalid arguments
-        Nack,	//< Nack recieved
-        Busy, //< Bus is busy
+        Success,	///< Success (no error)
+        Overflow,	///< Buffer overflow
+        Timeout,	///< Operation timeout
+        BusError,	///< I2c bus error
+        ArbitrationError,	///< Bus arbitration error
+        ArgumentError,	///< Invalid arguments
+        Nack,	///< Nack recieved
+        Busy, ///< Bus is busy
     };
 
     // I2C state
     enum class I2cState : uint8_t
     {
-        Idle = 0, //< Idle
-        Start = 1, //< Start operation 
-        DevAddr = 2, //< Writing device address ti bus
+        Idle = 0, ///< Idle
+        Start = 1, ///< Start operation 
+        DevAddr = 2, ///< Writing device address ti bus
         RegAddrNextByte = 4, // I2C unit waits for next register address
-        RegAddr = 5, //< Register address has been written
-        Restart = 8, //< Restart
-        DevAddrRead = 16, //< Device address read
-        Data = 32, //< Data
-        Stop = 64, //< Stop
+        RegAddr = 5, ///< Register address has been written
+        Restart = 8, ///< Restart
+        DevAddrRead = 16, ///< Device address read
+        Data = 32, ///< Data
+        Stop = 64, ///< Stop
     };
 
     /**
@@ -60,9 +60,9 @@ namespace Zhele
      */
     enum class I2cMode :uint8_t
     {
-        Idle = 0, //< Idles
-        Read = 1, //< Read data
-        Write = 2, //< Write data
+        Idle = 0, ///< Idles
+        Read = 1, ///< Read data
+        Write = 2, ///< Write data
     };
 
     /**
@@ -70,14 +70,14 @@ namespace Zhele
      */
     enum class I2cOpts :uint8_t
     {
-        None = 0, //< None
+        None = 0, ///< None
         
-        DevAddr7Bit = 0, //< 7-bit device address
-        DevAddr10Bit = 1, //< 10-bit device address
+        DevAddr7Bit = 0, ///< 7-bit device address
+        DevAddr10Bit = 1, ///< 10-bit device address
         
-        RegAddr8Bit = 0, //< 7-bit register address
-        RegAddr16Bit = 2, //< 16-bit register address
-        RegAddrNone = 3, //< No register (read/write in device direct)
+        RegAddr8Bit = 0, ///< 7-bit register address
+        RegAddr16Bit = 2, ///< 16-bit register address
+        RegAddrNone = 3, ///< No register (read/write in device direct)
     };
 
     /**

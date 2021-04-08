@@ -31,33 +31,33 @@ namespace Zhele
             // Port configuartion
             enum Configuration
             {
-                Analog = 0,	//< Analog
-                In = 0x04,	//< In (read)
-                Out = 0x03, //< Out (write)
-                AltFunc = 0x0B //< Alternate function
+                Analog = 0,	///< Analog
+                In = 0x04,	///< In (read)
+                Out = 0x03, ///< Out (write)
+                AltFunc = 0x0B ///< Alternate function
             };
 
             // Pull mode
             enum PullMode
             {
-                NoPull = 0,	//< No pull
-                PullUp = 0x08,	//< Pull up
-                PullDown = 0x18	//< Pull down
+                NoPull = 0,	///< No pull
+                PullUp = 0x08,	///< Pull up
+                PullDown = 0x18	///< Pull down
             };
 
             // Port driver type
             enum DriverType
             {
-                PushPull = 0,	//< Push-pull
-                OpenDrain = 4	//< Open-drain
+                PushPull = 0,	///< Push-pull
+                OpenDrain = 4	///< Open-drain
             };
 
             // Port speed
             enum Speed
             {
-                Slow = 2, //< Slow (< 2 MHz)
-                Medium = 1, //< Medium (< 10 MHz)
-                Fast = 3 //< Fast (< 50MHz)
+                Slow = 2, ///< Slow (< 2 MHz)
+                Medium = 1, ///< Medium (< 10 MHz)
+                Fast = 3 ///< Fast (< 50MHz)
             };
 
             static constexpr unsigned int ConfigurationMask(unsigned mask)
