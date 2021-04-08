@@ -24,7 +24,6 @@ using Report = HidReport<
         0xc0                           // END_COLLECTION
     >;
 
-using HidDesc = HidDescriptor<0x1001, Report>;
 
 using LedsControlEpBase = OutEndpointBase<1, EndpointType::Interrupt, 4, 32>;
 using EpInitializer = EndpointsInitializer<DefaultEp0, LedsControlEpBase>;
@@ -32,8 +31,9 @@ using EpInitializer = EndpointsInitializer<DefaultEp0, LedsControlEpBase>;
 using Ep0 = EpInitializer::ExtendEndpoint<DefaultEp0>;
 using LedsControlEp = EpInitializer::ExtendEndpoint<LedsControlEpBase>;
 
-using Hid = HidInterface<0, 0, 0, 0, HidDesc, LedsControlEp>;
-using Config = HidConfiguration<0, 250, false, false, Report, Hid>;
+using HidDesc = HidImpl<0x1001, Report>;
+using Hid = HidInterface<0, 0, 0, 0, HidDesc, Ep0, LedsControlEp>;
+using Config = Configuration<0, 250, false, false, Hid>;
 using MyDevice = Device<0x0200, DeviceClass::InterfaceSpecified, 0, 0, 0x0483, 0x5711, 0, Ep0, Config>;
 
 using Led = IO::Pc6; // Use Pc13 for BluePill.
