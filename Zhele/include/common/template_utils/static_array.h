@@ -12,15 +12,10 @@
 
 #include "type_list.h"
 
-namespace Zhele
+namespace Zhele::TemplateUtils
 {
     template<uint32_t... Numbers>
     class UnsignedArray;
-    /**
-     * @brief Array length
-     */
-    template<typename...>
-    class Length {};
 
     template<uint32_t... Numbers>
     class Length<UnsignedArray<Numbers...>>
@@ -79,6 +74,23 @@ namespace Zhele
 
     template<uint32_t... Numbers>
     const uint8_t GetNumberRuntime<UnsignedArray<Numbers ...>>::_numbers[sizeof... (Numbers)] = {Numbers ...};
+
+    /**
+     * @brief Static array of int8_t.
+     */
+    template<int8_t... Numbers>
+    class Int8_tArray;
+    template<typename, int8_t>
+    /**
+     * @brief Inserts value in back.
+     */
+    class Int8_tArray_InsertBack {};
+    template<int8_t Value, int8_t... Numbers>
+    class Int8_tArray_InsertBack<Int8_tArray<Numbers...>, Value>
+    {
+    public:
+        using type = Int8_tArray<Numbers..., Value>;
+    };
 }
 
 #endif //!ZHELE_STATICARRAY_H
