@@ -63,7 +63,7 @@ namespace Zhele::Usb
     };
 
     /**
-     * @brief Predicat for search Tx or bidirectional endpoint by number
+     * @brief Predicate for search Tx or bidirectional endpoint by number
      * 
      * @tparam Number Endpoint number
      */
@@ -80,7 +80,7 @@ namespace Zhele::Usb
     };
 
     /**
-     * @brief Predicat for search Rx or bidirectional endpoint by number
+     * @brief Predicate for search Rx or bidirectional endpoint by number
      * 
      * @tparam Number Endpoint number
      */
@@ -305,7 +305,11 @@ namespace Zhele::Usb
                                     : 4);
         static const uint32_t BdtBase = PmaBufferBase;
     public:
-        /// Extends endpoint (init addresses)
+        /**
+         * @brief Extends endpoint (init addresses)
+         * 
+         * @tparam Endpoint Endpoint to extend
+         */
         template<typename Endpoint>
         using ExtendEndpoint = 
             typename Select<Endpoint::Direction == EndpointDirection::Bidirectional,
@@ -334,6 +338,12 @@ namespace Zhele::Usb
                 PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 2)>, // BufferCount
             void>::value>::value>::value>::value;
 
+        /**
+         * @brief Inits USB PMA
+         * 
+         * @par Returns
+         *  Nothing
+         */
         static void Init()
         {
             memset(reinterpret_cast<void*>(BdtBase), 0x00, PmaAlignMultiplier * BdtSize);
@@ -372,6 +382,11 @@ namespace Zhele::Usb
         }
     };
     
+    /**
+     * @brief Endpoints manager.
+     * 
+     * @tparam Endpoints Endpoints
+     */
     template<typename Endpoints>
     using EndpointsManager = EndpointsManagerBase
     <
@@ -380,6 +395,11 @@ namespace Zhele::Usb
         Sample_t<IsOutEndpoint, SortedUniqueEndpoints<Endpoints>>
     >;
 
+    /**
+     * @brief Endpoints initalizer
+     * 
+     * @tparam [in] Endpoints Endpoints
+     */
     template<typename... Endpoints>
     using EndpointsInitializer = EndpointsManagerBase
     <
@@ -387,23 +407,6 @@ namespace Zhele::Usb
         TypeList<>,
         TypeList<>
     >;
-
-    /**
-     * @brief Static array of int8_t.
-     */
-    template<int8_t... Numbers>
-    class Int8_tArray;
-    template<typename, int8_t>
-    /**
-     * @brief Inserts value in back.
-     */
-    class Int8_tArray_InsertBack {};
-    template<int8_t Value, int8_t... Numbers>
-    class Int8_tArray_InsertBack<Int8_tArray<Numbers...>, Value>
-    {
-    public:
-        using type = Int8_tArray<Numbers..., Value>;
-    };
 
     /**
      * @brief Implements endpoint`s handlers management.
@@ -447,6 +450,11 @@ namespace Zhele::Usb
         using type = Int8_tArray<>;
     };
 
+    /**
+     * @brief Max endpoint number
+     * 
+     * @tparam Endpoints Endpoints
+     */
     template<typename Endpoints>
     const int8_t MaxEndpointNumber = GetType<Zhele::TemplateUtils::Length<SortedUniqueEndpoints<Endpoints>>::value - 1, SortedUniqueEndpoints<Endpoints>>::type::Number;
 

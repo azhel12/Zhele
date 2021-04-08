@@ -3,6 +3,7 @@
  * Implement USB endpoint
  * 
  * @author Aleksei Zhelonkin
+ * 
  * Endpoint`s registers bits manipulation code is taken from libopencm3 project.
  * Original source: https://github.com/libopencm3/libopencm3/blob/master/include/libopencm3/stm32/common/st_usbfs_common.h
  * Original author: Piotr Esden-Tempski <piotr@esden.net>. Thanks him very much.
@@ -18,14 +19,12 @@
 
 #include "common.h"
 
-#include <functional>
-
 namespace Zhele::Usb
 {
     /**
      * @brief Endpoint type values for EPnR registers.
      */
-    using EndpointsTypesForEPR = Zhele::UnsignedArray<USB_EP_CONTROL, USB_EP_ISOCHRONOUS, USB_EP_BULK, USB_EP_INTERRUPT, USB_EP_CONTROL | USB_EP_KIND, 0, USB_EP_BULK | USB_EP_KIND>;
+    using EndpointsTypesForEPR = Zhele::TemplateUtils::UnsignedArray<USB_EP_CONTROL, USB_EP_ISOCHRONOUS, USB_EP_BULK, USB_EP_INTERRUPT, USB_EP_CONTROL | USB_EP_KIND, 0, USB_EP_BULK | USB_EP_KIND>;
     /**
      * @brief Endpoint (transfer) type
      */
@@ -44,19 +43,19 @@ namespace Zhele::Usb
      */
     enum class EndpointDirection : uint8_t
     {
-        Out = 0, //< Out
-        In = 1, //< In
-        Bidirectional = 2, //< Bidirectional endpoint. On USB layer Will be split on two endpoints.
+        Out = 0, ///< Out
+        In = 1, ///< In
+        Bidirectional = 2, ///< Bidirectional endpoint. On USB layer Will be split on two endpoints.
     };
     /**
      * @brief Endpoint statis (RX or TX)
      */
     enum class EndpointStatus : uint8_t
     {
-        Disable = 0, //< Disabled
-        Stall = 1, //< Stall
-        Nak = 2, //< Nak
-        Valid = 3, //< Valid
+        Disable = 0, ///< Disabled
+        Stall = 1, ///< Stall
+        Nak = 2, ///< Nak
+        Valid = 3, ///< Valid
     };
 
     /**
@@ -65,12 +64,12 @@ namespace Zhele::Usb
     #pragma pack(push, 1)
     struct EndpointDescriptor
     {
-        uint8_t Length = 7;
-        DescriptorType Type = DescriptorType::Endpoint;
-        uint8_t Address;
-        uint8_t Attributes;
-        uint16_t MaxPacketSize;
-        uint8_t Interval;
+        uint8_t Length = 7; ///< Length (always 7)
+        DescriptorType Type = DescriptorType::Endpoint; ///< Descriptor type (always 0x05)
+        uint8_t Address; ///< Endpoint address
+        uint8_t Attributes; ///< Endpoint attributes
+        uint16_t MaxPacketSize; ///< Endpoint max packet size
+        uint8_t Interval; ///< Endpoint poll interval
     };
     #pragma pack(pop)
 
@@ -79,10 +78,10 @@ namespace Zhele::Usb
      */
     struct PacketBufferDescriptor
     {
-        uint16_t TxAddress;
-        uint16_t TxCount;
-        uint16_t RxAddress;
-        uint16_t RxCount;
+        uint16_t TxAddress; ///< TX buffer address (offset)
+        uint16_t TxCount; ///< TX_Count reg
+        uint16_t RxAddress; ///< RX buffer address (offset)
+        uint16_t RxCount; ///< RX_Count reg
     };
 
     /**
@@ -176,7 +175,7 @@ namespace Zhele::Usb
         /**
          * @brief Fills descriptor
          * 
-         * @param [out] descriptor Pointer to fill.
+         * @param [out] descriptor Destination memory.
          *
          * @par Returns
          *  Nothing
@@ -292,17 +291,44 @@ namespace Zhele::Usb
         }
     };
 
+    /**
+     * @brief Implements endpoint data writer.
+     * 
+     * @tparam _Endpoint Endpoint
+     * @tparam _BufferAddress TX buffer address
+     * @tparam _CountRegAddress TX_Count register address
+     */
     template<typename _Endpoint, uint32_t _BufferAddress, uint32_t _CountRegAddress>
     class EndpointWriter
     {
         using BufferCountReg = RegisterWrapper<_CountRegAddress, uint16_t>;
     public:
+        /**
+         * @brief Send data
+         * 
+         * @details This method only writes size and set valid tx status.
+         * This method can be used if you writes data to endpoint TX register directly.
+         * 
+         * @param [in] size Data size
+         * 
+         * @par Returns
+         *  Nothing
+         */
         static void SendData(uint16_t size)
         {
             BufferCountReg::Set(size);
             _Endpoint::SetTxStatus(EndpointStatus::Valid);
         }
 
+        /**
+         * @brief Send data
+         * 
+         * @param [in] data Data
+         * @param [in] size Data size
+         * 
+         * @par Returns
+         *  Nothing
+         */
         static void SendData(const void* data, uint16_t size)
         {
             const uint16_t* source = reinterpret_cast<const uint16_t*>(data);
@@ -319,12 +345,26 @@ namespace Zhele::Usb
     // Please advise me best solution.
     //using InTransferCallback = std::function<void()>;
     using InTransferCallback = std::add_pointer_t<void()>;
+
+    /**
+     * @brief Endpoint with TX feature
+     * 
+     * @tparam _Base Endpoint base
+     * @tparam _Reg EPnR for this endpoint
+     * @tparam _BufferAddress TX buffer address
+     * @tparam _CountRegAddress TX_Count register address
+     */
     template<typename _Base, typename _Reg, uint32_t _BufferAddress, uint32_t _CountRegAddress>
     class EndpointWithTxSupport
     {
         using Ep = Endpoint<_Base, _Reg>;
         using Writer = EndpointWriter<Ep, _BufferAddress, _CountRegAddress>;
     public:
+        /**
+         * @brief Send ZLP to host
+         * 
+         * @param [in, opt] callback Complete callback
+         */
         static void SendZLP(InTransferCallback callback = SetEpRxStatusValid)
         {
             _bytesRemain = 0;
@@ -332,6 +372,13 @@ namespace Zhele::Usb
             Writer::SendData(0);
         }
 
+        /**
+         * @brief Send data
+         * 
+         * @param [in] data Data
+         * @param [in] size Data size
+         * @param [in, opt] callback Complete callback
+         */
         static void SendData(const void* data, uint32_t size, InTransferCallback callback = SetEpRxStatusValid)
         {
             _dataToTransmit = reinterpret_cast<const uint8_t*>(data);
@@ -366,6 +413,7 @@ namespace Zhele::Usb
         static int32_t _bytesRemain;
         static InTransferCallback _txCompleteCallback;
     };
+    
     template<typename _Base, typename _Reg, uint32_t _BufferAddress, uint32_t _CountRegAddress>
     const uint8_t* EndpointWithTxSupport<_Base, _Reg, _BufferAddress, _CountRegAddress>::_dataToTransmit = nullptr;
     template<typename _Base, typename _Reg, uint32_t _BufferAddress, uint32_t _CountRegAddress>
@@ -373,6 +421,14 @@ namespace Zhele::Usb
     template<typename _Base, typename _Reg, uint32_t _BufferAddress, uint32_t _CountRegAddress>
     InTransferCallback EndpointWithTxSupport<_Base, _Reg, _BufferAddress, _CountRegAddress>::_txCompleteCallback = nullptr;
 
+    /**
+     * @brief Implements out (RX) endpoint
+     * 
+     * @tparam _Base Endpoint base
+     * @tparam _Reg EPnR register
+     * @tparam _BufferAddress RX buffer address
+     * @tparam _CountRegAddress RX_Count register address
+     */
     template<typename _Base, typename _Reg, uint32_t _BufferAddress, uint32_t _CountRegAddress>
     class OutEndpoint : public Endpoint<_Base, _Reg>
     {
@@ -380,6 +436,9 @@ namespace Zhele::Usb
     public:
         static constexpr uint32_t Buffer = _BufferAddress;
         using BufferCount = RegisterWrapper<_CountRegAddress, uint16_t>;
+        /**
+         * @brief CTR Handler
+         */
         static void Handler()
         {
             Base::ClearCtrRx();
@@ -389,6 +448,14 @@ namespace Zhele::Usb
         static void HandleRx();
     };
 
+    /**
+     * @brief Implements in (TX) endpoint
+     * 
+     * @tparam _Base Endpoint base
+     * @tparam _Reg EPnR register
+     * @tparam _BufferAddress TX buffer address
+     * @tparam _CountRegAddress TX_Count register address
+     */
     template<typename _Base, typename _Reg, uint32_t _BufferAddress, uint32_t _CountRegAddress>
     class InEndpoint : public Endpoint<_Base, _Reg>, public EndpointWithTxSupport<_Base, _Reg, _BufferAddress, _CountRegAddress>
     {
@@ -397,6 +464,10 @@ namespace Zhele::Usb
     public:
         static constexpr uint32_t Buffer = _BufferAddress;
         using BufferCount = RegisterWrapper<_CountRegAddress, uint16_t>;
+
+        /**
+         * @brief CTR Handler
+         */
         static void Handler()
         {
             Base::ClearCtrTx();
@@ -404,6 +475,16 @@ namespace Zhele::Usb
         }
     };
 
+    /**
+     * @brief Implements bidirectional endpoint
+     * 
+     * @tparam _Base Enpoint base
+     * @tparam _Reg EPnR register
+     * @tparam _TxBufferAddress TX buffer address
+     * @tparam _TxCountRegAddress TX_Count register address
+     * @tparam _RxBufferAddress RX buffer address
+     * @tparam _RxCountRegAddress RX_Count register address
+     */
     template<typename _Base, typename _Reg, uint32_t _TxBufferAddress, uint32_t _TxCountRegAddress, uint32_t _RxBufferAddress, uint32_t _RxCountRegAddress>
     class BidirectionalEndpoint : public Endpoint<_Base, _Reg>, public EndpointWithTxSupport<_Base, _Reg, _TxBufferAddress, _TxCountRegAddress>
     {
@@ -417,6 +498,9 @@ namespace Zhele::Usb
         static constexpr uint32_t RxBuffer = _RxBufferAddress;
         using RxBufferCount = RegisterWrapper<_RxCountRegAddress, uint16_t>;
 
+        /**
+         * @brief CTR handler
+         */
         static void Handler()
         {
             if(Reg::Get() & USB_EP_CTR_RX)
@@ -434,6 +518,16 @@ namespace Zhele::Usb
         static void HandleRx();
     };
 
+    /**
+     * @brief Implements bidirectional endpoint
+     * 
+     * @tparam _Base Enpoint base
+     * @tparam _Reg EPnR register
+     * @tparam _Buffer0Address Buffer0 address
+     * @tparam _Count0RegAddress Count0 register address
+     * @tparam _Buffer1Address Buffer1 address
+     * @tparam _Count1RegAddress Count1 register address
+     */
     template<typename _Base, typename _Reg, uint32_t _Buffer0Address, uint32_t _Count0RegAddress, uint32_t _Buffer1Address, uint32_t _Count1RegAddress>
     class BulkDoubleBufferedEndpoint : public Endpoint<_Base, _Reg>
     {
@@ -446,6 +540,9 @@ namespace Zhele::Usb
         using Buffer1Count = RegisterWrapper<_Count1RegAddress, uint16_t>;
     };
 
+    /**
+     * @brief Default Ep0 instance
+     */
     using DefaultEp0 = ZeroEndpointBase<8>;
 }
 #endif // ZHELE_USB_ENDPOINT_H

@@ -18,12 +18,23 @@
 
 namespace Zhele::Usb
 {
+    /**
+     * @brief Implements HID report.
+     * 
+     * @tparam _Data Raw report bytes.
+     */
     template<uint8_t... _Data>
     struct HidReport
     {
         static constexpr uint8_t Data[sizeof...(_Data)] = {_Data...};
     };
 
+    /**
+     * @brief Implements HID descriptor.
+     * 
+     * @tparam _Version Version.
+     * @tparam _Reports All reports.
+     */
     template<uint16_t _Version = 0x0200, typename... _Reports>
     struct HidImpl
     {
@@ -33,11 +44,23 @@ namespace Zhele::Usb
         uint8_t CountryCode = 0x00;
         uint8_t ReportsCount = sizeof...(_Reports);
 
+        /**
+         * @brief Total reports size
+         * 
+         * @returns Reports size
+         */
         static constexpr uint16_t ReportsSize()
         {
             return (static_cast<uint16_t>(sizeof(_Reports::Data)) + ...);
         }
 
+        /**
+         * @brief Fills reports descriptors
+         * 
+         * @param [out] address Destination memory
+         * 
+         * @returns Total bytes writter
+         */
         static uint16_t FillReportsDescriptors(uint8_t* address)
         {
             ((*address++ = 0x22,
@@ -47,6 +70,13 @@ namespace Zhele::Usb
             return 3 * sizeof...(_Reports);
         }
 
+        /**
+         * @brief Fill HID reports
+         * 
+         * @param [out] address Destination memory
+         * 
+         * @returns Total bytes writter
+         */
         static uint16_t FillReports(uint8_t* address)
         {
             ((memcpy(address, _Reports::Data, sizeof(_Reports::Data)), address += sizeof(_Reports::Data)), ...);
@@ -55,14 +85,29 @@ namespace Zhele::Usb
         }
     };
 
-    class HidTag{};
-
-    template <uint8_t _Number, uint8_t _AlternateSetting, uint8_t _SubClass, uint8_t _Protocol, typename _HidImpl, typename... _Endpoints>
-    class HidInterface : public Interface<_Number, _AlternateSetting, InterfaceClass::Hid, _SubClass, _Protocol, _Endpoints...>, public HidTag
+    /**
+     * @brief HID interface
+     * 
+     * 
+    template <uint8_t _Number, uint8_t _AlternateSetting, uint8_t _SubClass, uint8_t _Protocol, typename _HidImpl, typename _Ep0, typename... _Endpoints>
+    class HidInterface : public Interface<_Number, _AlternateSetting, InterfaceClass::Hid, _SubClass, _Protocol, _Ep0, _Endpoints...>
     {
-        using Base = Interface<_Number, _AlternateSetting, InterfaceClass::Hid, _SubClass, _Protocol, _Endpoints...>;
+        using Base = Interface<_Number, _AlternateSetting, InterfaceClass::Hid, _SubClass, _Protocol, _Ep0, _Endpoints...>;
     public:
         using Endpoints = Base::Endpoints;
+
+        static void SetupHandler()
+        {
+            SetupPacket* setup = reinterpret_cast<SetupPacket*>(_Ep0::RxBuffer);
+            
+             if (setup->Request == StandartRequestCode::GetDescriptor
+                && static_cast<GetDescriptorParameter>(setup->Value) == GetDescriptorParameter::HidReportDescriptor)
+            {
+                uint8_t temp[HidInterface::ReportsSize()];
+                uint16_t size = HidInterface::FillReports(temp);
+                _Ep0::SendData(temp, setup->Length < size ? setup->Length : size);
+            }
+        }
 
         static uint16_t FillDescriptor(InterfaceDescriptor* descriptor)
         {
@@ -86,7 +131,7 @@ namespace Zhele::Usb
             totalLength += sizeof(_HidImpl) + bytesWritten;
 
             EndpointDescriptor* endpointsDescriptors = reinterpret_cast<EndpointDescriptor*>(&reportsPart[bytesWritten]);
-            totalLength += (_Endpoints::FillDescriptor(endpointsDescriptors++) + ...);
+            totalLength += (0 + ... + _Endpoints::FillDescriptor(endpointsDescriptors++));
 
             return totalLength;
         }

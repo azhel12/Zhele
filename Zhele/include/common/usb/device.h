@@ -11,8 +11,8 @@
 #define ZHELE_USB_DEVICE_H
 
 #include "configuration.h"
-#include "hid.h"
 #include "endpoints_manager.h"
+#include "hid.h"
 
 #include "../ioreg.h"
 
@@ -24,20 +24,20 @@ namespace Zhele::Usb
     #pragma pack(push, 1)
     struct DeviceDescriptor
     {
-        uint8_t Length = 18;
-        DescriptorType Type = DescriptorType::Device;
-        uint16_t UsbVersion;
-        DeviceClass Class;
-        uint8_t SubClass;
-        uint8_t Protocol;
-        uint8_t MaxPacketSize;
-        uint16_t VendorId;
-        uint16_t ProductId;
-        uint16_t DeviceReleaseNumber;
-        uint8_t ManufacturerStringIndex = 0;
-        uint8_t ProductStringIndex = 0;
-        uint8_t SerialNumberStringIndex = 0;
-        uint8_t ConfigurationsCount;
+        uint8_t Length = 18; ///< Length (always 18)
+        DescriptorType Type = DescriptorType::Device; ///< Desciptor type (always 0x01)
+        uint16_t UsbVersion; ///< Usb version
+        DeviceClass Class; ///< Device class
+        uint8_t SubClass; ///< Device subclass
+        uint8_t Protocol; ///< Device protocol
+        uint8_t MaxPacketSize; ///< Ep0 maximum packet size
+        uint16_t VendorId; ///< Vendor ID (VID)
+        uint16_t ProductId; ///< Product ID (PID)
+        uint16_t DeviceReleaseNumber; ///< Device release number
+        uint8_t ManufacturerStringIndex = 0; ///< Manufacturer string ID
+        uint8_t ProductStringIndex = 0; ///< Product string ID
+        uint8_t SerialNumberStringIndex = 0; ///< Serial number string ID
+        uint8_t ConfigurationsCount; ///< Configurations count
     };
     #pragma pack(pop)
     
@@ -78,18 +78,31 @@ namespace Zhele::Usb
         using Interfaces = Append_t<typename _Configurations::Interfaces...>; 
         using Endpoints = Append_t<typename _Configurations::Endpoints...>;
 
-        // Removed some dependencies. Lets search first HID interface and consider it as main hid.
-        using HidInterface = GetType_t<Search<IsHidPredicate, Interfaces>::value, Interfaces>;
-
-        // Replace Ep0 with this for correct handler register.
         using EpBufferManager = EndpointsManager<Append_t<_Ep0, Endpoints>>;
+        // Replace Ep0 with this for correct handler register.
         using EpHandlers = EndpointHandlers<Append_t<This, Endpoints>>;
-
+        using IfHandlers = InterfaceHandlers<Interfaces>;
         static uint8_t _tempAddressStorage;
     public:
+        /**
+         * @brief Select clock source
+         * 
+         * @tparam T Clock source type
+         * 
+         * @param [in] clockSource Clock source
+         * 
+         * @par Returns
+         *  Nothing
+         */
         template<typename T>
         static void SelectClockSource(T clockSource);
 
+        /**
+         * @brief Enables device
+         * 
+         * @par Returns
+         *  Nothing
+         */
         static void Enable()
         {
             _ClockCtrl::Enable();
@@ -105,6 +118,14 @@ namespace Zhele::Usb
             NVIC_EnableIRQ(_IRQNumber);
         }
 
+        /**
+         * @brief Fills descriptor
+         * 
+         * @param [out] descriptor Destination memory
+         * 
+         * @par Returns
+         *  Nothing
+         */
         static void FillDescriptor(DeviceDescriptor* descriptor)
         {
            *descriptor = DeviceDescriptor {
@@ -120,6 +141,12 @@ namespace Zhele::Usb
             };
         }
 
+        /**
+         * @brief Common USB handler
+         *
+         * @par Returns
+         *  Nothing
+         */
         static void CommonHandler()
         {
             NVIC_ClearPendingIRQ(_IRQNumber);
@@ -135,6 +162,12 @@ namespace Zhele::Usb
             }
         }
 
+        /**
+         * @brief Reset device
+         * 
+         * @par Returns
+         *  Nothing
+         */
         static void Reset()
         {
             _Ep0::Reset();
@@ -147,14 +180,28 @@ namespace Zhele::Usb
             _Regs()->DADDR = USB_DADDR_EF;
         }
 
+        /**
+         * @brief Ep0 (device) CTR handler
+         * 
+         * @par Returns
+         *  Nothing
+         */
         static void Handler()
         {
             if(_Ep0::Reg::Get() & USB_EP_CTR_RX)
             {
                 _Ep0::ClearCtrRx();
+
                 if(_Ep0::Reg::Get() & USB_EP_SETUP)
                 {
                     SetupPacket* setup = reinterpret_cast<SetupPacket*>(_Ep0::RxBuffer);
+
+                    if(setup->RequestType.Recipient & 1)
+                    {
+                        IfHandlers::HandleSetupRequest(setup->Index);
+                        return;
+                    }
+
                     switch (setup->Request) {
                     case StandartRequestCode::GetStatus: {
                         uint16_t status = 0;
@@ -179,23 +226,9 @@ namespace Zhele::Usb
                         }
                         case GetDescriptorParameter::ConfigurationDescriptor: {
                             uint8_t temp[64];
+                            // Now supports only one configuration.
                             uint16_t size = GetType<0, Configurations>::type::FillDescriptor(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]));
                             _Ep0::SendData(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]), setup->Length < size ? setup->Length : size);
-                            break;
-                        }
-                        case GetDescriptorParameter::HidReportDescriptor: {
-                            if constexpr(!std::is_same_v<HidInterface, void>)
-                            {
-                                // I know that sending local array to function is bad practic, but it works.
-                                // Left it here:) uint8_t* temp = (uint8_t*)malloc(128);
-                                uint8_t temp[HidInterface::ReportsSize()];
-                                uint16_t size = HidInterface::FillReports(temp);
-                                _Ep0::SendData(temp, setup->Length < size ? setup->Length : size);
-                            }
-                            else
-                            {
-                                _Ep0::SetTxStatus(EndpointStatus::Stall);
-                            }
                             break;
                         }
                         default:
