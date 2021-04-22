@@ -1,3 +1,12 @@
+/**
+ * @file
+ * Implements DMA methods.
+ * 
+ * @author Konstantin Chizhov
+ * @date ??
+ * @license FreeBSD
+ */
+
 #if defined (STM32F0)
     #include <common/macro_utils/declarations.h>
     #include <dma.h>

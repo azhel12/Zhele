@@ -16,7 +16,7 @@
 
 #include <clock.h>
 
-#include <cstddef>
+#include <stddef.h>
 
 #define COMMA ,
 
@@ -138,13 +138,8 @@ namespace Zhele
          * @par Returns
          *	Nothing
          */
-        inline void NotifyTransferComplete()
-        {
-            if(transferCallback)
-            {
-                transferCallback(data, size, true);
-            }
-        }
+        inline void NotifyTransferComplete();
+       
 
         /**
          * @brief Transfer error handler. Call user`s callback if it has been set.
@@ -152,13 +147,8 @@ namespace Zhele
          * @par Returns
          *	Nothing
          */
-        inline void NotifyError()
-        {            
-            if(transferCallback)
-            {
-                transferCallback(data, size, false);
-            }
-        }
+        inline void NotifyError();
+        
     };
 
     /**
@@ -189,41 +179,8 @@ namespace Zhele
          *	Nothing
          */
         static void Transfer(Mode mode, const void* buffer, volatile void* periph, uint32_t bufferSize
-        ONLY_FOR_SXCR(COMMA uint8_t channel = 0))
-        {
-            _Module::Enable();
-            if(!TransferError())
-			{
-				while(!Ready())
-					;
-			}
-        #if defined (DMA_CCR_EN)
-            _ChannelRegs()->CCR = 0;
-            _ChannelRegs()->CNDTR = bufferSize;
-            _ChannelRegs()->CPAR = reinterpret_cast<uint32_t>(periph);
-            _ChannelRegs()->CMAR = reinterpret_cast<uint32_t>(buffer);
-        #endif
-        #if defined (DMA_SxCR_EN)
-            _ChannelRegs()->CR = 0;
-			_ChannelRegs()->NDTR = bufferSize;
-			_ChannelRegs()->PAR = reinterpret_cast<uint32_t>(periph);
-			_ChannelRegs()->M0AR = reinterpret_cast<uint32_t>(buffer);
-        #endif
-        Data.data = const_cast<void*>(buffer);
-        Data.size = bufferSize;
-
-        if(Data.transferCallback)
-            mode = mode | DmaBase::TransferCompleteInterrupt | DmaBase::TransferErrorInterrupt;
-            
-        NVIC_EnableIRQ(_IRQNumber);
-
-        #if defined (DMA_CCR_EN)
-            _ChannelRegs()->CCR = mode | DMA_CCR_EN;
-        #endif
-        #if defined (DMA_SxCR_EN)
-            _ChannelRegs()->CR = mode | ((channel & 0x07) << 25) | DMA_SxCR_EN;
-        #endif
-        }
+        ONLY_FOR_SXCR(COMMA uint8_t channel = 0));
+      
 
         /**
          * @brief Set transfer callback function 
@@ -233,10 +190,8 @@ namespace Zhele
          * @par Returns
          *	Nothing
          */
-        static void SetTransferCallback(TransferCallback callback)
-        {
-            Data.transferCallback = callback;
-        }
+        static void SetTransferCallback(TransferCallback callback);
+        
 
         /**
          * @brief Check that DMA ready to transfer data
@@ -244,32 +199,24 @@ namespace Zhele
          * @retval true DMA ready
          * @retval false DMA not ready
          */
-        static bool Ready()
-		{
-			return RemainingTransfers() == 0 || !Enabled() || TransferComplete();
-		}
-
+        static bool Ready();
+		
         /**
          * @brief Check DMA channel for state
          * 
          * @retval true DMA channel enabled
          * @retval false DMA channel disabled
          */
-        static bool Enabled()
-        {
-            return _ChannelRegs()->ONLY_FOR_CCR(CCR)ONLY_FOR_SXCR(CR) & ONLY_FOR_CCR(DMA_CCR_EN)ONLY_FOR_SXCR(DMA_SxCR_EN);
-        }
-
+        static bool Enabled();
+       
         /**
          * @brief Enable DMA channel
          * 
          * @par Returns
          *	Nothing
          */
-        static void Enable()
-        {
-            _ChannelRegs()->ONLY_FOR_CCR(CCR)ONLY_FOR_SXCR(CR) |= ONLY_FOR_CCR(DMA_CCR_EN)ONLY_FOR_SXCR(DMA_SxCR_EN);
-        }
+        static void Enable();
+        
 
         /**
          * @brief Disable DMA channel
@@ -277,11 +224,8 @@ namespace Zhele
          * @par Returns
          *	Nothing
          */
-        static void Disable()
-        {
-            _ChannelRegs()->ONLY_FOR_CCR(CCR)ONLY_FOR_SXCR(CR) &= ~ONLY_FOR_CCR(DMA_CCR_EN)ONLY_FOR_SXCR(DMA_SxCR_EN);
-        }
-
+        static void Disable();
+      
         /**
          * @brief Returns remaining bytes to transfer
          * 
@@ -290,30 +234,23 @@ namespace Zhele
          *	
          *	@returns Byte to transfer remaining
          */
-        static uint32_t RemainingTransfers()
-        {
-            return _ChannelRegs()->ONLY_FOR_CCR(CNDTR)ONLY_FOR_SXCR(NDTR);
-        }
-
+        static uint32_t RemainingTransfers();
+       
         /**
          * @brief Returns peripheral address
          * 
          * @returns Peripheral address
          */
-        static void* PeriphAddress()
-        {
-            return reinterpret_cast<void *>(_ChannelRegs()->ONLY_FOR_CCR(CPAR)ONLY_FOR_SXCR(PAR));
-        }
+        static void* PeriphAddress();
+       
 
         /**
          * @brief Returns memory buffer address
          * 
          * @returns Memory buffer address
          */
-        static void* MemAddress()
-        {
-            return reinterpret_cast<void *>(_ChannelRegs()->ONLY_FOR_CCR(CMAR)ONLY_FOR_SXCR(M0AR));
-        }
+        static void* MemAddress();
+        
 
         /**
          * @brief Returns transfer error state
@@ -321,44 +258,32 @@ namespace Zhele
          * @retval true Transfer error was occured (flag is set)
          * @retval false No transfer error was occured (flag is reset)
          */
-        static bool TransferError()
-        {
-            return _Module::template TransferError<_Channel>();
-        }
-
+        static bool TransferError();
+       
         /**
          * @brief Returns transfer half of data
          * 
          * @retval true If half of data was transfered (flag is set)
          * @retval false If not half of data was transfered (flag is reset)
          */
-        static bool HalfTransfer()
-        {
-            return _Module::template HalfTransfer<_Channel>();
-        }
-
+        static bool HalfTransfer();
+       
         /**
          * @brief Returns transfer complete
          * 
          * @retval true If transfer complete (flag is set)
          * @retval false If transfer not complete (flag is reset)
          */
-        static bool TransferComplete()
-        {
-            return _Module::template TransferComplete<_Channel>();
-        }
-
+        static bool TransferComplete();
+        
         /**
          * @brief Returns interrupt state (occured or not)
          * 
          * @retval true Interrupt was occured
          * @retval false Interrupt was not occured
          */
-        static bool Interrupt()
-        {
-            return _Module::template Interrupt<_Channel>();
-        }
-
+        static bool Interrupt();
+       
         /**
          * @brief Clear channel flags
          * 
@@ -368,21 +293,16 @@ namespace Zhele
          * @par Returns
          *	Nothing
          */
-        static void ClearFlags()
-        {
-            _Module::template ClearChannelFlags<_Channel>();
-        }
-
+        static void ClearFlags();
+        
         /**
          * @brief Clear transfer error flag
          * 
          * @par Returns
          *	Nothing
          */
-        static void ClearTransferError()
-        {
-            _Module::template ClearTransferError<_Channel>();
-        }
+        static void ClearTransferError();
+       
 
         /**
          * @brief Clear half transfer complete flag
@@ -390,10 +310,8 @@ namespace Zhele
          * @par Returns
          *	Nothing
          */
-        static void ClearHalfTransfer()
-        {
-            _Module::template ClearHalfTransfer<_Channel>();
-        }
+        static void ClearHalfTransfer();
+       
 
         /**
          * @brief Clear transfer complete flag
@@ -401,10 +319,8 @@ namespace Zhele
          * @par Returns
          *	Nothing
          */
-        static void ClearTransferComplete()
-        {
-            _Module::template ClearTransferComplete<_Channel>();
-        }
+        static void ClearTransferComplete();
+       
 
         /**
          * @brief Clear interrupt flag
@@ -412,32 +328,16 @@ namespace Zhele
          * @par Returns
          *	Nothing
          */
-        static void ClearInterrupt()
-        {
-            _Module::template ClearInterrupt<_Channel>();
-        }
-
+        static void ClearInterrupt();
+        
         /**
          * @brief DMA channel IRQ handler
          * 
          * @par Returns
          *	Nothing
          */
-        static void IrqHandler()
-        {
-            if(TransferComplete())
-            {
-                ClearFlags();
-                Disable();
-                Data.NotifyTransferComplete();
-            }
-            if(TransferError())
-            {
-                ClearFlags();
-                Disable();
-                Data.NotifyError();
-            }
-        }
+        static void IrqHandler();
+      
     };
 
     /**
@@ -478,32 +378,8 @@ namespace Zhele
          * @retval false If flag is reset
          */
         template<int ChannelNum, Flags FlagMask>
-        static bool ChannelFlag()
-        {
-        #if defined(DMA_CCR_EN)
-            return _DmaRegs()->ISR & (static_cast<uint32_t>(FlagMask) << ((ChannelNum - 1) * 4));
-        #endif
-        #if defined(DMA_SxCR_EN)
-            if constexpr(ChannelNum <= 1)
-            {
-                return _DmaRegs()->LISR & (static_cast<uint32_t>(FlagMask) << (ChannelNum * 6));
-            }
-            if constexpr(2 <= ChannelNum && ChannelNum <= 3)
-            {
-                return _DmaRegs()->LISR & (static_cast<uint32_t>(FlagMask) << (4 + ChannelNum * 6));
-            }
-            if constexpr(4 <= ChannelNum && ChannelNum <= 5)
-            {
-                return _DmaRegs()->HISR & (static_cast<uint32_t>(FlagMask) << ((ChannelNum - 4) * 6));
-            }
-            if constexpr(6 <= ChannelNum && ChannelNum <= 7)
-            {
-                return _DmaRegs()->HISR & (static_cast<uint32_t>(FlagMask) << (4 + (ChannelNum - 4) * 6));
-            }
-			return false;
-        #endif
-        }
-
+        static bool ChannelFlag();
+     
 
         /**
          * @brief Clear channel flag
@@ -515,30 +391,8 @@ namespace Zhele
          *	Nothing
          */
         template<int ChannelNum, Flags FlagMask>
-        static void ClearChannelFlag()
-        {
-        #if defined(DMA_CCR_EN)
-            _DmaRegs()->IFCR |= (static_cast<uint32_t>(FlagMask) << ((ChannelNum - 1) * 4));
-        #endif
-        #if defined(DMA_SxCR_EN)
-            if constexpr(ChannelNum <= 1)
-            {
-                _DmaRegs()->LIFCR |= (static_cast<uint32_t>(FlagMask) << (ChannelNum * 6));
-            }
-            if constexpr(2 <= ChannelNum && ChannelNum <= 3)
-            {
-                _DmaRegs()->LIFCR |= (static_cast<uint32_t>(FlagMask) << (4 + ChannelNum * 6));
-            }
-            if constexpr(4 <= ChannelNum && ChannelNum <= 5)
-            {
-                _DmaRegs()->HIFCR |= (static_cast<uint32_t>(FlagMask) << ((ChannelNum - 4) * 6));
-            }
-            if constexpr(6 <= ChannelNum && ChannelNum <= 7)
-            {
-                _DmaRegs()->HIFCR |= (static_cast<uint32_t>(FlagMask) << (4 + (ChannelNum - 4) * 6));
-            }
-        #endif
-        }
+        static void ClearChannelFlag();
+     
         
     public:
         static const int Channels = _Channels;		
@@ -552,10 +406,8 @@ namespace Zhele
          * @retval false No transfer error was occured (flag is reset)
          */
         template<int ChannelNum>
-        static bool TransferError()
-        {
-            return ChannelFlag<ChannelNum, Flags::TransferError>();
-        }
+        static bool TransferError();
+        
 
 
         /**
@@ -567,10 +419,8 @@ namespace Zhele
          * @retval false If not half of data was transfered (flag is reset)
          */
         template<int ChannelNum>
-        static bool HalfTransfer()
-        {
-            return ChannelFlag<ChannelNum, Flags::HalfTransfer>();
-        }
+        static bool HalfTransfer();
+        
 
         /**
          * @brief Returns transfer complete
@@ -581,23 +431,15 @@ namespace Zhele
          * @retval false If transfer not complete (flag is reset)
          */
         template<int ChannelNum>
-        static bool TransferComplete()
-        {
-            return ChannelFlag<ChannelNum, Flags::TransferComplete>();
-        }
+        static bool TransferComplete();
+       
 
     #if defined(DMA_SxCR_EN)
         template<int ChannelNum>
-		static bool FifoError()
-		{
-			return ChannelFlag<ChannelNum, Flags::FifoError>();
-		}
-		
+		static bool FifoError();
+				
 		template<int ChannelNum>
-		static bool DirectError()
-		{
-			return ChannelFlag<ChannelNum, Flags::DirectError>();
-		}
+		static bool DirectError();
     #endif
 
     #if defined(DMA_CCR_EN)
@@ -610,10 +452,8 @@ namespace Zhele
          * @retval false Interrupt was not occured
          */
         template<int ChannelNum>
-        static bool Interrupt()
-        {
-            return ChannelFlag<ChannelNum, Flags::Global>();
-        }
+        static bool Interrupt();
+       
     #endif
         /**
          * @brief Clear channel flags
@@ -624,15 +464,8 @@ namespace Zhele
          *	Nothing
          */
         template<int ChannelNum>
-        static void ClearChannelFlags()
-        {
-        #if defined(DMA_CCR_EN)
-            ClearChannelFlag<ChannelNum, Flags::All>();
-        #endif
-        #if defined(DMA_SxCR_EN)
-            ClearChannelFlag<ChannelNum, Flags::All>();
-        #endif
-        }
+        static void ClearChannelFlags();
+       
 
         /**
          * @brief Clear transfer error flag
@@ -643,10 +476,8 @@ namespace Zhele
          *	Nothing
          */
         template<int ChannelNum>
-        static void ClearTransferError()
-        {
-            ClearChannelFlag<ChannelNum, Flags::TransferError>();
-        }
+        static void ClearTransferError();
+        
 
         /**
          * @brief Clear half transfer complete flag
@@ -657,11 +488,8 @@ namespace Zhele
          *	Nothing
          */
         template<int ChannelNum>
-        static void ClearHalfTransfer()
-        {
-            ClearChannelFlag<ChannelNum, Flags::HalfTransfer>();
-        }
-
+        static void ClearHalfTransfer();
+       
         /**
          * @brief Clear transfer complete flag
          * 
@@ -671,11 +499,7 @@ namespace Zhele
          *	Nothing
          */
         template<int ChannelNum>
-        static void ClearTransferComplete()
-        {
-            ClearChannelFlag<ChannelNum, Flags::TransferComplete>();
-        }
-
+        static void ClearTransferComplete();
     #if defined(DMA_CCR_EN)
         /**
          * @brief Clear interrupt flag
@@ -686,23 +510,17 @@ namespace Zhele
          *	Nothing
          */
         template<int ChannelNum>
-        static void ClearInterrupt()
-        {
-            ClearChannelFlag<ChannelNum, Flags::General>();
-        }
+        static void ClearInterrupt();
+        
     #endif
     #if defined(DMA_SxCR_EN)
         template<int ChannelNum>
-		static void ClearFifoError()
-		{
-			ClearChannelFlag<ChannelNum, Flags::FifoError>();
-		}
+		static void ClearFifoError();
+		
 		
 		template<int ChannelNum>
-		static void ClearDirectError()
-		{
-			ClearChannelFlag<ChannelNum, Flags::DirectError>();
-		}
+		static void ClearDirectError();
+		
     #endif
         /**
          * @brief Enable DMA module clocking
@@ -710,12 +528,8 @@ namespace Zhele
          * @par Returns
          *	Nothing
          */
-        static void Enable()
-        {
-            _Clock::Enable();
-            // See note.
-            DmaDummy();
-        }
+        static void Enable();
+       
 
         /**
          * @brief Disable DMA module clocking
@@ -723,14 +537,14 @@ namespace Zhele
          * @par Returns
          *	Nothing
          */
-        static void Disable()
-        {
-            _Clock::Disable();
-        }
+        static void Disable();
+        
     };
 
     template<typename _Module, typename _ChannelRegs, unsigned _Channel, IRQn_Type _IRQnumber>
     DmaChannelData DmaChannel<_Module, _ChannelRegs, _Channel, _IRQnumber>::Data;
 }
+
+#include "impl/dma.h"
 
 #endif //! ZHELE_DMA_COMMON_H

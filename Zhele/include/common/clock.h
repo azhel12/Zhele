@@ -13,16 +13,6 @@
 #include <flash.h>
 #include "ioreg.h"
 
-#if !defined  (HSE_VALUE) 
-    #warning HSE_VALUE not defined. Will be used HSE_VALUE equals 8 MHZ.
-    #define HSE_VALUE    ((uint32_t)8000000)
-#endif //! HSE_VALUE
-
-#if !defined  (HSI_VALUE)
-    #warning HSI_VALUE not defined. Will be used HSI_VALUE equals 8 MHZ.
-    #define HSI_VALUE    ((uint32_t)8000000)
-#endif //! HSI_VALUE
-
 namespace Zhele
 {
     using ClockFrequenceT = uint32_t;
@@ -47,33 +37,16 @@ namespace Zhele
              * @param [in] turnMask Mask
              * @param [in] waitReadyMask Wait for ready mask
              */
-            static bool EnableClockSource(unsigned turnMask,  unsigned waitReadyMask)
-            {
-                uint32_t timeoutCounter = 0;
-                _Regs::Or(turnMask);
-                while(((_Regs::Get() & waitReadyMask) == 0) && (timeoutCounter < ClockStartTimeout))
-                {
-                    timeoutCounter++;
-                }
-                return (_Regs::Get() & waitReadyMask) != 0;
-            }
-
+            static bool EnableClockSource(unsigned turnMask,  unsigned waitReadyMask);
+        
             /**
              * @brief Disable clocking
              * 
              * @param [in] turnMask Mask
              * @param [in] waitReadyMask Wait for ready mask
              */
-            static bool DisableClockSource(unsigned turnMask,  unsigned waitReadyMask)
-            {
-                uint32_t timeoutCounter = 0;
-                _Regs::And(~turnMask);
-                while(((_Regs::Get() & waitReadyMask) != 0) && (timeoutCounter < ClockStartTimeout))
-                {
-                    timeoutCounter++;
-                }
-                return (_Regs::Get() & waitReadyMask) == 0;
-            }
+            static bool DisableClockSource(unsigned turnMask,  unsigned waitReadyMask);
+           
         };
 
         /**
@@ -88,24 +61,22 @@ namespace Zhele
              * 
              * @returns External source (HSE) clock frequence
              */
-            static ClockFrequenceT SrcClockFreq()
-            {
-                return HSE_VALUE;
-            }
+            static ClockFrequenceT SrcClockFreq();
+            
 
             /**
              * @brief Returns HSE divider
              * 
              * @returns Hse divider
              */
-            static ClockFrequenceT GetDivider() { return 1; }
+            static ClockFrequenceT GetDivider();
 
             /**
              * @brief Returns HSE multiplier
              * 
              * @returns Hse multiplier
              */
-            static ClockFrequenceT GetMultipler() { return 1; }
+            static ClockFrequenceT GetMultipler();
 
 
             /**
@@ -116,10 +87,8 @@ namespace Zhele
              * 
              * @returns Final frequence
              */
-            static ClockFrequenceT ClockFreq()
-            {
-                return SrcClockFreq();
-            }
+            static ClockFrequenceT ClockFreq();
+            
 
             /**
              * @brief Enables Hse source
@@ -127,10 +96,8 @@ namespace Zhele
              * @retval true Successful enable
              * @retval false Fail enable
              */
-            static bool Enable()
-            {
-                return ClockBase::EnableClockSource(RCC_CR_HSEON, RCC_CR_HSERDY);
-            }
+            static bool Enable();
+           
 
             /**
              * @brief Disables Hse source
@@ -138,10 +105,8 @@ namespace Zhele
              * @retval true Successful disable
              * @retval false Fail disable
              */
-            static bool Disable()
-            {
-                return ClockBase::DisableClockSource(RCC_CR_HSEON, RCC_CR_HSERDY);
-            }
+            static bool Disable();
+         
         };
 
         /**
@@ -155,24 +120,22 @@ namespace Zhele
              * 
              * @returns External source (HSE) clock frequence
              */
-            static ClockFrequenceT SrcClockFreq()
-            {
-                return HSI_VALUE;
-            }
+            static ClockFrequenceT SrcClockFreq();
+           
 
             /**
              * @brief Returns HSI divider
              * 
              * @returns Hsi divider
              */
-            static ClockFrequenceT GetDivider() { return 1; }
+            static ClockFrequenceT GetDivider();
 
             /**
              * @brief Returns HSI multiplier
              * 
              * @returns Hsi multiplier
              */
-            static ClockFrequenceT GetMultipler() { return 1; }
+            static ClockFrequenceT GetMultipler();
 
 
             /**
@@ -183,10 +146,8 @@ namespace Zhele
              * 
              * @returns Final frequence
              */
-            static ClockFrequenceT ClockFreq()
-            {
-                return SrcClockFreq();
-            }
+            static ClockFrequenceT ClockFreq();
+            
 
             /**
              * @brief Enables Hsi source
@@ -194,10 +155,8 @@ namespace Zhele
              * @retval true Successful enable
              * @retval false Fail enable
              */
-            static bool Enable()
-            {
-                return ClockBase::EnableClockSource(RCC_CR_HSION, RCC_CR_HSIRDY);
-            }
+            static bool Enable();
+           
 
             /**
              * @brief Disables Hsi source
@@ -205,10 +164,8 @@ namespace Zhele
              * @retval true Successful disable
              * @retval false Fail disable
              */
-            static bool Disable()
-            {
-                return ClockBase::DisableClockSource(RCC_CR_HSION, RCC_CR_HSIRDY);
-            }
+            static bool Disable();
+            
         };
 
         /**
@@ -240,13 +197,8 @@ namespace Zhele
              * 
              * @returns PLL source frequence
              */
-            static ClockFrequenceT SrcClockFreq()
-            {
-                return GetClockSource() == External
-                    ? HseClock::ClockFreq()
-                    : HsiClock::ClockFreq();
-            }
-
+            static ClockFrequenceT SrcClockFreq();
+           
             /**
              * @brief Returns PLL divider
              * 
@@ -340,10 +292,8 @@ namespace Zhele
              * 
              * @returns Pll result frequence
              */
-            static ClockFrequenceT ClockFreq()
-            {
-                return SrcClockFreq() / GetDivider() * GetMultipler();
-            }
+            static ClockFrequenceT ClockFreq();
+           
 
             /**
              * @brief Enables PLL
@@ -351,20 +301,8 @@ namespace Zhele
              * @retval true Success
              * @retval false Fail
              */
-            static bool Enable()
-            {
-                if (GetClockSource() == Internal)
-                {
-                    if (!HsiClock::Enable())
-                        return false;
-                }
-                else
-                {
-                    if (!HseClock::Enable())
-                        return false;
-                }
-                return ClockBase::EnableClockSource(RCC_CR_PLLON, RCC_CR_PLLRDY);
-            }
+            static bool Enable();
+           
 
             /**
              * @brief Disables PLL
@@ -372,10 +310,8 @@ namespace Zhele
              * @retval true Success
              * @retval false Fail
              */
-            static void Disable()
-            {
-                ClockBase::DisableClockSource(RCC_CR_PLLON, RCC_CR_PLLRDY);
-            }
+            static void Disable();
+            
         };
 
     #if defined (RCC_CSR_LSION)
@@ -390,24 +326,22 @@ namespace Zhele
              * 
              * @returns Internal low source (LSI) clock frequence
              */
-            static ClockFrequenceT SrcClockFreq()
-            {
-                return 32768;
-            }
+            static ClockFrequenceT SrcClockFreq();
+         
 
             /**
              * @brief Returns LSI divider
              * 
              * @returns Lse divider
              */
-            static ClockFrequenceT GetDivider() { return 1; }
+            static ClockFrequenceT GetDivider();
 
             /**
              * @brief Returns LSI multiplier
              * 
              * @returns Hsi multiplier
              */
-            static ClockFrequenceT GetMultipler() { return 1; }
+            static ClockFrequenceT GetMultipler();
 
 
             /**
@@ -415,10 +349,8 @@ namespace Zhele
              * 
              * @returns Final frequence
              */
-            static ClockFrequenceT ClockFreq()
-            {
-                return SrcClockFreq();
-            }
+            static ClockFrequenceT ClockFreq();
+            
 
             /**
              * @brief Enables LSI source
@@ -426,10 +358,8 @@ namespace Zhele
              * @retval true Successful enable
              * @retval false Fail enable
              */
-            static bool Enable()
-            {
-                return ClockBase::EnableClockSource(RCC_CSR_LSION, RCC_CSR_LSIRDY);
-            }
+            static bool Enable();
+            
 
             /**
              * @brief Disables LSI source
@@ -437,10 +367,8 @@ namespace Zhele
              * @retval true Successful disable
              * @retval false Fail disable
              */
-            static bool Disable()
-            {
-                return ClockBase::DisableClockSource(RCC_CSR_LSION, RCC_CSR_LSIRDY);
-            }
+            static bool Disable();
+            
         };
     #endif
 
@@ -483,72 +411,15 @@ namespace Zhele
              * 
              * @returns Select result
              */
-            static ErrorCode SelectClockSource(ClockSource clockSource)
-            {
-                uint32_t clockStatusValue;
-                uint32_t clockSelectMask;
-                uint32_t sourceFrequence;
-
-                if(clockSource == Internal)
-                {
-                    clockStatusValue = RCC_CFGR_SWS_HSI;
-                    clockSelectMask = RCC_CFGR_SW_HSI;
-                    if (!HsiClock::Enable())
-                        return ClockSourceFailed;
-                    sourceFrequence = HsiClock::ClockFreq();
-                }
-                else if(clockSource == External)
-                {
-                    clockStatusValue = RCC_CFGR_SWS_HSE;
-                    clockSelectMask = RCC_CFGR_SW_HSE;
-                    if (!HseClock::Enable())
-                        return ClockSourceFailed;
-                    sourceFrequence = HseClock::ClockFreq();
-                }
-                else if(clockSource == Pll)
-                {
-                    clockStatusValue = RCC_CFGR_SWS_PLL;
-                    clockSelectMask = RCC_CFGR_SW_PLL;
-                    if (!PllClock::Enable())
-                        return ClockSourceFailed;
-                    sourceFrequence = PllClock::ClockFreq();
-                }
-                else
-                {
-                    return InvalidClockSource;
-                }
-
-                Flash::ConfigureFrequence(sourceFrequence);
-
-                RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | clockSelectMask;
-                
-                uint32_t timeout = 10000;
-                while (((RCC->CFGR & RCC_CFGR_SWS) != clockStatusValue) && --timeout)
-                    ;
-                if(timeout == 0)
-                {
-                    return ClockSelectFailed;
-                }
-                return Success;
-            }
-
+            
+            static ErrorCode SelectClockSource(ClockSource clockSource);
             /**
              * @brief Returns system clock frequence
              * 
              * @returns Clock frequence
              */
-            static ClockFrequenceT ClockFreq()
-            {
-                uint32_t clockSrc = RCC->CFGR & RCC_CFGR_SWS;
-                switch (clockSrc)
-                {
-                    case 0:              return HsiClock::ClockFreq();
-                    case RCC_CFGR_SWS_0: return HseClock::ClockFreq();
-                    case RCC_CFGR_SWS_1: return PllClock::ClockFreq();
-                }
-                return 0;
-            }
-
+            static ClockFrequenceT ClockFreq();
+            
             /**
              * @brief Returns source clock frequence
              * 
@@ -557,11 +428,8 @@ namespace Zhele
              * 
              * @returns Source clock frequence
              */
-            static ClockFrequenceT SrcClockFreq()
-            {
-                return ClockFreq();
-            }
-
+            static ClockFrequenceT SrcClockFreq();
+           
             /**
              * @brief Set clock frequence
              * 
@@ -569,15 +437,8 @@ namespace Zhele
              * 
              * @returns New clock frequence
              */
-            static ClockFrequenceT SetClockFreq(ClockFrequenceT freq)
-            {
-                SelectClockSource(Internal);
-                PllClock::Disable();
-                PllClock::SelectClockSource(PllClock::External);
-                PllClock::SetClockFreq(freq);
-                SelectClockSource(Pll);
-                return ClockFreq();
-            }
+            static ClockFrequenceT SetClockFreq(ClockFrequenceT freq);
+          
         };
 
         IO_REG_WRAPPER(RCC->APB1ENR, PeriphClockEnable1, uint32_t);
@@ -595,11 +456,8 @@ namespace Zhele
              * 
              * @returns Clock frequence
              */
-            static ClockFrequenceT SrcClockFreq()
-            {
-                return _SrcClock::ClockFreq();
-            }
-
+            static ClockFrequenceT SrcClockFreq();
+            
             /**
              * @brief Returns current clock frequence of AHB
              * 
@@ -616,11 +474,7 @@ namespace Zhele
              *	Nothing
              */
             template<typename PrescalerType>
-            static void SetPrescaler(PrescalerType prescaler)
-            {
-                _PrescalerBitField::Set(static_cast<ClockFrequenceT>(prescaler));
-            }
-
+            static void SetPrescaler(PrescalerType prescaler);
         };
         
         /**
@@ -689,10 +543,8 @@ namespace Zhele
              * @par Returns
              * 	Nothing
              */
-            static void Enable()
-            {
-                _Reg::Or(_Mask);
-            }
+            static void Enable();
+           
             
             /**
              * @brief Disable clock
@@ -700,12 +552,11 @@ namespace Zhele
              * @par Returns
              * 	Nothing
              */
-            static void Disable()
-            {
-                _Reg::And(~_Mask);
-            }
+            static void Disable();
         };
     }
 }
+
+#include "impl/clock.h"
 
 #endif //! ZHELE_CLOCK_COMMON_H

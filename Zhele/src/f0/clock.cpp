@@ -1,5 +1,15 @@
+/**
+ * @file
+ * Implements clock methods for Stm32f0 series.
+ * 
+ * @author Konstantin Chizhov
+ * @date 2018
+ * @license FreeBSD
+ */
+
 #if defined (STM32F0)
-    #include "../include/f0/clock.h"
+
+#include "../../include/f0/clock.h"
 
 namespace Zhele::Clock
 {
