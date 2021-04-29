@@ -13,7 +13,6 @@
 #include "ioreg.h"
 #include "template_utils/type_list.h"
 
-
 namespace Zhele
 {
     namespace IO
@@ -164,10 +163,8 @@ namespace Zhele
                  * 
                  * @return Port value
                  */
-                static DataType Read()
-                {
-                    return _Regs()->ODR;
-                }
+                static DataType Read();
+                
 
                 /**
                  * @brief Send value to port
@@ -177,10 +174,8 @@ namespace Zhele
                  * @par Returns
                  *	Nothing
                  */
-                static void Write(DataType value)
-                {
-                    _Regs()->ODR = value;
-                }
+                static void Write(DataType value);
+                
 
                 /**
                  * @brief Clear and set bits
@@ -191,11 +186,8 @@ namespace Zhele
                  * @par Returns
                  *	Nothing
                  */
-                static void ClearAndSet(DataType clearMask, DataType setMask)
-                {
-                    Clear(clearMask);
-                    Set(setMask);
-                }
+                static void ClearAndSet(DataType clearMask, DataType setMask);
+               
 
                 /**
                  * @brief Set bits by mask
@@ -205,10 +197,8 @@ namespace Zhele
                  * @par Returns
                  *	Nothing
                  */
-                static void Set(DataType value)
-                {
-                    _Regs()->BSRR = value;
-                }
+                static void Set(DataType value);
+                
 
                 /**
                  * @brief Clear (reset) bits by mask
@@ -218,10 +208,8 @@ namespace Zhele
                  * @par Returns
                  *	Nothing
                  */
-                static void Clear(DataType value)
-                {
-                    _Regs()->BSRR = value << 16;
-                }
+                static void Clear(DataType value);
+                
 
                 /**
                  * @brief Toggle output bits
@@ -233,10 +221,8 @@ namespace Zhele
                  * @par Returns
                  *	Nothing
                  */
-                static void Toggle(DataType value)
-                {
-                    _Regs()->ODR ^= value;
-                }
+                static void Toggle(DataType value);
+                
 
                 /**
                  * @brief Returns input port value
@@ -245,10 +231,8 @@ namespace Zhele
                  * 
                  * @return IDR register value
                  */
-                static DataType PinRead()
-                {
-                    return _Regs()->IDR;
-                }
+                static DataType PinRead();
+               
 
                 /**
                  * @brief Template clone of ClearAndSet function
@@ -264,11 +248,8 @@ namespace Zhele
                  *	Nothing
                  */
                 template<DataType clearMask, DataType setMask>
-                static void ClearAndSet()
-                {
-                    Clear<clearMask>();
-                    Set<setMask>();
-                }
+                static void ClearAndSet();
+             
 
                 /**
                  * @brief Template clone of Toggle function
@@ -279,10 +260,8 @@ namespace Zhele
                  *	Nothing
                  */
                 template<DataType value>
-                static void Toggle()
-                {
-                    _Regs()->ODR ^= value;
-                }
+                static void Toggle();
+               
 
                 /**
                  * @brief Template clone of Set function
@@ -293,11 +272,8 @@ namespace Zhele
                  *	Nothing
                  */
                 template<DataType value>
-                static void Set()
-                {
-                    _Regs()->BSRR = value;
-                }
-
+                static void Set();
+                
 
                 /**
                  * @brief Template clone of Clear function
@@ -308,10 +284,8 @@ namespace Zhele
                  *	Nothing
                  */
                 template<DataType value>
-                static void Clear()
-                {
-                    _Regs()->BSRR = value << 16;
-                }
+                static void Clear();
+                
 
                 /**
                  * @brief Set port configuration
@@ -322,10 +296,8 @@ namespace Zhele
                  * @par Returns
                  *	Nothing
                  */
-                static void SetConfiguration(DataType mask, Configuration configuration)
-                {
-                    _Regs()->MODER = UnpackConfig2bits(mask, _Regs()->MODER, configuration);
-                }
+                static void SetConfiguration(DataType mask, Configuration configuration);
+               
 
                 /**
                  * @brief Template clone of SetConfiguration function
@@ -337,10 +309,8 @@ namespace Zhele
                  *	Nothing
                  */
                 template<DataType mask, Configuration configuration>
-                static void SetConfiguration()
-                {
-                    _Regs()->MODER = UnpackConfig2bits(mask, _Regs()->MODER, configuration);
-                }
+                static void SetConfiguration();
+                
 
                 /**
                  * @brief Set port speed
@@ -351,10 +321,8 @@ namespace Zhele
                  * @par Returns
                  *	Nothing
                  */
-                static void SetSpeed(DataType mask, Speed speed)
-                {
-                    _Regs()->OSPEEDR = UnpackConfig2bits(mask, _Regs()->OSPEEDR, speed);
-                }
+                static void SetSpeed(DataType mask, Speed speed);
+                
 
                 /**
                  * @brief Template clone of SetSpeed function
@@ -365,10 +333,8 @@ namespace Zhele
                  *	Nothing
                  */
                 template<DataType mask, Speed speed>
-                static void SetSpeed()
-                {
-                    _Regs()->OSPEEDR = UnpackConfig2bits(mask, _Regs()->OSPEEDR, speed);
-                }
+                static void SetSpeed();
+               
 
                 /**
                  * @brief Set pull smode
@@ -379,10 +345,8 @@ namespace Zhele
                  * @par Returns
                  *	Nothing
                  */
-                static void SetPullMode(DataType mask, PullMode mode)
-                {
-                    _Regs()->PUPDR = UnpackConfig2bits(mask, _Regs()->PUPDR, mode);
-                }
+                static void SetPullMode(DataType mask, PullMode mode);
+                
 
                 /**
                  * @brief Template clone of SetPullMode function.
@@ -394,10 +358,8 @@ namespace Zhele
                  *	Nothing
                  */
                 template <DataType mask, PullMode mode>
-                static void SetPullMode()
-                {
-                    _Regs()->PUPDR = UnpackConfig2bits(mask, _Regs()->PUPDR, mode);
-                }
+                static void SetPullMode();
+                
 
                 /**
                  * @brief Set driver type
@@ -408,10 +370,8 @@ namespace Zhele
                  * @par Returns
                  *	Nothing
                  */
-                static void SetDriverType(DataType mask, DriverType driver)
-                {
-                    _Regs()->OTYPER = (_Regs()->OTYPER & ~mask) | mask * driver;
-                }
+                static void SetDriverType(DataType mask, DriverType driver);
+                
 
                 /**
                  * @brief Template clone of SetDriverType function
@@ -423,10 +383,8 @@ namespace Zhele
                  *	Nothing
                  */
                 template <DataType mask, DriverType driver>
-                static void SetDriverType()
-                {
-                    _Regs()->OTYPER = (_Regs()->OTYPER & ~mask) | mask * driver;
-                }
+                static void SetDriverType();
+                
 
                 /**
                  * @brief Set alternate function number
@@ -437,11 +395,8 @@ namespace Zhele
                  * @par Returns
                  *	Nothing
                  */
-                static void AltFuncNumber(DataType mask, uint8_t number)
-                {
-                    _Regs()->AFR[0] = UnpackConfig4Bit(mask & 0xff, _Regs()->AFR[0], number);
-					_Regs()->AFR[1] = UnpackConfig4Bit((mask >> 8) & 0xff, _Regs()->AFR[1], number);
-                }
+                static void AltFuncNumber(DataType mask, uint8_t number);
+               
 
                 /**
                  * @brief Template clone of AltFuncNumber function
@@ -453,11 +408,8 @@ namespace Zhele
                  *	Nothing
                  */
                 template<DataType mask, uint8_t number>
-                static void AltFuncNumber()
-                {
-                    _Regs()->AFR[0] = UnpackConfig4Bit(mask & 0xff, _Regs()->AFR[0], number);
-					_Regs()->AFR[1] = UnpackConfig4Bit((mask >> 8) & 0xff, _Regs()->AFR[1], number);
-                }
+                static void AltFuncNumber();
+                
 
                 /**
                  * @brief Enable clock for port
@@ -465,25 +417,25 @@ namespace Zhele
                  * @par Returns
                  *	Nothing
                  */
-                static void Enable()
-                {
-                    _ClkEnReg::Enable();
-                }
-
+                static void Enable();
+               
                 /**
                  * @brief Disable clock for port
                  * 
                  * @par Returns
                  *	Nothing
                  */
-                static void Disable()
-                {
-                    _ClkEnReg::Disable();
-                }
+                static void Disable();
+                
                 enum { Id = ID };
             };
         }
 
+        /**
+         * @brief Implements IO ports list class.
+         * 
+         * @tparam _Ports IOPorts types.
+         */
         template<typename... >
         class PortList;
 
@@ -491,11 +443,23 @@ namespace Zhele
         class PortList<TemplateUtils::TypeList<_Ports...> >
         {
         public:
+            /**
+             * @brief Enables all ports.
+             * 
+             * @par Returns
+             *  Nothing
+             */
             static void Enable()
             {
                 (_Ports::Enable(), ...);
             }
 
+            /**
+             * @brief Disables all ports.
+             * 
+             * @par Returns
+             *  Nothing
+             */
             static void Disable()
             {
                 (_Ports::Disable(), ...);
@@ -540,4 +504,7 @@ namespace Zhele
         #endif
     }
 }
+
+#include "impl/ioports.h"
+
 #endif //ZHELE_IOPORTS_COMMON_H

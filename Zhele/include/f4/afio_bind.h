@@ -21,7 +21,6 @@ namespace Zhele::Private
     class Usart1Regs; class Usart2Regs; class Usart3Regs; class Uart4Regs; class Uart5Regs; class Usart6Regs;
     // SPI
     class Spi1Regs; class Spi2Regs; class Spi3Regs;
-
     // I2C
     class I2C1Regs; class I2C2Regs; class I2C3Regs; 
 
@@ -30,7 +29,7 @@ namespace Zhele::Private
         Spi1Regs, Spi2Regs, Spi3Regs, // SPI
         I2C1Regs, I2C2Regs, I2C3Regs // I2C
     >;
-    using AltFunctionNumbers = Zhele::UnsignedArray<
+    using AltFunctionNumbers = Zhele::TemplateUtils::UnsignedArray<
         7, 7, 7, 8, 8, 8, // Usart
         5, 5, 6, // SPI
         4, 4, 4 // I2C

@@ -148,7 +148,6 @@ namespace Zhele
          *	Nothing
          */
         inline void NotifyError();
-        
     };
 
     /**
@@ -275,7 +274,7 @@ namespace Zhele
          * @retval false If transfer not complete (flag is reset)
          */
         static bool TransferComplete();
-        
+    #if defined(DMA_CCR_EN)
         /**
          * @brief Returns interrupt state (occured or not)
          * 
@@ -283,7 +282,7 @@ namespace Zhele
          * @retval false Interrupt was not occured
          */
         static bool Interrupt();
-       
+    #endif
         /**
          * @brief Clear channel flags
          * 
@@ -337,7 +336,6 @@ namespace Zhele
          *	Nothing
          */
         static void IrqHandler();
-      
     };
 
     /**

@@ -368,10 +368,8 @@ namespace Zhele
              * @retval false Fail disable
              */
             static bool Disable();
-            
         };
     #endif
-
 
         /**
          * @brief Implements system clock

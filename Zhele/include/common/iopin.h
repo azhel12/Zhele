@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Implement GPIO pin class
+ * Implement GPIO pin class
  * @author Konstantin Chizhov
  * @date 2013
  * @license FreeBSD

@@ -1,6 +1,6 @@
 /**
  * @file
- * Containing template classes, which implements MCU clock.
+ * Clock methods implementation.
  * 
  * @author Konstantin Chizhov
  * @date 2018

@@ -1,6 +1,6 @@
 /**
  * @file
- * Contains implementation of TPin class
+ * IOPin methods implementation
  * 
  * @author Konstantin Chizhov
  * @date 2013

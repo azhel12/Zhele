@@ -72,10 +72,8 @@ namespace Zhele::Timers
              * 
              * @return Timer`s clock frequence
              */
-            static unsigned GetClockFreq()
-            {
-                return _ClockEnReg::ClockFreq();
-            }
+            static unsigned GetClockFreq();
+            
 
             /**
              * @brief Enables timer`s clocking
@@ -88,10 +86,8 @@ namespace Zhele::Timers
              * @par Returns
              *	Nothing
              */
-            static void Enable()
-            {
-                _ClockEnReg::Enable();
-            }
+            static void Enable();
+         
 
             /**
              * @brief Disables timer`s clocking
@@ -99,10 +95,8 @@ namespace Zhele::Timers
              * @par Returns
              *	Nothing
              */
-            static void Disable()
-            {
-                _ClockEnReg::Disable();
-            }
+            static void Disable();
+            
 
             /**
              * @brief Set timer`s counter value
@@ -112,20 +106,16 @@ namespace Zhele::Timers
              * @par Returns
              *	Nothing
              */
-            static void SetCounterValue(Counter counter)
-            {
-                _Regs()->CNT = counter;
-            }
+            static void SetCounterValue(Counter counter);
+            
 
             /**
              * @brief Returns timer`s counter value
              * 
              * @returns Current counter value
              */
-            static Counter GetCounterValue()
-            {
-                return _Regs()->CNT;
-            }
+            static Counter GetCounterValue();
+           
 
             /**
              * @brief Reset timer`s counter value (set to zero)
@@ -133,10 +123,8 @@ namespace Zhele::Timers
              * @par Returns
              *	Nothing
                 */
-            static void ResetCounterValue()
-            {
-                _Regs()->CNT = 0;
-            }
+            static void ResetCounterValue();
+            
 
             /**
              * @brief Set timer`s prescaler (PSC register) value
@@ -146,20 +134,16 @@ namespace Zhele::Timers
              * @par Returns
              *	Nothing
                 */
-            static void SetPrescaler(Prescaler prescaler)
-            {
-                _Regs()->PSC = prescaler;
-            }
+            static void SetPrescaler(Prescaler prescaler);
+           
 
             /**
              * @brief Returns timer`s prescaler value
              * 
              * @returns Current prescaler (PSC register value) value
              */
-            static void GetPrescaler()
-            {
-                return _Regs()->PSC;
-            }
+            static Counter GetPrescaler();
+        
 
             /**
              * @brief Set timer`s period (ARR register) value
@@ -172,10 +156,8 @@ namespace Zhele::Timers
              * @note Action of this method depends of ARPE
              * (auto-reload preload enable) bit in CR1 register
              */
-            static void SetPeriod(Counter period)
-            {
-                _Regs()->ARR = period;
-            }
+            static void SetPeriod(Counter period);
+           
 
             /**
              * @brief Set timer`s period immediately (and reset CNT)
@@ -187,11 +169,8 @@ namespace Zhele::Timers
              * @par Returns
              *	Nothing
              */
-            static void SetPeriodAndUpdate(Counter value)
-            {
-                _Regs()->ARR = value;
-                _Regs()->EGR |= TIM_EGR_UG;
-            }
+            static void SetPeriodAndUpdate(Counter value);
+          
 
             /**
              * @brief Returns timer`s period (ARR register value)
@@ -201,11 +180,8 @@ namespace Zhele::Timers
              * @note Action of this method depends of ARPE
              * (auto-reload preload enable) bit in CR1 register
              */
-            static void GetPeriod()
-            {
-                return _Regs()->ARR;
-            }		
-
+            static Counter GetPeriod();
+           
             /**
              * @brief Stop timer
              * 
@@ -215,12 +191,8 @@ namespace Zhele::Timers
              * @par Returns
              *	Nothing
              */
-            static void Stop()
-            {
-                _Regs()->CR1 = 0;
-                _Regs()->CR2 = 0;
-            }
-
+            static void Stop();
+           
             /**
              * @brief Start timer
              * 
@@ -234,11 +206,8 @@ namespace Zhele::Timers
              * @par Returns
              *	Nothing
              */
-            static void Start()
-            {
-                _Regs()->EGR |= TIM_EGR_UG;
-                _Regs()->CR1 = (TIM_CR1_CEN | TIM_CR1_URS);
-            }
+            static void Start();
+           
 
             /**
              * @brief Enables update interrupt for timer
@@ -250,11 +219,8 @@ namespace Zhele::Timers
              * @par Returns
              *	Nothing
              */
-            static void EnableInterrupt()
-            {
-                _Regs()->DIER |= TIM_DIER_UIE;
-                NVIC_EnableIRQ(_IRQNumber);
-            }
+            static void EnableInterrupt();
+            
 
 
             /**
@@ -263,10 +229,8 @@ namespace Zhele::Timers
              * @par Returns
              *	Nothing
              */
-            static void DisableInterrupt()
-            {
-                _Regs()->DIER &= ~TIM_DIER_UIE;
-            }
+            static void DisableInterrupt();
+            
 
             /**
              * @brief Returns is interrupt was occured.
@@ -274,10 +238,8 @@ namespace Zhele::Timers
              * @retval false No interrupt was occured
              * @retval true Interrupt was occured (update event)
              */
-            static bool IsInterrupt()
-            {
-                return (_Regs()->SR & TIM_SR_UIF) != 0;
-            }
+            static bool IsInterrupt();
+            
 
 
             /**
@@ -288,11 +250,8 @@ namespace Zhele::Timers
              * @par Returns
              *	Nothing
              */
-            static void ClearInterruptFlag()
-            {
-                _Regs()->SR = 0;
-                NVIC_ClearPendingIRQ(_IRQNumber);
-            }
+            static void ClearInterruptFlag();
+          
 
 
             /**
@@ -305,10 +264,8 @@ namespace Zhele::Timers
              * @par Returns
              * Nothing
              */
-            static void DmaRequestEnable()
-            {
-                _Regs()->DIER |= TIM_DIER_UDE;
-            }
+            static void DmaRequestEnable();
+           
 
             /**
              * @brief Disable DMA requests
@@ -316,10 +273,8 @@ namespace Zhele::Timers
              * @par Returns
              * Nothing
              */
-            static void DmaRequestDisable()
-            {
-                _Regs()->DIER &= ~TIM_DIER_UDE;
-            }
+            static void DmaRequestDisable();
+          
         };
 
         /**
@@ -382,20 +337,16 @@ namespace Zhele::Timers
                  * @par Returns
                  * 	Nothing
                  */
-                static void SetPulse(typename Base::Counter pulse)
-                {
-                    (&_Regs()->CCR1)[_ChannelNumber] = pulse;
-                }
+                static void SetPulse(typename Base::Counter pulse);
+                
 
                 /**
                  * @brief Returns current pulse value
                  * 
                  * @returns Pulse value
                  */
-                static typename Base::Counter GetPulse()
-                {
-                    return (&_Regs()->CCR1)[_ChannelNumber];
-                }
+                static typename Base::Counter GetPulse();
+                
 
                 /**
                  * @brief Enable interrupt
@@ -403,11 +354,8 @@ namespace Zhele::Timers
                  * @par Returns
                  * 	Nothing
                  */
-                static void EnableInterrupt()
-                {
-                    _Regs()->DIER |= (TIM_DIER_CC1IE << _ChannelNumber);
-                    NVIC_EnableIRQ(_IRQNumber);
-                }
+                static void EnableInterrupt();
+               
             
                 /**
                  * @brief Disable interrupt
@@ -415,10 +363,8 @@ namespace Zhele::Timers
                  * @par Returns
                  * 	Nothing
                  */
-                static void DisableInterrupt()
-                {
-                    _Regs()->DIER &= ~(TIM_DIER_CC1IE << _ChannelNumber);
-                }
+                static void DisableInterrupt();
+               
 
                 /**
                  * @brief Check that interrupt is enabled
@@ -426,10 +372,8 @@ namespace Zhele::Timers
                  * @retval true Interrupt enabled
                  * @retval false Interrupt disabled
                  */
-                static bool IsInterrupt()
-                {
-                    return _Regs()->SR & (TIM_SR_CC1IF << _ChannelNumber);
-                }
+                static bool IsInterrupt();
+                
         
                 /**
                  * @brief Clear interrupt flag
@@ -437,10 +381,8 @@ namespace Zhele::Timers
                  * @par Returns
                  * 	Nothing
                  */
-                static void ClearInterruptFlag()
-                {
-                    _Regs()->SR &= ~(TIM_SR_CC1IF << _ChannelNumber);
-                }
+                static void ClearInterruptFlag();
+               
             
                 /**
                  * @brief Enable OC channel
@@ -448,10 +390,8 @@ namespace Zhele::Timers
                  * @par Returns
                  * 	Nothing
                  */
-                static void Enable()
-                {
-                    _Regs()->CCER |= (TIM_CCER_CC1E << _ChannelNumber * 4);
-                }
+                static void Enable();
+               
             
                 /**
                  * @brief Disable OC channel
@@ -459,10 +399,8 @@ namespace Zhele::Timers
                  * @par Returns
                  * 	Nothing
                  */
-                static void Disable()
-                {
-                    _Regs()->CCER &= ~(TIM_CCER_CC1E << _ChannelNumber * 4);
-                }
+                static void Disable();
+                
             
                 /**
                  * @brief Set output polarity
@@ -472,10 +410,8 @@ namespace Zhele::Timers
                  * @par Returns
                  * 	Nothing
                  */
-                static void SetOutputPolarity(OutputPolarity polarity)
-                {
-                    _Regs()->CCER = (_Regs()->CCER & ~((TIM_CCER_CC1E | TIM_CCER_CC1P | TIM_CCER_CC1NP) << _ChannelNumber * 4)) | (polarity << _ChannelNumber * 4);
-                }
+                static void SetOutputPolarity(OutputPolarity polarity);
+               
             
                 /**
                  * @brief Set output mode
@@ -485,12 +421,8 @@ namespace Zhele::Timers
                  * @par Returns
                  * 	Nothing
                  */
-                static void SetOutputMode(OutputMode mode)
-                {
-                    _Regs()->CCER = (_Regs()->CCER & ~(TIM_CCER_CC1NP << _ChannelNumber * 4)) | (TIM_CCER_CC1E << _ChannelNumber * 4);
-                    ModeBitField::Set(mode);
-                    _Regs()->BDTR |= TIM_BDTR_MOE;
-                }
+                static void SetOutputMode(OutputMode mode);
+               
             
                 /**
                  * @brief Select channel pin
@@ -548,10 +480,8 @@ namespace Zhele::Timers
                  * @par Returns
                  * 	Nothing
                  */
-                static void SetOutputFastMode(FastMode mode)
-                {
-                    _Regs()->CCER = (_Regs()->CCER & ~TIM_CCMR1_OC1FE) | static_cast<uint16_t>(mode);
-                }
+                static void SetOutputFastMode(FastMode mode);
+               
 
                 /**
                  * @brief Select channel pin
@@ -561,15 +491,8 @@ namespace Zhele::Timers
                  * @par Returns
                  * 	Nothing
                  */
-                static void SelectPins(int pinNumber)
-                {
-                    using Type = typename Pins::DataType;
-                    Type mask = 1 << pinNumber;
-                    Pins::Enable();
-                    Pins::SetSpeed(mask, Pins::Speed::Slow);
-                    Pins::SetDriverType(mask, Pins::DriverType::PushPull);
-                    Base::SelectPins(pinNumber);
-                }
+                static void SelectPins(int pinNumber);
+               
 
                 /**
                  * @brief Select channel pin (template method by number)
@@ -580,14 +503,8 @@ namespace Zhele::Timers
                  * 	Nothing
                  */
                 template<unsigned PinNumber>
-                static void SelectPins()
-                {
-                    using Pin = typename Pins::template Pin<PinNumber>;
-                    Pin::Port::Enable();
-                    Pin::template SetSpeed<Pin::Speed::Slow>();
-                    Pin::template SetDriverType<Pins::DriverType::PushPull>();
-                    Base::template SelectPins<Pin>();
-                }
+                static void SelectPins();
+              
 
                 /**
                  * @brief Select channel pin (template method)
@@ -598,15 +515,8 @@ namespace Zhele::Timers
                  * 	Nothing
                  */
                 template<typename Pin>
-                static void SelectPins()
-                {
-                    const int index = Pins::template IndexOf<Pin>;
-                    static_assert(index >= 0);
-                    Pin::Port::Enable();
-                    Pin::template SetSpeed<Pin::Speed::Slow>();
-                    Pin::template SetDriverType<Pins::DriverType::PushPull>();
-                    Base::template SelectPins<Pin>();
-                }
+                static void SelectPins();
+               
             };
         };
         
@@ -628,5 +538,7 @@ namespace Zhele::Timers
         };
     }
 }
+
+#include "impl/timer.h"
 
 #endif //! ZHELE_TIMER_COMMON_H

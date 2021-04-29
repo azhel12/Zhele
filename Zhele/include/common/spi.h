@@ -1,3 +1,11 @@
+/**
+ * @file
+ * Implements SPI protocol.
+ * @author Konstantin Chizhov
+ * @date 2012
+ * @license FreeBSD
+ */
+
 #ifndef ZHELE_SPI_COMMON_H
 #define ZHELE_SPI_COMMON_H
 
@@ -153,20 +161,16 @@ namespace Zhele
              * @par Returns
              * 	Nothing
              */
-            static void Enable()
-            {
-                _Regs()->CR1 |= SPI_CR1_SPE;
-            }
+            static void Enable();
+          
             /**
              * @brief Disable SPI
              * 
              * @par Returns
              * 	Nothing
              */
-            static void Disable()
-            {
-                _Regs()->CR1 &= ~SPI_CR1_SPE;
-            }
+            static void Disable();
+            
             
             /**
              * @brief Init SPI interface
@@ -177,15 +181,8 @@ namespace Zhele
              * @par Returns
              * 	Nothing
              */
-            static void Init(ClockDivider divider = Medium, Mode mode = Master)
-            {
-                _Clock::Enable();
-                _Regs()->CR1 = static_cast<unsigned>(divider) | mode;
-                _Regs()->CR2 = (mode >> 16) | SPI_CR2_SSOE;
-                SetDataSize(DataSize::DataSize8);
-                _Regs()->I2SCFGR &= (uint16_t)~((uint16_t)SPI_I2SCFGR_I2SMOD);
-                Enable();
-            }
+            static void Init(ClockDivider divider = Medium, Mode mode = Master);
+           
 
             /**
              * @brief Set SPI clock divider
@@ -195,10 +192,8 @@ namespace Zhele
              * @par Returns
              *	Nothing
              */
-            static void SetDivider(ClockDivider divider)
-            {
-                _Regs()->CR1 = (_Regs()->CR1 & ~SPI_CR1_BR) | divider;
-            }
+            static void SetDivider(ClockDivider divider);
+           
             /**
              * @brief Set SPI clock polarity (CPOL)
              * 
@@ -207,10 +202,8 @@ namespace Zhele
              * @par Returns
              * 	Nothing
              */
-            static void SetClockPolarity(ClockPolarity clockPolarity)
-            {
-                _Regs()->CR1 = (_Regs()->CR1 & ~SPI_CR1_CPOL) | clockPolarity;
-            }
+            static void SetClockPolarity(ClockPolarity clockPolarity);
+          
             
             /**
              * @brief Set SPI clock phase (CPHA)
@@ -220,10 +213,8 @@ namespace Zhele
              * @par Returns
              * 	Nothing
              */
-            static void SetClockPhase(ClockPhase clockPhase)
-            {
-                _Regs()->CR1 = (_Regs()->CR1 & ~SPI_CR1_CPHA) | clockPhase;
-            }
+            static void SetClockPhase(ClockPhase clockPhase);
+           
             
             /**
              * @brief Set SPI bit order (LSB/MSB)
@@ -233,10 +224,8 @@ namespace Zhele
              * @par Returns
              * 	Nothing
              */
-            static void SetBitOrder(BitOrder bitOrder)
-            {
-                _Regs()->CR1 = (_Regs()->CR1 & ~SPI_CR1_LSBFIRST) | bitOrder;
-            }
+            static void SetBitOrder(BitOrder bitOrder);
+            
             
             /**
              * @brief Set SPI data size
@@ -248,20 +237,8 @@ namespace Zhele
              * @par Returns
              * 	Nothing
              */
-            static void SetDataSize(DataSize dataSize)
-            {
-                #if defined (SPI_CR1_DFF)
-                    _Regs()->CR1 = (_Regs()->CR1 & ~SPI_CR1_DFF_Msk) | dataSize;
-                #else
-                    _Regs()->CR2 = (_Regs()->CR2 & ~SPI_CR2_DS) | dataSize;
-                    #if defined(SPI_CR2_FRXTH)
-                        if(dataSize <= DataSize8)
-                        {
-                            _Regs()->CR2 |= SPI_CR2_FRXTH;
-                        }
-                    #endif
-                #endif
-            }
+            static void SetDataSize(DataSize dataSize);
+          
             /**
              * @brief Set slave control (NSS pin)
              * 
@@ -270,30 +247,24 @@ namespace Zhele
              * @par Returns
              * 	Nothing
              */
-            static void SetSlaveControl(SlaveControl slaveControl)
-            {
-                _Regs()->CR1 = (_Regs()->CR1 & ~SPI_CR1_SSM) | slaveControl;
-            }
+            static void SetSlaveControl(SlaveControl slaveControl);
+           
             /**
              * @brief Set slave select (set NSS pin)
              * 
              * @par Returns
              * 	Nothing
              */
-            static void SetSS()
-            {
-                _Regs()->CR1 |= SPI_CR1_SSI;
-            }
+            static void SetSS();
+          
             /**
              * @brief Unset slave select (clear NSS pin)
              * 
              * @par Returns
              * 	Nothing
              */
-            static void ClearSS()
-            {
-                _Regs()->CR1 &= ~SPI_CR1_SSI;
-            }
+            static void ClearSS();
+            
             /**
              * @brief Send and receive data
              * 
@@ -301,37 +272,8 @@ namespace Zhele
              * 
              * @returns Received value
              */
-            static uint16_t Send(uint16_t value)
-            {
-                while ((_Regs()->SR & SPI_SR_TXE) == 0);
-
-            #if defined(SPI_CR1_DFF)
-                if(_Regs()->CR1 & SPI_CR1_DFF)
-            #else
-                if((_Regs()->CR2 & SPI_CR2_DS) > DataSize8)
-            #endif
-                {
-                    _Regs()->DR = value;
-                }
-                else
-                {
-                    *(__IO uint8_t*)&_Regs()->DR = static_cast<uint8_t>(value);
-                }
-                
-                while ((_Regs()->SR & SPI_SR_RXNE) == 0);
-            #if defined(SPI_CR1_DFF)
-                if(_Regs()->CR1 & SPI_CR1_DFF)
-            #else
-                if((_Regs()->CR2 & SPI_CR2_DS) > DataSize8)
-            #endif
-                {
-                    return _Regs()->DR;
-                }
-                else
-                {
-                    return *(__IO uint8_t*)&_Regs()->DR;
-                }
-            }
+            static uint16_t Send(uint16_t value);
+           
 
             /**
              * @brief Send data async (by DMA)
@@ -344,23 +286,8 @@ namespace Zhele
              * @par Returns
              *  Nothing
              */
-            static void SendAsync(void* transmitBuffer, void* receiveBuffer, size_t bufferSize, TransferCallback callback = nullptr)
-            {
-                _DmaRx::ClearTransferComplete();
-                _Regs()->CR2 |= (SPI_CR2_RXDMAEN | SPI_CR2_TXDMAEN);
-                auto dataSize = 
-                #if defined(SPI_CR1_DFF)
-                    _Regs()->CR1 & SPI_CR1_DFF > 0
-                #else
-                    (_Regs()->CR2 & SPI_CR2_DS) > DataSize8
-                #endif
-                    ? _DmaTx::PSize16Bits : _DmaTx::PSize8Bits;
-                _DmaRx::SetTransferCallback(callback);
-                _DmaRx::Transfer(_DmaRx::Periph2Mem | _DmaRx::MemIncrement | _DmaRx::Circular | dataSize, receiveBuffer, &_Regs()->DR, bufferSize);
-
-                _DmaTx::Transfer(_DmaTx::Mem2Periph | _DmaRx::MemIncrement | dataSize, transmitBuffer, &_Regs()->DR, bufferSize);
-            }
-
+            static void SendAsync(void* transmitBuffer, void* receiveBuffer, size_t bufferSize, TransferCallback callback = nullptr);
+            
             /**
              * @brief Send data with ignored receive
              * 
@@ -369,10 +296,8 @@ namespace Zhele
              * @par Returns
              * 	Nothing
              */
-            static void Write(uint16_t data)
-            {
-                Send(data);
-            }
+            static void Write(uint16_t data);
+            
     
             /**
              * @brief Send data async (by DMA) with ignored receive.
@@ -383,29 +308,16 @@ namespace Zhele
              * @par Returns
              * 	Nothing
              */
-            static void WriteAsync(const void* data, uint16_t size)
-            {
-                _DmaTx::ClearTransferComplete();
-                _Regs()->CR2 |= SPI_CR2_TXDMAEN;
-                auto dataSize = 
-                #if defined(SPI_CR1_DFF)
-                    _Regs()->CR1 & SPI_CR1_DFF > 0
-                #else
-                    (_Regs()->CR2 & SPI_CR2_DS) > DataSize8
-                #endif
-                    ? _DmaTx::PSize16Bits : _DmaTx::PSize8Bits;
-                _DmaTx::Transfer(_DmaTx::Mem2Periph | _DmaTx::MemIncrement | dataSize, data, &_Regs()->DR, size);
-            }
+            static void WriteAsync(const void* data, uint16_t size);
+          
 
             /**
              * @brief Read data (via send 0xFF dummy value)
              * 
              * @returns Readed value
              */
-            static uint16_t Read()
-            {
-                return Send(0xffff);
-            }
+            static uint16_t Read();
+            
             
             /**
              * @brief Enable async read (by DMA)
@@ -417,24 +329,8 @@ namespace Zhele
              * @par Returns
              *  Nothing
              */
-            static void ReadAsync(void* receiveBuffer, size_t bufferSize, TransferCallback callback = nullptr)
-            {
-                _DmaRx::ClearTransferComplete();
-                _Regs()->CR2 |= (SPI_CR2_RXDMAEN | SPI_CR2_TXDMAEN);
-                auto dataSize = 
-                #if defined(SPI_CR1_DFF)
-                    _Regs()->CR1 & SPI_CR1_DFF > 0
-                #else
-                    (_Regs()->CR2 & SPI_CR2_DS) > DataSize8
-                #endif
-                    ? _DmaTx::PSize16Bits : _DmaTx::PSize8Bits;
-                _DmaRx::SetTransferCallback(callback);
-                _DmaRx::Transfer(_DmaRx::Periph2Mem | _DmaRx::MemIncrement | _DmaRx::Circular | dataSize, receiveBuffer, &_Regs()->DR, bufferSize);
-
-                // Send dummmy value
-                uint16_t dummy = 0xffff;
-                _DmaTx::Transfer(_DmaTx::Mem2Periph | dataSize, &dummy, &_Regs()->DR, bufferSize);
-            }
+            static void ReadAsync(void* receiveBuffer, size_t bufferSize, TransferCallback callback = nullptr);
+         
 
             /**
              * @brief Select pins
@@ -479,5 +375,7 @@ namespace Zhele
         };
     }
 }
+
+#include "impl/spi.h"
 
 #endif //!ZHELE_SPI_COMMON_H

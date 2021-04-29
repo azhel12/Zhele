@@ -1,6 +1,6 @@
 /**
  * @file
- * Implement DMA protocol
+ * DMA methods implementation
  * 
  * @author Konstantin Chizhov
  * @date ??
@@ -28,12 +28,12 @@ namespace Zhele
         }
     }
 
-	#define DMACHANNEL_TEMPLATE_ARGS template<typename _Module, typename _ChannelRegs, unsigned _Channel, IRQn_Type _IRQNumber>
-	#define DMACHANNEL_TEMPLATE_QUALIFIER DmaChannel<_Module, _ChannelRegs, _Channel, _IRQNumber>
+    #define DMACHANNEL_TEMPLATE_ARGS template<typename _Module, typename _ChannelRegs, unsigned _Channel, IRQn_Type _IRQNumber>
+    #define DMACHANNEL_TEMPLATE_QUALIFIER DmaChannel<_Module, _ChannelRegs, _Channel, _IRQNumber>
 
     DMACHANNEL_TEMPLATE_ARGS
     void DMACHANNEL_TEMPLATE_QUALIFIER::Transfer(Mode mode, const void* buffer, volatile void* periph, uint32_t bufferSize
-    ONLY_FOR_SXCR(COMMA uint8_t channel = 0))
+    ONLY_FOR_SXCR(COMMA uint8_t channel))
     {
         _Module::Enable();
         if(!TransferError())
@@ -133,13 +133,13 @@ namespace Zhele
     {
         return _Module::template TransferComplete<_Channel>();
     }
-
+#if defined(DMA_CCR_EN)
     DMACHANNEL_TEMPLATE_ARGS
     bool DMACHANNEL_TEMPLATE_QUALIFIER::Interrupt()
     {
         return _Module::template Interrupt<_Channel>();
     }
-
+#endif
     DMACHANNEL_TEMPLATE_ARGS
     void DMACHANNEL_TEMPLATE_QUALIFIER::ClearFlags()
     {
@@ -163,13 +163,13 @@ namespace Zhele
     {
         _Module::template ClearTransferComplete<_Channel>();
     }
-
+#if defined(DMA_CCR_EN)
     DMACHANNEL_TEMPLATE_ARGS
     void DMACHANNEL_TEMPLATE_QUALIFIER::ClearInterrupt()
     {
         _Module::template ClearInterrupt<_Channel>();
     }
-
+#endif
     DMACHANNEL_TEMPLATE_ARGS
     void DMACHANNEL_TEMPLATE_QUALIFIER::IrqHandler()
     {
@@ -191,7 +191,7 @@ namespace Zhele
     #define DMAMODULE_TEMPLATE_QUALIFIER DmaModule<_DmaRegs, _Clock, _Channels>
 
     DMAMODULE_TEMPLATE_ARGS
-    template<int ChannelNum, DMAMODULE_TEMPLATE_QUALIFIER::Flags FlagMask>
+    template<int ChannelNum, typename DMAMODULE_TEMPLATE_QUALIFIER::Flags FlagMask>
     bool DMAMODULE_TEMPLATE_QUALIFIER::ChannelFlag()
     {
     #if defined(DMA_CCR_EN)
@@ -219,7 +219,7 @@ namespace Zhele
     }
 
     DMAMODULE_TEMPLATE_ARGS
-    template<int ChannelNum, DMAMODULE_TEMPLATE_QUALIFIER::Flags FlagMask>
+    template<int ChannelNum, typename DMAMODULE_TEMPLATE_QUALIFIER::Flags FlagMask>
     void DMAMODULE_TEMPLATE_QUALIFIER::ClearChannelFlag()
     {
     #if defined(DMA_CCR_EN)
@@ -281,23 +281,19 @@ namespace Zhele
         return ChannelFlag<ChannelNum, Flags::DirectError>();
     }
 #endif
+#if defined(DMA_CCR_EN)
     DMAMODULE_TEMPLATE_ARGS
     template<int ChannelNum>
     bool DMAMODULE_TEMPLATE_QUALIFIER::Interrupt()
     {
         return ChannelFlag<ChannelNum, Flags::Global>();
     }
-
+#endif
     DMAMODULE_TEMPLATE_ARGS
     template<int ChannelNum>
     void DMAMODULE_TEMPLATE_QUALIFIER::ClearChannelFlags()
     {
-    #if defined(DMA_CCR_EN)
         ClearChannelFlag<ChannelNum, Flags::All>();
-    #endif
-    #if defined(DMA_SxCR_EN)
-        ClearChannelFlag<ChannelNum, Flags::All>();
-    #endif  
     }
 
     DMAMODULE_TEMPLATE_ARGS
@@ -320,13 +316,14 @@ namespace Zhele
     {
         ClearChannelFlag<ChannelNum, Flags::TransferComplete>();
     }
-
+#if defined(DMA_CCR_EN)
     DMAMODULE_TEMPLATE_ARGS
     template<int ChannelNum>
     void DMAMODULE_TEMPLATE_QUALIFIER::ClearInterrupt()
     {
-        ClearChannelFlag<ChannelNum, Flags::General>();
+        ClearChannelFlag<ChannelNum, Flags::Global>();
     }
+#endif
 #if defined(DMA_SxCR_EN)
     DMAMODULE_TEMPLATE_ARGS
     template<int ChannelNum>

@@ -1,6 +1,6 @@
 /**
  * @file
- * Implements EXTI
+ * EXTI methods implementation
  * 
  * @author Alexey Zhelonkin
  * @date 2020
