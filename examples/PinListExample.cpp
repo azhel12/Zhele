@@ -23,7 +23,7 @@ int main()
     virtualPort::SetDriverType<virtualPort::DriverType::PushPull>();
 
     // Set pull mode type to pull down
-    virtualPort::SetPullUp<virtualPort::PullMode::PullDown>();
+    virtualPort::SetPullMode<virtualPort::PullMode::PullDown>();
 
     // Write 0 to pinlist
     // virtualPort::Write(0x00);

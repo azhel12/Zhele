@@ -10,8 +10,6 @@
 #ifndef ZHELE_DELAY_H
 #define ZHELE_DELAY_H
 
-#include "../common/delay.h"
-
 namespace Zhele
 {
     /**

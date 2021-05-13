@@ -21,7 +21,7 @@ uint8_t RxBuffer[32] = {};
 int main()
 {
     I2c1::Init(400000);
-    I2c1::SelectPins<IO::Pa9, IO::Pa10>();
+    I2c1::SelectPins<IO::Pb6, IO::Pb7>();
     Lcd::Init();
     Lcd::Puts<TimesNewRoman13>("Waiting...");
     Lcd::Update();

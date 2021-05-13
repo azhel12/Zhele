@@ -1,0 +1,6 @@
+{
+    "build": {
+        "includeDir" : "Zhele/include/",
+        "srcDir" : "Zhele/src/"
+    }
+}

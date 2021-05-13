@@ -12,7 +12,7 @@ using Rtc = Ds1307<I2c1>;
 int main()
 {
     I2c1::Init();
-    I2c1::SelectPins<IO::Pa9, IO::Pa10>();
+    I2c1::SelectPins<IO::Pb6, IO::Pb7>();
 
     /*
     Rtc::SetDay(23);

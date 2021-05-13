@@ -16,3 +16,12 @@
 #if defined(STM32F4)
     #include "f4/delay.h"
 #endif
+
+namespace Zhele
+{
+    template<unsigned long ms, unsigned long CpuFreq = F_CPU>
+    void delay_ms()
+    {
+        delay_us<ms * 1000, CpuFreq>();
+    }
+}

@@ -281,8 +281,6 @@ namespace Zhele::Clock
     #if defined (RCC_APB2ENR_USART8EN)
         using Usart8Clock = ClockControl<PeriphClockEnable2, RCC_APB2ENR_USART8EN, ApbClock>;
     #endif
-
-
 }
 
 #endif //! ZHELE_CLOCK_H

@@ -10,7 +10,7 @@ int main()
 	// Select HSE as PLL source	
 	PllClock::SelectClockSource(PllClock::External);
 	// Set PLL multiplier
-	PllClock::SetMultipler(9);
+	PllClock::SetMultiplier(9);
 	// Set Apb1 prescaler
 	Apb1Clock::SetPrescaler(Apb1Clock::Div2);
 	// Try select PLL as sysclock source

@@ -1,3 +1,5 @@
+// Works on Stm32f0
+
 #include <clock.h>
 #include <iopins.h>
 #include <usb.h>

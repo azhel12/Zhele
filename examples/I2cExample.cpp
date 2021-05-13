@@ -11,7 +11,7 @@ using Interface = I2c1;
 int main()
 {
     Interface::Init();
-    Interface::SelectPins<IO::Pa9, IO::Pa10>();
+    Interface::SelectPins<IO::Pb6, IO::Pb7>();
 
 	// U8 operationds
 	
