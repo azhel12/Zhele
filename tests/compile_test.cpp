@@ -325,6 +325,7 @@ void UsartCompileTest()
     UsartBus::SelectTxRxPins<0, 0>();
 }
 
+/*
 #include <one_wire.h>
 void OneWireCompileTest()
 {
@@ -339,5 +340,27 @@ void OneWireCompileTest()
     OneWireLine::SkipRom();
     OneWireLine::ReadRom(nullptr);
     OneWireLine::SearchFirst(nullptr);
-}
+}*/
 
+#include <containers/ring_buffer.h>
+void RingBufferTest()
+{
+    using Po2Buffer = Zhele::Containers::RingBuffer<64, uint8_t>;
+    Po2Buffer buffer64;
+    const Po2Buffer& constBuffer64 = buffer64;
+    buffer64.capacity();
+    buffer64.size();
+    buffer64.empty();
+    buffer64.full();
+    buffer64.front();
+    constBuffer64.front();
+    buffer64.back();
+    constBuffer64.back();
+    buffer64.push_back(42);
+    buffer64.push_back();
+    buffer64.pop_front();
+    buffer64.clear();
+    buffer64[0] = 42;
+    constBuffer64[0];
+
+}

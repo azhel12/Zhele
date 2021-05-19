@@ -10,10 +10,12 @@
 #ifndef ZHELE_RINGBUFFER_IMPL_H
 #define ZHELE_RINGBUFFER_IMPL_H
 
-namespace Zhele::Containers
+#include <atomic>
+
+namespace Zhele::Containers::Private
 {
-    #define RINGBUFFERPO2_TEMPLATE_ARGS template<unsigned _Size, typename _DataType, typename _Atomic>
-    #define RINGBUFFERPO2_TEMPLATE_QUALIFIER RingBufferPO2<_Size, _DataType, _Atomic>
+    #define RINGBUFFERPO2_TEMPLATE_ARGS template<unsigned _Size, typename _DataType>
+    #define RINGBUFFERPO2_TEMPLATE_QUALIFIER RingBufferPO2<_Size, _DataType>
 
     RINGBUFFERPO2_TEMPLATE_ARGS
     RINGBUFFERPO2_TEMPLATE_QUALIFIER::RingBufferPO2() :_writeCount(0),  _readCount(0)
@@ -27,50 +29,46 @@ namespace Zhele::Containers
     }
 
     RINGBUFFERPO2_TEMPLATE_ARGS
-    typename RINGBUFFERPO2_TEMPLATE_QUALIFIER::size_type RingBufferPO2<_Size,_DataType, _Atomic>::size() const
+    typename RINGBUFFERPO2_TEMPLATE_QUALIFIER::size_type RINGBUFFERPO2_TEMPLATE_QUALIFIER::size() const
     {
-        return (_Atomic::Fetch(&_writeCount) - _Atomic::Fetch(&_readCount));
+        return (_writeCount.load() - _readCount.load());
     }
 
     RINGBUFFERPO2_TEMPLATE_ARGS
     bool RINGBUFFERPO2_TEMPLATE_QUALIFIER::empty()const
     {
-        return _Atomic::Fetch(&_writeCount) == _readCount;
+        return _writeCount.load() == _readCount;
     }
 
     
     RINGBUFFERPO2_TEMPLATE_ARGS
     bool RINGBUFFERPO2_TEMPLATE_QUALIFIER::full()const
     {
-        return ((_writeCount - _Atomic::Fetch(&_readCount)) &
+        return ((_writeCount - _readCount.load()) &
                 (size_type)~(_mask)) != 0;
     }
 
     RINGBUFFERPO2_TEMPLATE_ARGS
     _DataType& RINGBUFFERPO2_TEMPLATE_QUALIFIER::front()
     {
-        //MCUCPP_ASSERT(!empty());
         return data()[_readCount & _mask];
     }
 
     RINGBUFFERPO2_TEMPLATE_ARGS
     const _DataType& RINGBUFFERPO2_TEMPLATE_QUALIFIER::front() const
     {
-        //MCUCPP_ASSERT(!empty());
         return data()[_readCount & _mask];
     }
 
     RINGBUFFERPO2_TEMPLATE_ARGS
     _DataType& RINGBUFFERPO2_TEMPLATE_QUALIFIER::back()
     {
-        //MCUCPP_ASSERT(!empty());
         return data()[(_writeCount-1) & _mask];
     }
 
     RINGBUFFERPO2_TEMPLATE_ARGS
     const _DataType& RINGBUFFERPO2_TEMPLATE_QUALIFIER::back()const
     {
-        //MCUCPP_ASSERT(!empty());
         return data()[(_writeCount - 1) & _mask];
     }
 
@@ -108,21 +106,19 @@ namespace Zhele::Containers
     RINGBUFFERPO2_TEMPLATE_ARGS
     void RINGBUFFERPO2_TEMPLATE_QUALIFIER::clear()
     {
-        _readCount=0;
-        _writeCount=0;
+        _readCount = 0;
+        _writeCount = 0;
     }
 
     RINGBUFFERPO2_TEMPLATE_ARGS
     _DataType& RINGBUFFERPO2_TEMPLATE_QUALIFIER::operator[] (size_type index)
     {
-        //MCUCPP_ASSERT(index < _Size);
         return data()[(_readCount + index) & _mask];
     }
 
     RINGBUFFERPO2_TEMPLATE_ARGS
     const _DataType& RINGBUFFERPO2_TEMPLATE_QUALIFIER::operator[] (size_type index)const
     {
-        //MCUCPP_ASSERT(index < _Size);
         return data()[(_readCount + index) & _mask];
     }
 
@@ -137,8 +133,8 @@ namespace Zhele::Containers
         return reinterpret_cast<const _DataType*>(_data);
     }
 
-    #define RINGBUFFER_TEMPLATE_ARGS template<unsigned _Size, typename _DataType, typename _Atomic>
-    #define RINGBUFFER_TEMPLATE_QUALIFIER RingBuffer<_Size, _DataType, _Atomic>
+    #define RINGBUFFER_TEMPLATE_ARGS template<unsigned _Size, typename _DataType>
+    #define RINGBUFFER_TEMPLATE_QUALIFIER RingBuffer<_Size, _DataType>
 
     RINGBUFFER_TEMPLATE_ARGS
     RINGBUFFER_TEMPLATE_QUALIFIER::RingBuffer() : _count(0), _first(0), _last(0)
@@ -154,66 +150,62 @@ namespace Zhele::Containers
     RINGBUFFER_TEMPLATE_ARGS
     typename RINGBUFFER_TEMPLATE_QUALIFIER::size_type RINGBUFFER_TEMPLATE_QUALIFIER::size() const
     {
-        return _Atomic::Fetch(&_count);
+        return _count.load();
     }
 
     RINGBUFFER_TEMPLATE_ARGS
     bool RINGBUFFER_TEMPLATE_QUALIFIER::empty()const
     {
-        return _Atomic::Fetch(&_count) == 0;
+        return _count.load() == 0;
     }
 
     RINGBUFFER_TEMPLATE_ARGS
     bool RINGBUFFER_TEMPLATE_QUALIFIER::full()const
     {
-        return _Atomic::Fetch(&_count) == _Size;
+        return _count.load() == _Size;
     }
 
     RINGBUFFER_TEMPLATE_ARGS
     _DataType& RINGBUFFER_TEMPLATE_QUALIFIER::front()
     {
-        //MCUCPP_ASSERT(!empty());
         return data()[_first];
     }
 
     RINGBUFFER_TEMPLATE_ARGS
     const _DataType& RINGBUFFER_TEMPLATE_QUALIFIER::front()const
     {
-        //MCUCPP_ASSERT(!empty());
         return data()[_first];
     }
 
     RINGBUFFER_TEMPLATE_ARGS
     _DataType& RINGBUFFER_TEMPLATE_QUALIFIER::back()
     {
-        MCUCPP_ASSERT(!empty());
         return data()[_last-1];
     }
 
     RINGBUFFER_TEMPLATE_ARGS
     const _DataType& RINGBUFFER_TEMPLATE_QUALIFIER::back()const
     {
-        MCUCPP_ASSERT(!empty());
         return data()[_last-1];
     }
 
     RINGBUFFER_TEMPLATE_ARGS
     bool RINGBUFFER_TEMPLATE_QUALIFIER::push_back(const _DataType& item)
     {
-        if(_Atomic::Fetch(&_count) == _Size)
+        if(_count.load() == _Size)
             return false;
         data()[_last] = item;
         _last++;
         if(_last >= _Size)
             _last = 0;
-        _Atomic::FetchAndAdd(&_count, 1);
+        _count.fetch_add(1);
         return true;
     }
 
     RINGBUFFER_TEMPLATE_ARGS
     bool RINGBUFFER_TEMPLATE_QUALIFIER::push_back()
     {
-        if(_Atomic::Fetch(&_count) == _Size)
+        if(_count.load() == _Size)
             return false;
         new (&data()[_last]) _DataType();
         ++_last;
@@ -221,7 +213,7 @@ namespace Zhele::Containers
         if(_last >= _Size)
             _last = 0;
 
-        _Atomic::FetchAndAdd(&_count, 1);
+        _count.fetch_add(1);
         
         return true;
     }
@@ -229,9 +221,9 @@ namespace Zhele::Containers
     RINGBUFFER_TEMPLATE_ARGS
     bool RINGBUFFER_TEMPLATE_QUALIFIER::pop_front()
     {
-        if(_Atomic::Fetch(&_count) != 0)
+        if(&_count.load() != 0)
         {
-            _Atomic::FetchAndSub(&_count, 1);
+            _count.fetch_sub(1);
             ++_first;
 
             if(_first >= _Size)
@@ -250,13 +242,12 @@ namespace Zhele::Containers
         {
             _first = _last = 0;
         }
-        while(!_Atomic::CompareExchange(&_count, _count, size_type(0)));
+        while(!_count.compare_exchange_weak(_count.load(), size_type(0)));
     }
 
     RINGBUFFER_TEMPLATE_ARGS
     _DataType& RINGBUFFER_TEMPLATE_QUALIFIER::operator[](size_type index)
     {
-        //MCUCPP_ASSERT(index < _Size);
         size_type offset = _first + index;
         
         if(offset >= _Size)
@@ -268,7 +259,6 @@ namespace Zhele::Containers
     RINGBUFFER_TEMPLATE_ARGS
     const _DataType& RINGBUFFER_TEMPLATE_QUALIFIER::operator[](size_type index)const
     {
-        //MCUCPP_ASSERT(index < _Size);
         size_type offset = _first + index;
         
         if(offset >= _Size)
