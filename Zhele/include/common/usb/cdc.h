@@ -73,10 +73,9 @@ namespace Zhele::Usb
             case CdcRequest::SetLineCoding:
                 if(setup->Length == 7)
                 {
-                    reinterpret_cast<uint8_t*>(&_lineCoding)[0] = reinterpret_cast<uint8_t*>(_Ep0::RxBuffer)[7];
-                    // Wait other 6 bytes of line coding
+                    // Wait line coding
                     _Ep0::SetOutDataTransferCallback([]{
-                        memcpy(&reinterpret_cast<uint8_t*>(&_lineCoding)[1], reinterpret_cast<uint8_t*>(_Ep0::RxBuffer), 6);
+                        memcpy(&_lineCoding, reinterpret_cast<const void*>(_Ep0::RxBuffer), 7);
                         _Ep0::ResetOutDataTransferCallback();
                         _Ep0::SendZLP();
                     });
