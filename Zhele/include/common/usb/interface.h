@@ -29,7 +29,7 @@ namespace Zhele::Usb
         uint8_t Number; ///< Interface number
         uint8_t AlternateSetting = 0; ///< Interface alternate setting
         uint8_t EndpointsCount; ///< Endpoints count
-        InterfaceClass Class = DeviceClass::InterfaceSpecified; ///< Interface class
+        DeviceAndInterfaceClass Class = DeviceAndInterfaceClass::InterfaceSpecified; ///< Interface class
         uint8_t SubClass = 0; ///< Interface subclass
         uint8_t Protocol = 0; ///< Interface protocol
         uint8_t StringIndex = 0; ///< Interface string ID
@@ -47,7 +47,7 @@ namespace Zhele::Usb
      * @tparam _Endpoints Endpoints 
      * 
      */
-    template <uint8_t _Number, uint8_t _AlternateSetting, InterfaceClass _Class, uint8_t _SubClass, uint8_t _Protocol, typename _Ep0, typename... _Endpoints>
+    template <uint8_t _Number, uint8_t _AlternateSetting, DeviceAndInterfaceClass _Class, uint8_t _SubClass, uint8_t _Protocol, typename _Ep0, typename... _Endpoints>
     class Interface
     {
     public:
@@ -114,6 +114,7 @@ namespace Zhele::Usb
      * @tparam Interfaces Unique sorted Interfaces.
      * @tparam Indexes Handlers indexes.
      */
+    
     template<typename...>
     class InterfaceHandlersBase;
     template<typename... Interfaces, int8_t... Indexes>

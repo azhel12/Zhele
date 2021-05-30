@@ -46,7 +46,7 @@ namespace Zhele::Usb
 
     template<
         uint16_t _UsbVersion,
-        DeviceClass _Class,
+        DeviceAndInterfaceClass _Class,
         uint8_t _SubClass,
         uint8_t _Protocol,
         uint16_t _VendorId,

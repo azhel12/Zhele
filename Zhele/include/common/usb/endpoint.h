@@ -421,6 +421,55 @@ namespace Zhele::Usb
     template<typename _Base, typename _Reg, uint32_t _BufferAddress, uint32_t _CountRegAddress>
     InTransferCallback EndpointWithTxSupport<_Base, _Reg, _BufferAddress, _CountRegAddress>::_txCompleteCallback = nullptr;
 
+    using OutTransferCallback = std::add_pointer_t<void()>;
+    /**
+     * @brief Endpoint with RX feature
+     */
+    class EndpointWithRxSupport
+    {
+    public:
+        /**
+         * @brief Set out data transfer callback (RX handler can try call this method if cannot handle packet)
+         * 
+         * @param [in] callback Callback
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void SetOutDataTransferCallback(OutTransferCallback callback)
+        {
+            _dataTransferCallback = callback;
+        }
+
+        /**
+         * @brief Reset out data transfer callback
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void ResetOutDataTransferCallback()
+        {
+            _dataTransferCallback = nullptr;
+        }
+
+        /**
+         * @brief Try call callback if it exists
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void TryHandleDataTransfer()
+        {
+            if (_dataTransferCallback != nullptr)
+                _dataTransferCallback();
+        }
+
+    private:
+        static OutTransferCallback _dataTransferCallback;
+    };
+
+    OutTransferCallback EndpointWithRxSupport::_dataTransferCallback = nullptr;
+
     /**
      * @brief Implements out (RX) endpoint
      * 
@@ -430,7 +479,7 @@ namespace Zhele::Usb
      * @tparam _CountRegAddress RX_Count register address
      */
     template<typename _Base, typename _Reg, uint32_t _BufferAddress, uint32_t _CountRegAddress>
-    class OutEndpoint : public Endpoint<_Base, _Reg>
+    class OutEndpoint : public Endpoint<_Base, _Reg>, public EndpointWithRxSupport
     {
         using Base = Endpoint<_Base, _Reg>;
     public:
@@ -486,7 +535,7 @@ namespace Zhele::Usb
      * @tparam _RxCountRegAddress RX_Count register address
      */
     template<typename _Base, typename _Reg, uint32_t _TxBufferAddress, uint32_t _TxCountRegAddress, uint32_t _RxBufferAddress, uint32_t _RxCountRegAddress>
-    class BidirectionalEndpoint : public Endpoint<_Base, _Reg>, public EndpointWithTxSupport<_Base, _Reg, _TxBufferAddress, _TxCountRegAddress>
+    class BidirectionalEndpoint : public Endpoint<_Base, _Reg>, public EndpointWithRxSupport, public EndpointWithTxSupport<_Base, _Reg, _TxBufferAddress, _TxCountRegAddress>
     {
         using This = BidirectionalEndpoint<_Base, _Reg, _TxBufferAddress, _TxCountRegAddress, _RxBufferAddress, _RxCountRegAddress>;
         using Base = Endpoint<_Base, _Reg>;

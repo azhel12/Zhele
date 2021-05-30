@@ -87,8 +87,8 @@ namespace Zhele::Usb
                 .MaxPower = _MaxPower
             };
 
-            InterfaceDescriptor* configurationsDescriptors = reinterpret_cast<InterfaceDescriptor*>(&descriptor[1]);
-            totalLength += (_Interfaces::FillDescriptor(configurationsDescriptors++) + ...);
+            uint8_t* interfacesDescriptors = reinterpret_cast<uint8_t*>(descriptor);
+            ((totalLength += _Interfaces::FillDescriptor(reinterpret_cast<InterfaceDescriptor*>(&interfacesDescriptors[totalLength]))), ...);
 
             descriptor->TotalLength = totalLength;
 

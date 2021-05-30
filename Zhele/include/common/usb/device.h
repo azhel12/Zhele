@@ -13,6 +13,7 @@
 #include "configuration.h"
 #include "endpoints_manager.h"
 #include "hid.h"
+#include "cdc.h"
 
 #include "../ioreg.h"
 
@@ -27,7 +28,7 @@ namespace Zhele::Usb
         uint8_t Length = 18; ///< Length (always 18)
         DescriptorType Type = DescriptorType::Device; ///< Desciptor type (always 0x01)
         uint16_t UsbVersion; ///< Usb version
-        DeviceClass Class; ///< Device class
+        DeviceAndInterfaceClass Class; ///< Device class
         uint8_t SubClass; ///< Device subclass
         uint8_t Protocol; ///< Device protocol
         uint8_t MaxPacketSize; ///< Ep0 maximum packet size
@@ -62,7 +63,7 @@ namespace Zhele::Usb
         IRQn_Type _IRQNumber,
         typename _ClockCtrl, 
         uint16_t _UsbVersion,
-        DeviceClass _Class,
+        DeviceAndInterfaceClass _Class,
         uint8_t _SubClass,
         uint8_t _Protocol,
         uint16_t _VendorId,
@@ -83,6 +84,7 @@ namespace Zhele::Usb
         using EpHandlers = EndpointHandlers<Append_t<This, Endpoints>>;
         using IfHandlers = InterfaceHandlers<Interfaces>;
         static uint8_t _tempAddressStorage;
+        static bool _isDeviceConfigured;
     public:
         /**
          * @brief Select clock source
@@ -107,7 +109,7 @@ namespace Zhele::Usb
         {
             _ClockCtrl::Enable();
             EpBufferManager::Init();
-
+            
             _Regs()->CNTR = USB_CNTR_CTRM | USB_CNTR_RESETM;
             _Regs()->ISTR = 0;
             _Regs()->BTABLE = 0;
@@ -191,14 +193,14 @@ namespace Zhele::Usb
             if(_Ep0::Reg::Get() & USB_EP_CTR_RX)
             {
                 _Ep0::ClearCtrRx();
-
+                
                 if(_Ep0::Reg::Get() & USB_EP_SETUP)
                 {
                     SetupPacket* setup = reinterpret_cast<SetupPacket*>(_Ep0::RxBuffer);
 
-                    if(setup->RequestType.Recipient & 1)
+                    if(setup->RequestType.Recipient == 1)
                     {
-                        IfHandlers::HandleSetupRequest(setup->Index);
+                        IfHandlers::HandleSetupRequest(setup->Index & 0xff);
                         return;
                     }
 
@@ -225,7 +227,7 @@ namespace Zhele::Usb
                             break;
                         }
                         case GetDescriptorParameter::ConfigurationDescriptor: {
-                            uint8_t temp[64];
+                            uint8_t temp[128];
                             // Now supports only one configuration.
                             uint16_t size = GetType<0, Configurations>::type::FillDescriptor(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]));
                             _Ep0::SendData(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]), setup->Length < size ? setup->Length : size);
@@ -238,11 +240,12 @@ namespace Zhele::Usb
                         break;
                     }
                     case StandartRequestCode::GetConfiguration: {
-                        uint16_t configuration = 0;
-                        _Ep0::SendData(&configuration, 1);
+                        uint8_t response = _isDeviceConfigured ? 1 : 0;
+                        _Ep0::SendData(&response, 1);
                         break;
                     }
                     case StandartRequestCode::SetConfiguration: {
+                        _isDeviceConfigured = true;
                         _Ep0::SendZLP();
                         break;
                     }
@@ -250,6 +253,10 @@ namespace Zhele::Usb
                         _Ep0::SetTxStatus(EndpointStatus::Stall);
                         break;
                     }
+                }
+                else
+                {
+                    _Ep0::TryHandleDataTransfer();
                 }
             }
             if(_Ep0::Reg::Get() & USB_EP_CTR_TX)
@@ -267,7 +274,7 @@ namespace Zhele::Usb
             IRQn_Type _IRQNumber, \
             typename _ClockCtrl, \
             uint16_t _UsbVersion, \
-            DeviceClass _Class, \
+            DeviceAndInterfaceClass _Class, \
             uint8_t _SubClass, \
             uint8_t _Protocol, \
             uint16_t _VendorId, \
@@ -280,5 +287,8 @@ namespace Zhele::Usb
 
     USB_DEVICE_TEMPLATE_ARGS
     uint8_t USB_DEVICE_TEMPLATE_QUALIFIER::_tempAddressStorage = 0x00;
+
+    USB_DEVICE_TEMPLATE_ARGS
+    bool USB_DEVICE_TEMPLATE_QUALIFIER::_isDeviceConfigured = false;
 }
 #endif // ZHELE_USB_DEVICE_H

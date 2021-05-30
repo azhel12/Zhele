@@ -38,7 +38,7 @@ namespace Zhele::Usb
     /**
      * @brief Device class
      */
-    enum class DeviceClass : uint8_t
+    enum class DeviceAndInterfaceClass : uint8_t
     {
         InterfaceSpecified = 0x00, ///< Interface specified device
         Audio = 0x01, ///< Audio device
@@ -50,9 +50,10 @@ namespace Zhele::Usb
         Printer = 0x07, ///< Printer
         Storage = 0x08, ///< Storage device
         Hub = 0x09, ///< Hub
+        CdcData = 0x0a, ///< CDC Data
         VendorSpecified = 0xff ///< Vendor specified device
     };
-    using InterfaceClass = DeviceClass;
+    using InterfaceClass = DeviceAndInterfaceClass;
 
     /**
      * @brief USB Standard Request Codes
@@ -70,6 +71,7 @@ namespace Zhele::Usb
         GetInterface = 0x0a, ///< Get interface
         SetInterface = 0x0b, ///< Set interface
         SyncFrame = 0x0c, ///< Syncronisation frame
+
     };
 
     /**

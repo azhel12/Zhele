@@ -36,7 +36,7 @@ using LedsControlEp = EpInitializer::ExtendEndpoint<LedsControlEpBase>;
 using HidDesc = HidImpl<0x1001, Report>;
 using Hid = HidInterface<0, 0, 0, 0, HidDesc, Ep0, LedsControlEp>;
 using Config = Configuration<0, 250, false, false, Hid>;
-using MyDevice = Device<0x0200, DeviceClass::InterfaceSpecified, 0, 0, 0x0483, 0x5711, 0, Ep0, Config>;
+using MyDevice = Device<0x0200, DeviceAndInterfaceClass::InterfaceSpecified, 0, 0, 0x0483, 0x5711, 0, Ep0, Config>;
 
 using Led = IO::Pc6; // Use Pc13 for BluePill.
 
