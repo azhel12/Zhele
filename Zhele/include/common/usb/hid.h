@@ -180,7 +180,6 @@ namespace Zhele::Usb
         {
             return _HidImpl::FillReports(destination);
         }
-    private:
     };
 }
 #endif // ZHELE_USB_HID_H

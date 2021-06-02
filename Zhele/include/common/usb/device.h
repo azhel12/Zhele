@@ -22,7 +22,7 @@ namespace Zhele::Usb
     /**
      * @brief Device descriptor.
      */
-    #pragma pack(push, 1)
+#pragma pack(push, 1)
     struct DeviceDescriptor
     {
         uint8_t Length = 18; ///< Length (always 18)
@@ -40,7 +40,7 @@ namespace Zhele::Usb
         uint8_t SerialNumberStringIndex = 0; ///< Serial number string ID
         uint8_t ConfigurationsCount; ///< Configurations count
     };
-    #pragma pack(pop)
+#pragma pack(pop)
     
     /**
      * @brief Implements USB device.
@@ -83,6 +83,7 @@ namespace Zhele::Usb
         // Replace Ep0 with this for correct handler register.
         using EpHandlers = EndpointHandlers<Append_t<This, Endpoints>>;
         using IfHandlers = InterfaceHandlers<Interfaces>;
+
         static uint8_t _tempAddressStorage;
         static bool _isDeviceConfigured;
     public:
@@ -228,7 +229,7 @@ namespace Zhele::Usb
                         }
                         case GetDescriptorParameter::ConfigurationDescriptor: {
                             uint8_t temp[128];
-                            // Now supports only one configuration.
+                            // Now supports only one configuration. It will easy to support more by adding dispatcher like in endpoint/interface
                             uint16_t size = GetType<0, Configurations>::type::FillDescriptor(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]));
                             _Ep0::SendData(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]), setup->Length < size ? setup->Length : size);
                             break;

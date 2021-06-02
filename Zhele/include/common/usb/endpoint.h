@@ -124,8 +124,8 @@ namespace Zhele::Usb
     {
     };
 
-    template<uint8_t _Number, uint16_t _MaxPacketSize, uint8_t _Interval>
-    class BulkDoubleBufferedEndpointBase : public EndpointBase<_Number, EndpointDirection::Bidirectional, EndpointType::BulkDoubleBuffered, _MaxPacketSize, _Interval>
+    template<uint8_t _Number, EndpointDirection _Direction, uint16_t _MaxPacketSize>
+    class BulkDoubleBufferedEndpointBase : public EndpointBase<_Number, _Direction, EndpointType::BulkDoubleBuffered, _MaxPacketSize, 0>
     {
     };
 
@@ -168,7 +168,10 @@ namespace Zhele::Usb
             Reg::Set((Number & 0x0f)
                 | static_cast<uint16_t>(Zhele::TemplateUtils::GetNumber<static_cast<int>(Type), EndpointsTypesForEPR>::value));
 
-            SetRxStatus(EndpointStatus::Valid);
+            if constexpr (Direction != EndpointDirection::In)
+            {
+                SetRxStatus(EndpointStatus::Valid);
+            }
             SetTxStatus(EndpointStatus::Nak);
         }
 
@@ -257,6 +260,18 @@ namespace Zhele::Usb
         {
             Reg::And(USB_EPREG_MASK | USB_EP_DTOG_TX);
         }
+
+        /**
+         * @brief Set endpoint`s TX_DTOG flag.
+         *
+         * @par Returns
+         *  Nothing
+        */
+        static void SetTxDtog()
+        {
+            Toggle<USB_EP_DTOG_TX, USB_EP_CTR_RX | USB_EP_CTR_TX>();
+        }
+
         /**
          * @brief Clear endpoint`s RX_DTOG flag.
          *
@@ -267,6 +282,18 @@ namespace Zhele::Usb
         {
             Reg::And(USB_EPREG_MASK | USB_EP_DTOG_RX);
         }
+
+        /**
+         * @brief Set endpoint`s RX_DTOG flag.
+         *
+         * @par Returns
+         *  Nothing
+        */
+        static void SetRxDtog()
+        {
+            Toggle<USB_EP_DTOG_RX, USB_EP_CTR_RX | USB_EP_CTR_TX>();
+        }
+
         /**
          * @brief Endpoint interrupt handler.
          *
@@ -275,6 +302,14 @@ namespace Zhele::Usb
         */
         static void Handler();
     private:
+
+        template<uint16_t Mask, uint16_t ExtraBits>
+        static void Toggle()
+        {
+            uint16_t toggleMask = Reg::Get() & USB_EPREG_MASK;
+            Reg::Set(toggleMask | Mask | ExtraBits);
+        }
+
         template<uint16_t Mask, uint16_t ExtraBits = 0>
         static void ToogleAndSet(uint16_t Bit)
         {
@@ -568,6 +603,86 @@ namespace Zhele::Usb
     };
 
     /**
+     * @brief Implements out (RX) double-buffered bulk endpoint
+     * 
+     * @tparam _Base Enpoint base
+     * @tparam _Reg EPnR register
+     * @tparam _Buffer0Address Buffer0 address
+     * @tparam _Count0RegAddress Count0 register address
+     * @tparam _Buffer1Address Buffer1 address
+     * @tparam _Count1RegAddress Count1 register address
+     */
+    template<typename _Base, typename _Reg, uint32_t _Buffer0Address, uint32_t _Count0RegAddress, uint32_t _Buffer1Address, uint32_t _Count1RegAddress>
+    class OutBulkDoubleBufferedEndpoint : public Endpoint<_Base, _Reg>
+    {
+        using Base = Endpoint<_Base, _Reg>;
+        using This = BidirectionalEndpoint<_Base, _Reg, _Buffer0Address, _Count0RegAddress, _Buffer1Address,_Count1RegAddress>;
+        static_assert(Base::Direction == EndpointDirection::In || Base::Direction == EndpointDirection::Out);
+    public:
+        using Reg = _Reg;
+        static constexpr uint32_t Buffer0 = _Buffer0Address;
+        using Buffer0Count = RegisterWrapper<_Count0RegAddress, uint16_t>;
+        static constexpr uint32_t Buffer1 = _Buffer1Address;
+        using Buffer1Count = RegisterWrapper<_Count1RegAddress, uint16_t>;
+
+        static void Reset()
+        {
+            Base::Reset();
+            Base::SetTxDtog();
+        }
+
+        /**
+         * @brief CTR handler
+         */
+        static void Handler()
+        {
+            HandleRx();
+            Base::ClearCtrRx();
+        }
+
+        /**
+         * @brief Switch buffer (write SW_BUF bit)
+         */
+        static void SwitchBuffer()
+        {
+            Base::SetTxDtog();
+        }
+
+        /**
+         * @brief Returns current buffer for user.
+         * 
+         * @retval 0 Buffer_0 should be used.
+         * @retval 1 Buffer_1 should be used.
+         */
+        static uint8_t GetCurrentBuffer()
+        {
+            return (Reg::Get() & USB_EP_DTOG_TX) > 0
+                ? 0
+                : 1;
+        }
+
+        static void HandleRx();
+    };
+
+    /**
+     * @brief Implements in (TX) double-buffered bulk endpoint
+     * 
+     * @tparam _Base Enpoint base
+     * @tparam _Reg EPnR register
+     * @tparam _Buffer0Address Buffer0 address
+     * @tparam _Count0RegAddress Count0 register address
+     * @tparam _Buffer1Address Buffer1 address
+     * @tparam _Count1RegAddress Count1 register address
+     */
+    template<typename _Base, typename _Reg, uint32_t _Buffer0Address, uint32_t _Count0RegAddress, uint32_t _Buffer1Address, uint32_t _Count1RegAddress>
+    class InBulkDoubleBufferedEndpoint : public Endpoint<_Base, _Reg>
+    {
+    public:
+        // TODO:: Complete this class 
+        static void Handler(){}
+    };
+
+    /**
      * @brief Implements bidirectional endpoint
      * 
      * @tparam _Base Enpoint base
@@ -578,16 +693,11 @@ namespace Zhele::Usb
      * @tparam _Count1RegAddress Count1 register address
      */
     template<typename _Base, typename _Reg, uint32_t _Buffer0Address, uint32_t _Count0RegAddress, uint32_t _Buffer1Address, uint32_t _Count1RegAddress>
-    class BulkDoubleBufferedEndpoint : public Endpoint<_Base, _Reg>
-    {
-        using This = BidirectionalEndpoint<_Base, _Reg, _Buffer0Address, _Count0RegAddress, _Buffer1Address,_Count1RegAddress>;
-    public:
-        using Reg = _Reg;
-        static constexpr void* Buffer0 = _Buffer0Address;
-        using Buffer0Count = RegisterWrapper<_Count0RegAddress, uint16_t>;
-        static constexpr void* Buffer1 = _Buffer1Address;
-        using Buffer1Count = RegisterWrapper<_Count1RegAddress, uint16_t>;
-    };
+    using BulkDoubleBufferedEndpoint = std::conditional_t<
+        _Base::Direction == EndpointDirection::Out,
+        OutBulkDoubleBufferedEndpoint<_Base, _Reg, _Buffer0Address, _Count0RegAddress, _Buffer1Address, _Count1RegAddress>,
+        InBulkDoubleBufferedEndpoint<_Base, _Reg, _Buffer0Address, _Count0RegAddress, _Buffer1Address, _Count1RegAddress>
+        >;
 
     /**
      * @brief Default Ep0 instance

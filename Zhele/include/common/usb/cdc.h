@@ -49,7 +49,7 @@ namespace Zhele::Usb
      * @tparam _SubClass Interface subclass
      * @tparam _Protocol Interface protocol
      * @tparam _Ep0 Zero endpoint instance
-     * @tparam _Endpoint Endpoint
+     * @tparam _Endpoint Endpoint instance
      * @tparam _Functionals Functionals
      */
     template <uint8_t _Number, uint8_t _AlternateSetting, uint8_t _SubClass, uint8_t _Protocol, typename _Ep0, typename _Endpoint, typename... _Functionals>
@@ -136,12 +136,12 @@ namespace Zhele::Usb
      * @tparam _Protocol Interface protocol
      * @tparam _Ep0 Zero endpoint instance
      * @tparam _Endpoint Endpoint
-     * @tparam _Functionals Functionals 
+
      */
-    template <uint8_t _Number, uint8_t _AlternateSetting, uint8_t _SubClass, uint8_t _Protocol, typename _Ep0, typename _Endpoint>
-    class CdcDataInterface : public Interface<_Number, _AlternateSetting, DeviceAndInterfaceClass::CdcData, _SubClass, _Protocol, _Ep0, _Endpoint>
+    template <uint8_t _Number, uint8_t _AlternateSetting, uint8_t _SubClass, uint8_t _Protocol, typename _Ep0, typename... _Endpoints>
+    class CdcDataInterface : public Interface<_Number, _AlternateSetting, DeviceAndInterfaceClass::CdcData, _SubClass, _Protocol, _Ep0, _Endpoints...>
     {
-        using Base = Interface<_Number, _AlternateSetting, DeviceAndInterfaceClass::CdcData, _SubClass, _Protocol, _Ep0, _Endpoint>;
+        using Base = Interface<_Number, _AlternateSetting, DeviceAndInterfaceClass::CdcData, _SubClass, _Protocol, _Ep0, _Endpoints...>;
     public:
         /**
          * @brief Interface setup request handler
@@ -174,12 +174,20 @@ namespace Zhele::Usb
                 .Protocol = _Protocol
             };
 
-            totalLength += _Endpoint::FillDescriptor(reinterpret_cast<EndpointDescriptor*>(&descriptor[1]));
+            uint8_t* endpointsDescriptors = reinterpret_cast<uint8_t*>(descriptor);
+            ((totalLength += _Endpoints::FillDescriptor(reinterpret_cast<EndpointDescriptor*>(&endpointsDescriptors[totalLength]))), ...);
 
             return totalLength;
         }
     };
 
+    /**
+     * @brief Implements functional descriptor wrapper
+     * 
+     * @tparam _DescriptorType Descriptor type
+     * @tparam _DescriptorSubtype Descriptor subtype
+     * @tparam _Data Some data
+     */
     template<uint8_t _DescriptorType, uint8_t _DescriptorSubtype, uint8_t... _Data>
     class FunctionalDescriptor
     {
@@ -217,8 +225,21 @@ namespace Zhele::Usb
         Obex = 0x0b, ///< OBEX
     };
     
+    /**
+     * @brief Implements interface functional descriptor wrapper (CS_INTERFACE)
+     * 
+     * @tparam _DescriptorSubtype Descriptor subtype
+     * @tparam _Data Some data
+     */
     template<uint8_t _DescriptorSubtype, uint8_t... _Data>
     using InterfaceFunctionalDescriptor = FunctionalDescriptor<0x24, _DescriptorSubtype, _Data...>;
+    
+    /**
+     * @brief Implements endpoint functional descriptor wrapper (CS_ENDPOINT)
+     * 
+     * @tparam _DescriptorSubtype Descriptor subtype
+     * @tparam _Data Some data
+     */
     template<uint8_t _DescriptorSubtype, uint8_t... _Data>
     using EndpointFunctionalDescriptor = FunctionalDescriptor<0x25, _DescriptorSubtype, _Data...>;
 

@@ -25,7 +25,7 @@ namespace Zhele::Usb
         uint8_t Reserved2 : 1; ///< Reserved
     };
 
-    #pragma pack(push, 1)
+#pragma pack(push, 1)
     /**
      * @brief Configuration descriptor
      */
@@ -40,7 +40,7 @@ namespace Zhele::Usb
         ConfigurationAttributes Attributes; ///< Configuration attributes
         uint8_t MaxPower; ///< Max power (in 2mA units)
     };
-    #pragma pack(pop)
+#pragma pack(pop)
 
     /**
      * @brief Implements configuration
@@ -94,7 +94,6 @@ namespace Zhele::Usb
 
             return totalLength;
         }
-    private:
     };
 }
 #endif // ZHELE_USB_CONFIGURATION_H

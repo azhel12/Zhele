@@ -36,7 +36,7 @@ namespace Zhele::Usb
     };
 
     /**
-     * @brief Device class
+     * @brief Device and interface class
      */
     enum class DeviceAndInterfaceClass : uint8_t
     {
@@ -53,7 +53,7 @@ namespace Zhele::Usb
         CdcData = 0x0a, ///< CDC Data
         VendorSpecified = 0xff ///< Vendor specified device
     };
-    using InterfaceClass = DeviceAndInterfaceClass;
+    using InterfaceClass = DeviceAndInterfaceClass; // legacy
 
     /**
      * @brief USB Standard Request Codes
@@ -92,22 +92,19 @@ namespace Zhele::Usb
     /**
      * @brief Setup packet request type
      */
-    #pragma pack(push, 1)
-    /**
-     * @brief Setup packet request type
-     */
+#pragma pack(push, 1)
     struct SetupRequestType
     {
         uint8_t Recipient : 5; ///< Recipient (0 - device, 1 - interface, 2 - endpoint, 3 - other, 4..31 - reserved)
         uint8_t Type : 2; ///< Type (0 - standart, 1 - class, 2 - vendor, 3 - reserved)
         uint8_t Dir : 1; ///< Direction (0 - out, 1 - in)
     };
-    #pragma pack(pop)
+#pragma pack(pop)
 
     /**
      * @brief Setup packet.
      */
-    #pragma pack(push, 1)
+#pragma pack(push, 1)
 #if PMA_ALIGN_MULTIPLIER == 2
     struct SetupPacket
     {
@@ -130,6 +127,6 @@ namespace Zhele::Usb
         uint16_t Length; ///< Length
     };
 #endif
-    #pragma pack(pop)
+#pragma pack(pop)
 }
 #endif // ZHELE_USB_COMMON_H
