@@ -628,7 +628,7 @@ namespace Zhele::Usb
         static void Reset()
         {
             Base::Reset();
-            Base::SetTxDtog();
+            //Base::SetTxDtog();
         }
 
         /**
@@ -636,8 +636,8 @@ namespace Zhele::Usb
          */
         static void Handler()
         {
-            HandleRx();
             Base::ClearCtrRx();
+            HandleRx();
         }
 
         /**
@@ -657,8 +657,8 @@ namespace Zhele::Usb
         static uint8_t GetCurrentBuffer()
         {
             return (Reg::Get() & USB_EP_DTOG_TX) > 0
-                ? 0
-                : 1;
+                ? 1
+                : 0;
         }
 
         static void HandleRx();

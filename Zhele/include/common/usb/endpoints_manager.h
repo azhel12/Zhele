@@ -335,11 +335,11 @@ namespace Zhele::Usb
 
         /// Buffer offset in PMA for endpoint
         template<typename Endpoint>
-        static constexpr uint32_t BufferOffset = BdtSize + OffsetOfBuffer<TypeIndex<Endpoint, AllEndpointsList>::value, AllEndpointsList>::value;
+        static const uint32_t BufferOffset = BdtSize + OffsetOfBuffer<TypeIndex<Endpoint, AllEndpointsList>::value, AllEndpointsList>::value;
 
         /// Buffer descriptor offset in BDT for endpoint
         template<typename Endpoint>
-        static constexpr uint32_t BdtCellOffset =
+        static const uint32_t BdtCellOffset =
             EndpointEPRn<Endpoint, AllEndpointsList>::RegisterNumber * 8
                                 + (Endpoint::Type == EndpointType::BulkDoubleBuffered
                                 || Endpoint::Direction == EndpointDirection::In
@@ -365,15 +365,15 @@ namespace Zhele::Usb
             typename Select<Endpoint::Type == EndpointType::BulkDoubleBuffered,
             BulkDoubleBufferedEndpoint<Endpoint,
                 typename EndpointEPRn<Endpoint, TypeList<AllEndpoints...>>::type,
-                PmaBufferBase + BufferOffset<Endpoint>, // Buffer0
-                PmaBufferBase + BdtCellOffset<Endpoint> + 2, // Buffer0Count
-                PmaBufferBase + BufferOffset<Endpoint> + Endpoint::MaxPacketSize, // Buffer1
-                PmaBufferBase + BdtCellOffset<Endpoint> + 6>, //Buffer1Count
+                PmaBufferBase + PmaAlignMultiplier * BufferOffset<Endpoint>, // Buffer0
+                PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 2), // Buffer0Count
+                PmaBufferBase + PmaAlignMultiplier * (BufferOffset<Endpoint> + Endpoint::MaxPacketSize), // Buffer1
+                PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 6)>, //Buffer1Count
             typename Select<Endpoint::Direction == EndpointDirection::In,
             InEndpoint<Endpoint,
                 typename EndpointEPRn<Endpoint, TypeList<AllEndpoints...>>::type,
-                PmaBufferBase + BufferOffset<Endpoint>, // Buffer
-                PmaBufferBase + BdtCellOffset<Endpoint> + 2>, // BufferCount
+                PmaBufferBase + PmaAlignMultiplier * BufferOffset<Endpoint>, // Buffer
+                PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 2)>, // BufferCount
             typename Select<Endpoint::Direction == EndpointDirection::Out,
             OutEndpoint<Endpoint,
                 typename EndpointEPRn<Endpoint, TypeList<AllEndpoints...>>::type,
