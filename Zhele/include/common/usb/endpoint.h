@@ -628,18 +628,27 @@ namespace Zhele::Usb
         static void Reset()
         {
             Base::Reset();
-            //Base::SetTxDtog();
+            Base::SetTxDtog();
         }
-
+    
         /**
          * @brief CTR handler
          */
         static void Handler()
         {
             Base::ClearCtrRx();
-            HandleRx();
+            if (GetCurrentBuffer() == 0)
+            {
+                HandleRx(reinterpret_cast<void*>(Buffer0), Buffer0Count::Get() & 0x3ff);
+            }
+            else
+            {
+                HandleRx(reinterpret_cast<void*>(Buffer1), Buffer1Count::Get() & 0x3ff);
+            }
+            SwitchBuffer();
         }
-
+    
+    private:
         /**
          * @brief Switch buffer (write SW_BUF bit)
          */
@@ -661,7 +670,7 @@ namespace Zhele::Usb
                 : 0;
         }
 
-        static void HandleRx();
+        static void HandleRx(void* data, uint16_t size);
     };
 
     /**
