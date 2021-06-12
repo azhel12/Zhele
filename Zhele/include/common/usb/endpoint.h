@@ -616,19 +616,23 @@ namespace Zhele::Usb
     class OutBulkDoubleBufferedEndpoint : public Endpoint<_Base, _Reg>
     {
         using Base = Endpoint<_Base, _Reg>;
-        using This = BidirectionalEndpoint<_Base, _Reg, _Buffer0Address, _Count0RegAddress, _Buffer1Address,_Count1RegAddress>;
-        static_assert(Base::Direction == EndpointDirection::In || Base::Direction == EndpointDirection::Out);
-    public:
+    // For direct access to Buffers/CountRegs mark next fields as public
         using Reg = _Reg;
         static constexpr uint32_t Buffer0 = _Buffer0Address;
         using Buffer0Count = RegisterWrapper<_Count0RegAddress, uint16_t>;
         static constexpr uint32_t Buffer1 = _Buffer1Address;
         using Buffer1Count = RegisterWrapper<_Count1RegAddress, uint16_t>;
 
+    public:
+        /**
+         * @brief Reset endpoint
+         *
+         * @par Returns
+         *  Nothing
+         */
         static void Reset()
         {
             Base::Reset();
-            Base::SetTxDtog();
         }
     
         /**
@@ -637,14 +641,11 @@ namespace Zhele::Usb
         static void Handler()
         {
             Base::ClearCtrRx();
-            if (GetCurrentBuffer() == 0)
-            {
-                HandleRx(reinterpret_cast<void*>(Buffer0), Buffer0Count::Get() & 0x3ff);
-            }
-            else
-            {
-                HandleRx(reinterpret_cast<void*>(Buffer1), Buffer1Count::Get() & 0x3ff);
-            }
+
+            GetCurrentBuffer() == 0
+                ? HandleRx(reinterpret_cast<void*>(Buffer0), Buffer0Count::Get() & 0x3ff)
+                : HandleRx(reinterpret_cast<void*>(Buffer1), Buffer1Count::Get() & 0x3ff);
+            
             SwitchBuffer();
         }
     
@@ -686,10 +687,133 @@ namespace Zhele::Usb
     template<typename _Base, typename _Reg, uint32_t _Buffer0Address, uint32_t _Count0RegAddress, uint32_t _Buffer1Address, uint32_t _Count1RegAddress>
     class InBulkDoubleBufferedEndpoint : public Endpoint<_Base, _Reg>
     {
+        using Base = Endpoint<_Base, _Reg>;
+
+    // For direct access to Buffers/CountRegs mark next fields as public
+        using Reg = _Reg;
+        static constexpr uint32_t Buffer0 = _Buffer0Address;
+        using Buffer0Count = RegisterWrapper<_Count0RegAddress, uint16_t>;
+        static constexpr uint32_t Buffer1 = _Buffer1Address;
+        using Buffer1Count = RegisterWrapper<_Count1RegAddress, uint16_t>;
     public:
-        // TODO:: Complete this class 
-        static void Handler(){}
+        /**
+         * @brief Reset endpoint
+         *
+         * @par Returns
+         *  Nothing
+         */
+        static void Reset()
+        {
+            Base::Reset();
+            Base::SetRxDtog();
+        }
+
+        static void Handler()
+        {
+            Base::ClearCtrTx();
+            
+            _bytesRemain -= _Base::MaxPacketSize;
+            _dataToTransmit += _Base::MaxPacketSize;
+
+            if(_bytesRemain >= 0)
+            {
+                WriteData(_dataToTransmit, _bytesRemain > _Base::MaxPacketSize ? _Base::MaxPacketSize : _bytesRemain);
+                return;
+            }
+
+            if(_txCompleteCallback)
+            {
+                Base::SetTxStatus(EndpointStatus::Nak);
+                _txCompleteCallback();
+            }
+        }
+
+        /**
+         * @brief Send ZLP to host
+         * 
+         * @param [in, opt] callback Complete callback
+         */
+        static void SendZLP(InTransferCallback callback = nullptr)
+        {
+            _bytesRemain = 0;
+            _txCompleteCallback = callback;
+            WriteData(nullptr, 0);
+            Base::SetTxStatus(EndpointStatus::Valid);
+        }
+
+        /**
+         * @brief Send data
+         * 
+         * @param [in] data Data
+         * @param [in] size Data size
+         * @param [in, opt] callback Complete callback
+         */
+        static void SendData(const void* data, uint32_t size, InTransferCallback callback = nullptr)
+        {
+            _dataToTransmit = reinterpret_cast<const uint8_t*>(data);
+            _bytesRemain = size;
+            _txCompleteCallback = callback;
+
+            WriteData(_dataToTransmit, _bytesRemain > _Base::MaxPacketSize ? _Base::MaxPacketSize : _bytesRemain);
+            Base::SetTxStatus(EndpointStatus::Valid);
+        }
+    private:
+        /**
+         * @brief Send data
+         * 
+         * @param [in] data Data
+         * @param [in] size Data size
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void WriteData(const void* data, uint16_t size)
+        {
+            uint16_t* destination;
+            destination = reinterpret_cast<uint16_t*>(GetCurrentBuffer() == 0 ? Buffer0 : Buffer1);
+
+            const uint16_t* source = reinterpret_cast<const uint16_t*>(data);
+            for(uint16_t i = 0; i < (size + 1) / 2; ++i)
+                destination[PmaAlignMultiplier * i] = source[i];
+
+            
+            GetCurrentBuffer() == 0 ? Buffer0Count::Set(size) : Buffer1Count::Set(size);
+
+            SwitchBuffer();
+        }
+
+        /**
+         * @brief Switch buffer (write SW_BUF bit)
+         */
+        static void SwitchBuffer()
+        {
+            Base::SetRxDtog();
+        }
+
+        /**
+         * @brief Returns current buffer for user.
+         * 
+         * @retval 0 Buffer_0 should be used.
+         * @retval 1 Buffer_1 should be used.
+         */
+        static uint8_t GetCurrentBuffer()
+        {
+            return (Reg::Get() & USB_EP_DTOG_RX) > 0
+                ? 1
+                : 0;
+        }
+
+        static const uint8_t* _dataToTransmit;
+        static int32_t _bytesRemain;
+        static InTransferCallback _txCompleteCallback;
     };
+
+    template<typename _Base, typename _Reg, uint32_t _Buffer0Address, uint32_t _Count0RegAddress, uint32_t _Buffer1Address, uint32_t _Count1RegAddress>
+    const uint8_t* InBulkDoubleBufferedEndpoint<_Base, _Reg, _Buffer0Address, _Count0RegAddress, _Buffer1Address, _Count1RegAddress>::_dataToTransmit = nullptr;
+    template<typename _Base, typename _Reg, uint32_t _Buffer0Address, uint32_t _Count0RegAddress, uint32_t _Buffer1Address, uint32_t _Count1RegAddress>
+    int32_t InBulkDoubleBufferedEndpoint<_Base, _Reg, _Buffer0Address, _Count0RegAddress, _Buffer1Address, _Count1RegAddress>::_bytesRemain = -1;
+    template<typename _Base, typename _Reg, uint32_t _Buffer0Address, uint32_t _Count0RegAddress, uint32_t _Buffer1Address, uint32_t _Count1RegAddress>
+    InTransferCallback InBulkDoubleBufferedEndpoint<_Base, _Reg, _Buffer0Address, _Count0RegAddress, _Buffer1Address, _Count1RegAddress>::_txCompleteCallback = nullptr;
 
     /**
      * @brief Implements bidirectional endpoint

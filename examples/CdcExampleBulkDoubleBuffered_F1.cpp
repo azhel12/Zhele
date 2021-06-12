@@ -1,5 +1,4 @@
 #include <clock.h>
-#include <exti.h>
 #include <iopins.h>
 #include <pinlist.h>
 #include <usb.h>
@@ -11,7 +10,7 @@ using namespace Zhele::Usb;
 
 using CdcCommEndpointBase = InEndpointBase<1, EndpointType::Interrupt, 8, 0xff>;
 using CdcDataEndpointBase = BulkDoubleBufferedEndpointBase<2, EndpointDirection::Out, 64>;
-using CdcDataEndpointBaseIn = BulkDoubleBufferedEndpointBase<3, EndpointDirection::In, 64>;
+using CdcDataEndpointBaseIn = BulkDoubleBufferedEndpointBase<3, EndpointDirection::In, 8>;
 
 using EpInitializer = EndpointsInitializer<DefaultEp0, CdcCommEndpointBase, CdcDataEndpointBase, CdcDataEndpointBaseIn>;
 using Ep0 = EpInitializer::ExtendEndpoint<DefaultEp0>;
@@ -26,13 +25,12 @@ using CdcData = CdcDataInterface<1, 0, 0, 0, Ep0, CdcDataEndpoint, CdcDataEndpoi
 using Config = Configuration<0, 250, false, false, CdcComm, CdcData>;
 using MyDevice = Device<0x0200, DeviceAndInterfaceClass::Comm, 0, 0, 0x0483, 0x5711, 0, Ep0, Config>;
 
-using Led = IO::Pc7;
+using Led = IO::Pc13Inv;
 
 void ConfigureClock();
 void ConfigureLeds();
 
 int main()
-
 {
     ConfigureClock();
     ConfigureLeds();
@@ -46,14 +44,11 @@ int main()
 
 void ConfigureClock()
 {
-    PllClock::SelectClockSource(PllClock::ClockSource::Internal);
-    PllClock::SetMultiplier(12);
-    PllClock::SetDivider(2);
-    ApbClock::SetPrescaler(ApbClock::Div1);
+    PllClock::SelectClockSource(PllClock::ClockSource::External);
+    PllClock::SetMultiplier(9);
+    Apb1Clock::SetPrescaler(Apb1Clock::Div2);
     SysClock::SelectClockSource(SysClock::Pll);
-
-    Zhele::Clock::Hsi48Clock::Enable();
-    Zhele::Clock::SysCfgCompClock::Enable();
+    MyDevice::SelectClockSource(Zhele::Usb::ClockSource::PllDividedOneAndHalf);
 }
 
 void ConfigureLeds()
@@ -65,21 +60,27 @@ void ConfigureLeds()
 }
 
 template<>
-void CdcDataEndpoint::HandleRx(const void* data, uint16_t size)
+void CdcDataEndpoint::HandleRx(void* data, uint16_t size)
 {
-    uint8_t* buffer = reinterpret_cast<uint8_t*>(data);
+    uint8_t* buf = reinterpret_cast<uint8_t*>(data);
 
-    if(buffer[0] == '0')
+    if(size > 0)
     {
-        Led::Clear();
-    }
-    if(buffer[0] == '1')
-    {
-        Led::Set();
+
+        if(buf[0] == '0')
+        {
+            Led::Clear();
+            CdcDataEndpointIn::SendData("LED is turn off\r\n", 17);
+        }
+        if(buf[0] == '1')
+        {
+            Led::Set();
+            CdcDataEndpointIn::SendData("LED is turn on\r\n", 16);
+        }
     }
 }
 
-extern "C" void USB_IRQHandler()
+extern "C" void USB_LP_IRQHandler()
 {
     // Sorry, but you must write device`s CommonHandler call by yourself.
     MyDevice::CommonHandler();
