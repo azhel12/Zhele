@@ -421,7 +421,7 @@ namespace Zhele::Usb
         {
             return Endpoint::MaxPacketSize <= 62
                 ? (Endpoint::MaxPacketSize / 2) << 10
-                : 0x8000 | ((Endpoint::MaxPacketSize / 32) << 10);
+                : 0x8000 | ((Endpoint::MaxPacketSize / 32 - 1) << 10);
         }
     };
     
