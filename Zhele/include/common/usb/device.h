@@ -85,7 +85,7 @@ namespace Zhele::Usb
         using IfHandlers = InterfaceHandlers<Interfaces>;
 
         static uint8_t _tempAddressStorage;
-        static bool _isDeviceConfigured;
+        static volatile bool _isDeviceConfigured;
     public:
         /**
          * @brief Select clock source
@@ -119,6 +119,17 @@ namespace Zhele::Usb
         #endif
 
             NVIC_EnableIRQ(_IRQNumber);
+        }
+
+        /**
+         * @brief Allows check that device configure complete
+         * 
+         * @retval true Device is configured
+         * @retval false Device is not configured yet
+         */
+        static bool IsDeviceConfigured()
+        {
+            return _isDeviceConfigured;
         }
 
         /**
@@ -290,6 +301,6 @@ namespace Zhele::Usb
     uint8_t USB_DEVICE_TEMPLATE_QUALIFIER::_tempAddressStorage = 0x00;
 
     USB_DEVICE_TEMPLATE_ARGS
-    bool USB_DEVICE_TEMPLATE_QUALIFIER::_isDeviceConfigured = false;
+    volatile bool USB_DEVICE_TEMPLATE_QUALIFIER::_isDeviceConfigured = false;
 }
 #endif // ZHELE_USB_DEVICE_H
