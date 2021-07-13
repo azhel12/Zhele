@@ -451,7 +451,7 @@ namespace Zhele
     #endif
     #if defined (I2C_TYPE_2)
         template<typename _Regs>
-        static inline uint32_t CalcTiming(uint32_t sourceClock, uint32_t i2cClockSpeed, bool dutyCycle2)
+        static void CalcTiming(uint32_t sourceClock, uint32_t i2cClockSpeed, bool dutyCycle2)
         {
             uint32_t sourceClockInMhz = sourceClock / 1000000;
             uint32_t result = 0;
