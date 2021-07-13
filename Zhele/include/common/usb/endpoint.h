@@ -7,6 +7,9 @@
  * Endpoint`s registers bits manipulation code is taken from libopencm3 project.
  * Original source: https://github.com/libopencm3/libopencm3/blob/master/include/libopencm3/stm32/common/st_usbfs_common.h
  * Original author: Piotr Esden-Tempski <piotr@esden.net>. Thanks him very much.
+ * 
+ * For help with improvement of double-buffered endpoints big thanks to Pavel Loktev (aka @EasyLy on habr.com).
+ * 
  * @date 2021
  * @license FreeBSD
  */
@@ -127,6 +130,13 @@ namespace Zhele::Usb
     template<uint8_t _Number, EndpointDirection _Direction, uint16_t _MaxPacketSize>
     class BulkDoubleBufferedEndpointBase : public EndpointBase<_Number, _Direction, EndpointType::BulkDoubleBuffered, _MaxPacketSize, 0>
     {
+    };
+
+    template<uint8_t _Number, uint16_t _MaxPacketSize>
+    class InBulkDoubleBufferedWithoutZlpEndpointBase : public EndpointBase<_Number, EndpointDirection::In, EndpointType::BulkDoubleBuffered, _MaxPacketSize, 0>
+    {
+    public:
+        const static bool DisableZlp;
     };
 
     template <uint8_t _Number, uint16_t _MaxPacketSize>
@@ -695,6 +705,8 @@ namespace Zhele::Usb
         using Buffer0Count = RegisterWrapper<_Count0RegAddress, uint16_t>;
         static constexpr uint32_t Buffer1 = _Buffer1Address;
         using Buffer1Count = RegisterWrapper<_Count1RegAddress, uint16_t>;
+
+        static const bool SendZlp = !(requires {_Base::DisableZlp;}); 
     public:
         /**
          * @brief Reset endpoint
@@ -705,7 +717,7 @@ namespace Zhele::Usb
         static void Reset()
         {
             Base::Reset();
-            Base::SetRxDtog();
+            Base::SetTxDtog();
         }
 
         static void Handler()
@@ -715,7 +727,7 @@ namespace Zhele::Usb
             _bytesRemain -= _Base::MaxPacketSize;
             _dataToTransmit += _Base::MaxPacketSize;
 
-            if(_bytesRemain >= 0)
+            if(_bytesRemain > (SendZlp ? -1 : 0))
             {
                 WriteData(_dataToTransmit, _bytesRemain > _Base::MaxPacketSize ? _Base::MaxPacketSize : _bytesRemain);
                 return;

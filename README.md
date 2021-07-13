@@ -1,7 +1,8 @@
 # Zhele
 Framework for Stm32 MCU on C++ templates. Project based on "mcucpp" by Konstantin Chizhov.
 # Getting started
-I'm using VSCode IDE + Platformio + GNU Arm Embedded Toolchain Version 10-2020-q4-major (it supports some features from c++20)
+I'm using VSCode IDE + Platformio + GNU Arm Embedded Toolchain Version 10-2020-q4-major (it supports some features from c++20).
+Basically c++17 is required, c++20 needed only for USB (but you can port code for c++17 by add some 'typename' keyword. с++20 allows skip it where only 'typename' can be applied).
 1. Download Visual Studio Code from [official site](https://code.visualstudio.com/download) and install it.
 2. Run VS code, Press _Ctrl+Shift+X_ (or press _Extension_ in left sidebar), input _PlatformIO_ in search and push install.
 You can get some errors about python virtual environments. There is many solutions in Internet.
