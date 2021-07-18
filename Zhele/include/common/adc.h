@@ -13,7 +13,7 @@
 
 namespace Zhele
 {
-    using AdcCallbackType = std::add_pointer_t<void(uint16_t *data, size_t count)>;
+    using AdcCallbackType = std::add_pointer_t<void(uint16_t* data, uint32_t count)>;
 
     namespace Private
     {
@@ -224,7 +224,7 @@ namespace Zhele
              * @retval true Successful measurement
              * @retval false Measurement fail
              */
-            static bool StartInjected(const uint8_t *channels, uint16_t *data, uint8_t count, AdcCallbackType callback = nullptr);
+            static bool StartInjected(const uint8_t* channels, uint16_t* data, uint8_t count, AdcCallbackType callback = nullptr);
             
             /**
              * @brief Start injected measurment for one channel
@@ -243,7 +243,7 @@ namespace Zhele
              * @param [out] data Buffer for result
              * @param [in] count Channels count
              */
-            static bool ReadInjected(const uint8_t *channels, uint16_t *data, uint8_t count);
+            static bool ReadInjected(const uint8_t* channels, uint16_t* data, uint8_t count);
 
             /**
              * @brief Returns injected measurement result for one channel
@@ -316,11 +316,12 @@ namespace Zhele
              * @param [in] channelsCount Channels count
              * @param [out] dataBuffer Buffer. Must has hannelsCount * scanCount elements.
              * @param [in] scanCount Scan count
+             * @param [in] discontinuous Discontinuous number (0 for off)
              * 
              * @retval true Success measurement
              * @retval false Measurement fail
              */
-            static bool StartRegular(const uint8_t *channels, uint8_t channelsCount, uint16_t *dataBuffer, uint16_t scanCount);
+            static bool StartRegular(const uint8_t* channels, uint8_t channelsCount, uint16_t* dataBuffer, uint16_t scanCount, uint8_t discontinuous = 0);
             /**
              * @brief Start regular measurement ()
              * 
@@ -328,11 +329,12 @@ namespace Zhele
              * @param [in] channelsCount Channels count
              * @param [out] dataBuffer Buffer. Must has hannelsCount * scanCount elements.
              * @param [in] scanCount Scan count
+             * @param [in] discontinuous Discontinuous number (0 for off)
              * 
              * @retval true Success measurement
              * @retval false Measurement fail
              */
-            static bool StartRegular(std::initializer_list<uint8_t> channels, uint16_t *dataBuffer, uint16_t scanCount);
+            static bool StartRegular(std::initializer_list<uint8_t> channels, uint16_t* dataBuffer, uint16_t scanCount, uint8_t discontinuous = 0);
 
             /**
              * @brief Start regular measurement
@@ -345,7 +347,7 @@ namespace Zhele
              * @retval false Measurement fail
              */
             template <typename... _Pins>
-            static bool StartRegular(uint16_t *dataBuffer, uint16_t scanCount);
+            static bool StartRegular(uint16_t* dataBuffer, uint16_t scanCount);
 
             /**
              * @brief Stop regular measurement
