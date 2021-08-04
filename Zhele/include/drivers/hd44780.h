@@ -2,6 +2,8 @@
  * @file
  * Provides code for lcd based on HD44780 controller.
  * 
+ * I2c version based on LiquidCrystal_I2C
+ * 
  * @author Konstantin Chizhov
  * @date 2018
  * @license FreeBSD
@@ -19,47 +21,7 @@ namespace Zhele::Drivers
      */
     class LcdBase
     {
-    public:
-        /**
-         * @brief Delay for hd44780.
-         * 
-         * @par Returns
-         * 	Nothing
-         */
-        static void Delay()
-        {
-            delay_us<200>();
-        }
-    };
-
-    /**
-     * @brief Class provides LCD displays with HD44780 mcu
-     * 
-     * @tparam RS RS pin
-     * @tparam E Enable pin
-     * @tparam D4 D4 pin
-     * @tparam D5 D5 pin
-     * @tparam D6 D6 pin
-     * @tparam D7 D7 pin
-     * @tparam LINE_WIDTH One line width (symbols count)
-     * @tparam LINES Lines count
-     */
-    template<
-        typename RS,
-        typename E,
-        typename D4,
-        typename D5,
-        typename D6,
-        typename D7,
-        uint8_t LINE_WIDTH = 8,
-        uint8_t LINES = 2
-        >
-    class Lcd : public LcdBase
-    {
     protected:
-        using DataBus = IO::PinList<D4, D5, D6, D7>; // Data bus (4 bit mode)
-        using LcdPins = IO::PinList<RS, E, D4, D5, D6, D7>; // All pins
-
         /**
          * HD44780 supported commands
          */
@@ -112,6 +74,48 @@ namespace Zhele::Drivers
             BlinkOff   = 0x00 ///< Cursor blink off
         };
 
+        /**
+         * @brief Delay for hd44780.
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        static void Delay()
+        {
+            delay_us<200>();
+        }
+    };
+
+    /**
+     * @brief Class provides LCD displays with HD44780 mcu
+     * 
+     * @tparam RS RS pin
+     * @tparam E Enable pin
+     * @tparam D4 D4 pin
+     * @tparam D5 D5 pin
+     * @tparam D6 D6 pin
+     * @tparam D7 D7 pin
+     * @tparam LINE_WIDTH One line width (symbols count)
+     * @tparam LINES Lines count
+     */
+    template<
+        typename RS,
+        typename E,
+        typename D4,
+        typename D5,
+        typename D6,
+        typename D7,
+        uint8_t LINE_WIDTH = 8,
+        uint8_t LINES = 2
+        >
+    class Lcd : public LcdBase
+    {
+    protected:
+        using DataBus = IO::PinList<D4, D5, D6, D7>; // Data bus (4 bit mode)
+        using LcdPins = IO::PinList<RS, E, D4, D5, D6, D7>; // All pins
+
+        
+    public:
         /**
          * @brief Returns line width.
          *
@@ -349,6 +353,201 @@ namespace Zhele::Drivers
             RW::Clear();
             Base::DataBus::template SetConfiguration<Base::DataBus::Out>();
             return res;
+        }
+    };
+
+    /**
+     * @brief Class provides LCD displays with HD44780 mcu
+     * 
+     * @tparam _I2cBus I2c bus
+     * @tparam _Address I2c address
+     * @tparam LINE_WIDTH One line width (symbols count)
+     * @tparam LINES Lines count
+     */
+    template<
+        typename _I2cBus,
+        uint8_t _Address = 0x27,
+        uint8_t LINE_WIDTH = 8,
+        uint8_t LINES = 2
+        >
+    class LcdI2c : public LcdBase
+    {
+        using DataBus = _I2cBus;
+        static const uint8_t BackLight = 0x08;
+        static const uint8_t Enable = 0x04;
+
+        enum Mode : uint8_t
+        {
+            Command = 0x00,
+            Data = 0x01
+        };
+
+    public:
+        /**
+         * @brief Returns line width.
+         *
+         * @returns Line width.
+         */
+        static uint8_t LineWidth()
+        {
+            return LINE_WIDTH;
+        }
+
+        /**
+		 * @brief Returns lines count.
+		 *
+		 * @returns Lines count.
+		 */
+        static uint8_t Lines()
+        {
+            return LINES;
+        }
+
+        /**
+         * @brief Init display.
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void Init()
+        {
+            delay_ms<50>();
+            Write(BackLight);
+            delay_ms<1000>();
+
+            WriteU4(0x03 << 4);
+            delay_ms<5>();
+            WriteU4(0x02 << 4);
+
+            WriteU8(FunctionSet | Line2 | Dots5x8 | Bit4Mode);
+            WriteU8(DisplayControl | DisplayOn | CursorOn | BlinkOn);
+            WriteU8(EntryModeSet | Left | ShiftDecrement);
+
+            Home();
+        }
+
+        /**
+         * @brief Clear display.
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void Clear()
+        {
+            WriteU8(ClearDisplay);
+            delay_ms<10>();
+            Home();
+        }
+
+        /**
+         * @brief Returns cursor home.
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void Home()
+        {
+            WriteU8(ReturnHome);
+            delay_ms<10>();
+        }
+
+        /**
+         * @brief Set cursor's position.
+         * 
+         * @param [in] position New position.
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void Goto(uint8_t position)
+        {
+            WriteU8(SetDDRamAddr | position);
+        }
+
+        /**
+         * @brief Set cursor's position.
+         * 
+         * @param [in] x New X-position.
+         * @param [in] y New Y-position.
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void Goto(uint8_t x, uint8_t y)
+        {
+            if (y == 1)
+                x += 0x40;
+            WriteU8(SetDDRamAddr | x);
+        }
+
+        /**
+         * @brief Print text.
+         * 
+         * @param [in] text Text
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void Puts(const char* text)
+        {
+            while(*text) {
+                WriteU8(*text++, Mode::Data);
+            }
+        }
+
+        /**
+         * @brief Print one character.
+         * 
+         * @param [in] symbol Symbol
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void Putch(char symbol)
+        {
+            WriteU8(symbol, Mode::Data);
+        }
+
+        /**
+         * @brief Control display power settings.
+         * 
+         * @tparam DisplayState Display state (on/off).
+         * @tparam CursorState Cursor state.
+         * @tparam BlinkState Cursor blink state.
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        template<PowerControl DisplayState, PowerControl CursorState, PowerControl BlinkState>
+        static void PowerControl()
+        {
+            WriteU8(DisplayControl | DisplayState | CursorState | BlinkState);
+        }
+
+    protected:
+        static void WriteU8(uint8_t data, Mode mode = Mode::Command)
+        {
+            WriteU4((data & 0xf0) | static_cast<uint8_t>(mode));
+            WriteU4(((data << 4) & 0xf0) | static_cast<uint8_t>(mode));
+        }
+
+        static void WriteU4(uint8_t data)
+        {
+            Write(data);
+            Strobe(data);
+        }
+
+        static void Strobe(uint8_t data)
+        {
+            Write(data | Enable);
+            delay_us<1>();
+            Write(data & ~Enable);
+            delay_us<50>();
+        }
+
+        static void Write(uint8_t data)
+        {
+            DataBus::WriteU8(_Address, 0x00, data | BackLight, I2cOpts::RegAddrNone);
         }
     };
 }
