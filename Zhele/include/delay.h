@@ -17,6 +17,9 @@
     #include "f4/delay.h"
 #endif
 
+#ifndef ZHELE_DELAY_GENERAL_H
+#define ZHELE_DELAY_GENERAL_H
+
 namespace Zhele
 {
     template<unsigned long ms, unsigned long CpuFreq = F_CPU>
@@ -25,3 +28,5 @@ namespace Zhele
         delay_us<ms * 1000, CpuFreq>();
     }
 }
+
+#endif //! ZHELE_DELAY_GENERAL_H
