@@ -32,7 +32,7 @@ namespace Zhele
             using SclPin = typename _SclPins::Key::template Pin<sclPinNumber>;
             SclPin::Port::Enable();
             SclPin::template SetConfiguration<SclPin::Port::AltFunc>();
-            SclPin::template AltFuncNumber<GetNumber<sclPinNumber, SclAltFuncNumbers>::value>();
+            SclPin::template AltFuncNumber<GetNonTypeValueByIndex<sclPinNumber, SclAltFuncNumbers>::value>();
             SclPin::SetDriverType(SclPin::Port::OpenDrain);
             SclPin::SetPullMode(SclPin::PullMode::PullUp);
 
@@ -42,7 +42,7 @@ namespace Zhele
                 SdaPin::Port::Enable();
             }
             SdaPin::template SetConfiguration<SdaPin::Port::AltFunc>();
-            SdaPin::template AltFuncNumber<GetNumber<sdaPinNumber, SdaAltFuncNumbers>::value>();
+            SdaPin::template AltFuncNumber<GetNonTypeValueByIndex<sdaPinNumber, SdaAltFuncNumbers>::value>();
             SdaPin::SetDriverType(SdaPin::Port::OpenDrain);
             SdaPin::SetPullMode(SdaPin::PullMode::PullUp);
         }
@@ -86,8 +86,8 @@ namespace Zhele
             SelectPins<sclPinIndex, sdaPinIndex>();
         }
 
-        using I2C1SclPins = Pair<IO::PinList<IO::Pa9, IO::Pa11, IO::Pb6, IO::Pb8, IO::Pb10>, UnsignedArray<4, 5, 1, 1, 1>>;
-        using I2C1SdaPins = Pair<IO::PinList<IO::Pa10, IO::Pa12, IO::Pb7, IO::Pb9, IO::Pb11>, UnsignedArray<4, 5, 1, 1, 1>>;
+        using I2C1SclPins = Pair<IO::PinList<IO::Pa9, IO::Pa11, IO::Pb6, IO::Pb8, IO::Pb10>, NonTypeTemplateArray<4, 5, 1, 1, 1>>;
+        using I2C1SdaPins = Pair<IO::PinList<IO::Pa10, IO::Pa12, IO::Pb7, IO::Pb9, IO::Pb11>, NonTypeTemplateArray<4, 5, 1, 1, 1>>;
 
         IO_STRUCT_WRAPPER(I2C1, I2C1Regs, I2C_TypeDef);
     }

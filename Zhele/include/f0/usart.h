@@ -81,12 +81,12 @@ namespace Zhele
             usedPorts::Enable();
 
             TxPin::template SetConfiguration<TxPin::Port::AltFunc>();
-            TxPin::template AltFuncNumber<GetNumber<TxPinNumber, TxAltFuncNumbers>::value>();
+            TxPin::template AltFuncNumber<GetNonTypeValueByIndex<TxPinNumber, TxAltFuncNumbers>::value>();
             
             if constexpr(!std::is_same_v<RxPin, IO::NullPin>)
             {
                 RxPin::template SetConfiguration<RxPin::Port::AltFunc>();
-                RxPin::template AltFuncNumber<GetNumber<RxPinNumber, RxAltFuncNumbers>::value>();
+                RxPin::template AltFuncNumber<GetNonTypeValueByIndex<RxPinNumber, RxAltFuncNumbers>::value>();
             }
         }
 
@@ -112,11 +112,11 @@ namespace Zhele
             SelectTxRxPins<txPinIndex, rxPinIndex>();
         }
 
-        using Usart1TxPins = Pair<IO::PinList<IO::Pa9, IO::Pb6>, UnsignedArray<1, 0>>;
-        using Usart1RxPins = Pair<IO::PinList<IO::Pa10, IO::Pb7>, UnsignedArray<1, 0>>;
+        using Usart1TxPins = Pair<IO::PinList<IO::Pa9, IO::Pb6>, NonTypeTemplateArray<1, 0>>;
+        using Usart1RxPins = Pair<IO::PinList<IO::Pa10, IO::Pb7>, NonTypeTemplateArray<1, 0>>;
 
-        using Usart2TxPins = Pair<IO::PinList<IO::Pa2, IO::Pd5>, UnsignedArray<1, 1>>;
-        using Usart2RxPins = Pair<IO::PinList<IO::Pa3, IO::Pd6>, UnsignedArray<1, 1>>;
+        using Usart2TxPins = Pair<IO::PinList<IO::Pa2, IO::Pd5>, NonTypeTemplateArray<1, 1>>;
+        using Usart2RxPins = Pair<IO::PinList<IO::Pa3, IO::Pd6>, NonTypeTemplateArray<1, 1>>;
 
         IO_STRUCT_WRAPPER(USART1, Usart1Regs, USART_TypeDef);
     #if defined(USART2)

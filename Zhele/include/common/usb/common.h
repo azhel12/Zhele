@@ -86,8 +86,21 @@ namespace Zhele::Usb
         StringManDescriptor = 0x301, ///< String manufacture descriptor
         StringProdDescriptor = 0x302, ///< String product descriptor
         StringSerialNumberDescriptor = 0x303, ///< String serial number descriptor
+        StringMsOsDescriptor = 0x3ee, ///< MS OS Descriptor
         DeviceQualifierDescriptor = 0x600, ///< Device qualifier descriptor
     };
+
+    /**
+     * @brief String descriptor
+     */
+#pragma pack(push, 1)    
+    struct StringDescriptor
+    {
+        uint8_t Length = 0;
+        uint8_t DescriptorType = static_cast<uint8_t>(DescriptorType::String);
+        uint8_t String[];
+    };
+#pragma pack(pop)
 
     /**
      * @brief Setup packet request type

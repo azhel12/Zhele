@@ -14,11 +14,11 @@
 
 namespace Zhele::TemplateUtils
 {
-    template<uint32_t... Numbers>
-    class UnsignedArray;
+    template<auto... Numbers>
+    class NonTypeTemplateArray;
 
-    template<uint32_t... Numbers>
-    class Length<UnsignedArray<Numbers...>>
+    template<auto... Numbers>
+    class Length<NonTypeTemplateArray<Numbers...>>
     {
     public:
         static const size_t value = sizeof...(Numbers);
@@ -27,25 +27,25 @@ namespace Zhele::TemplateUtils
      * @brief Select number from array by index
      */
     template<int, typename...>
-    class GetNumber {};
-    template<uint32_t Head, uint32_t... Tail>
-    class GetNumber<-1, UnsignedArray<Head, Tail...>>
+    class GetNonTypeValueByIndex {};
+    template<auto Head, auto... Tail>
+    class GetNonTypeValueByIndex<-1, NonTypeTemplateArray<Head, Tail...>>
     {
     public:
-        static const uint32_t value = 0;
+        static const auto value = 0;
     };
-    template<uint32_t Head, uint32_t... Tail>
-    class GetNumber<0, UnsignedArray<Head, Tail...>>
+    template<auto Head, auto... Tail>
+    class GetNonTypeValueByIndex<0, NonTypeTemplateArray<Head, Tail...>>
     {
     public:
-        static const uint32_t value = Head;
+        static const auto value = Head;
     };
-    template<int Index, uint32_t Head, uint32_t... Tail>
-    class GetNumber<Index, UnsignedArray<Head , Tail...>>
+    template<int Index, auto Head, auto... Tail>
+    class GetNonTypeValueByIndex<Index, NonTypeTemplateArray<Head , Tail...>>
     {
-        static_assert(Index < Length<UnsignedArray<Head, Tail...>>::value);
+        static_assert(Index < Length<NonTypeTemplateArray<Head, Tail...>>::value);
     public:
-        static const uint32_t value = GetNumber<Index - 1, UnsignedArray<Tail...>>::value;
+        static const auto value = GetNonTypeValueByIndex<Index - 1, NonTypeTemplateArray<Tail...>>::value;
     };
     /**
      * @brief Select number from array by index. Non-static variant.
@@ -64,16 +64,16 @@ namespace Zhele::TemplateUtils
         static uint8_t Get(uint8_t index);
     };
 
-    template<uint32_t... Numbers>
-    class GetNumberRuntime<UnsignedArray<Numbers ...>>
+    template<auto... Numbers>
+    class GetNumberRuntime<NonTypeTemplateArray<Numbers ...>>
     {
         const static uint8_t _numbers[sizeof...(Numbers)];
     public:
         static uint8_t Get(uint8_t index) {return _numbers[index];};
     };
 
-    template<uint32_t... Numbers>
-    const uint8_t GetNumberRuntime<UnsignedArray<Numbers ...>>::_numbers[sizeof... (Numbers)] = {Numbers ...};
+    template<auto... Numbers>
+    const uint8_t GetNumberRuntime<NonTypeTemplateArray<Numbers ...>>::_numbers[sizeof... (Numbers)] = {Numbers ...};
 
     /**
      * @brief Static array of int8_t.

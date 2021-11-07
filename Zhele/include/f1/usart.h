@@ -93,7 +93,7 @@ namespace Zhele
             }
 
             Clock::AfioClock::Enable();
-            Zhele::IO::Private::PeriphRemap<_ClockCtrl>::Set(GetNumber<TxPinNumber, TxAltFuncNumbers>::value);
+            Zhele::IO::Private::PeriphRemap<_ClockCtrl>::Set(GetNonTypeValueByIndex<TxPinNumber, TxAltFuncNumbers>::value);
         }
 
         /**
@@ -119,14 +119,14 @@ namespace Zhele
          }
 
 
-        using Usart1TxPins = Pair<IO::PinList<IO::Pa9, IO::Pb6>, UnsignedArray<0, 1>>;
-        using Usart1RxPins = Pair<IO::PinList<IO::Pa10, IO::Pb7>, UnsignedArray<0, 1>>;
+        using Usart1TxPins = Pair<IO::PinList<IO::Pa9, IO::Pb6>, NonTypeTemplateArray<0, 1>>;
+        using Usart1RxPins = Pair<IO::PinList<IO::Pa10, IO::Pb7>, NonTypeTemplateArray<0, 1>>;
 
-        using Usart2TxPins = Pair<IO::PinList<IO::Pa2, IO::Pd5>, UnsignedArray<0, 1>>;
-        using Usart2RxPins = Pair<IO::PinList<IO::Pa3, IO::Pd6>, UnsignedArray<0, 1>>;
+        using Usart2TxPins = Pair<IO::PinList<IO::Pa2, IO::Pd5>, NonTypeTemplateArray<0, 1>>;
+        using Usart2RxPins = Pair<IO::PinList<IO::Pa3, IO::Pd6>, NonTypeTemplateArray<0, 1>>;
 
-        using Usart3TxPins = Pair<IO::PinList<IO::Pb10, IO::Pc10, IO::Pd8>, UnsignedArray<0, 1, 3>>;
-        using Usart3RxPins = Pair<IO::PinList<IO::Pb11, IO::Pc11, IO::Pd9>, UnsignedArray<0, 1, 3>>;
+        using Usart3TxPins = Pair<IO::PinList<IO::Pb10, IO::Pc10, IO::Pd8>, NonTypeTemplateArray<0, 1, 3>>;
+        using Usart3RxPins = Pair<IO::PinList<IO::Pb11, IO::Pc11, IO::Pd9>, NonTypeTemplateArray<0, 1, 3>>;
 
         IO_STRUCT_WRAPPER(USART1, Usart1Regs, USART_TypeDef);
         IO_STRUCT_WRAPPER(USART2, Usart2Regs, USART_TypeDef);
