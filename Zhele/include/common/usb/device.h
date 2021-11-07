@@ -272,17 +272,20 @@ namespace Zhele::Usb
                             break;
                         }
                         case GetDescriptorParameter::StringManDescriptor: {
-                            uint8_t temp[sizeof(StringDescriptor) + _Manufacturer.Size];
-                            auto descriptor = reinterpret_cast<StringDescriptor*>(temp);
-                            *descriptor = StringDescriptor {.Length = sizeof(temp)};
+                            if constexpr (!std::is_same_v<decltype(_Manufacturer), decltype(EmptyFixedString16)>)
+                            {
+                                uint8_t temp[sizeof(StringDescriptor) + _Manufacturer.Size];
+                                auto descriptor = reinterpret_cast<StringDescriptor*>(temp);
+                                *descriptor = StringDescriptor {.Length = sizeof(temp)};
 
-                            memcpy(descriptor->String, _Manufacturer.Text, _Manufacturer.Size);
-                            _Ep0::SendData(temp, setup->Length < descriptor->Length ? setup->Length : descriptor->Length);
-                            break;
+                                memcpy(descriptor->String, _Manufacturer.Text, _Manufacturer.Size);
+                                _Ep0::SendData(temp, setup->Length < descriptor->Length ? setup->Length : descriptor->Length);
+                                break;
+                            }
                         }
 
                         case GetDescriptorParameter::StringProdDescriptor: {
-                            if constexpr (!std::is_same_v<decltype(_Product), bool>)
+                            if constexpr (!std::is_same_v<decltype(_Product), decltype(EmptyFixedString16)>)
                             {
                                 uint8_t temp[sizeof(StringDescriptor) + _Product.Size];
                                 auto descriptor = reinterpret_cast<StringDescriptor*>(temp);
@@ -290,11 +293,11 @@ namespace Zhele::Usb
 
                                 memcpy(descriptor->String, _Product.Text, _Product.Size);
                                 _Ep0::SendData(temp, setup->Length < descriptor->Length ? setup->Length : descriptor->Length);
+                                break;
                             }
-                            break;
                         }
                         case GetDescriptorParameter::StringSerialNumberDescriptor: {
-                            if constexpr (!std::is_same_v<decltype(_Serial), bool>)
+                            if constexpr (!std::is_same_v<decltype(_Serial), decltype(EmptyFixedString16)>)
                             {
                                 uint8_t temp[sizeof(StringDescriptor) + _Serial.Size];
                                 auto descriptor = reinterpret_cast<StringDescriptor*>(temp);
@@ -302,8 +305,8 @@ namespace Zhele::Usb
 
                                 memcpy(descriptor->String, _Serial.Text, _Serial.Size);
                                 _Ep0::SendData(temp, setup->Length < descriptor->Length ? setup->Length : descriptor->Length);
+                                break;
                             }
-                            break;
                         }
                         default:
                             _Ep0::SetTxStatus(EndpointStatus::Stall);
