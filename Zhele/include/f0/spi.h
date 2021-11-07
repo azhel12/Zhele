@@ -93,24 +93,24 @@ namespace Zhele
             {
                 MosiPin::template SetConfiguration<MosiPin::Port::AltFunc>();
                 MosiPin::template SetDriverType<MosiPin::DriverType::PushPull>();
-                MosiPin::template AltFuncNumber<GetNumber<mosiPinNumber, MosiAltFuncNumbers>::value>();
+                MosiPin::template AltFuncNumber<GetNonTypeValueByIndex<mosiPinNumber, MosiAltFuncNumbers>::value>();
             }
 
             if constexpr(misoPinNumber != -1)
             {
                 MisoPin::template SetConfiguration<MisoPin::Port::AltFunc>();
-                MisoPin::template AltFuncNumber<GetNumber<misoPinNumber, MisoAltFuncNumbers>::value>();
+                MisoPin::template AltFuncNumber<GetNonTypeValueByIndex<misoPinNumber, MisoAltFuncNumbers>::value>();
             }
 
             ClockPin::template SetConfiguration<ClockPin::Port::AltFunc>();
             ClockPin::template SetDriverType<ClockPin::DriverType::PushPull>();
-            ClockPin::template AltFuncNumber<GetNumber<clockPinNumber, ClockAltFuncNumbers>::value>();
+            ClockPin::template AltFuncNumber<GetNonTypeValueByIndex<clockPinNumber, ClockAltFuncNumbers>::value>();
 
             if constexpr(ssPinNumber != -1)
             {
                 SsPin::template SetConfiguration<SsPin::Port::AltFunc>();
                 SsPin::template SetDriverType<SsPin::DriverType::PushPull>;
-                SsPin::template AltFuncNumber<GetNumber<ssPinNumber, SsAltFuncNumbers>::value>();
+                SsPin::template AltFuncNumber<GetNonTypeValueByIndex<ssPinNumber, SsAltFuncNumbers>::value>();
             }
         }
 
@@ -147,30 +147,30 @@ namespace Zhele
         #if defined(GPIOE)
             COMMA IO::Pe12
         #endif
-            >, UnsignedArray<0, 0, 1>>;
+            >, NonTypeTemplateArray<0, 0, 1>>;
 
 		using Spi1ClockPins = Pair<IO::PinList<IO::Pa5, IO::Pb3
         #if defined(GPIOE)
             COMMA IO::Pe13
         #endif
-            >, UnsignedArray<0, 0, 1>>;
+            >, NonTypeTemplateArray<0, 0, 1>>;
 
 		using Spi1MisoPins = Pair<IO::PinList<IO::Pa6, IO::Pb4
         #if defined(GPIOE)
             COMMA IO::Pe14
         #endif
-            >, UnsignedArray<0, 0, 1>>;
+            >, NonTypeTemplateArray<0, 0, 1>>;
 
 		using Spi1MosiPins = Pair<IO::PinList<IO::Pa7, IO::Pb5
         #if defined(GPIOE)
             COMMA IO::Pe15
         #endif
-            >, UnsignedArray<0, 0, 1>>;
+            >, NonTypeTemplateArray<0, 0, 1>>;
 		
-		using Spi2SsPins = Pair<IO::PinList<IO::Pb12, IO::Pb9, IO::Pd0>, UnsignedArray<0, 5, 1>>;
-		using Spi2ClockPins = Pair<IO::PinList<IO::Pb13, IO::Pb10, IO::Pd1>, UnsignedArray<0, 5, 1>>;
-		using Spi2MisoPins = Pair<IO::PinList<IO::Pb14, IO::Pc2, IO::Pd3>, UnsignedArray<0, 1, 1>>;
-		using Spi2MosiPins = Pair<IO::PinList<IO::Pb15, IO::Pc3, IO::Pd4>, UnsignedArray<0, 1, 1>>;
+		using Spi2SsPins = Pair<IO::PinList<IO::Pb12, IO::Pb9, IO::Pd0>, NonTypeTemplateArray<0, 5, 1>>;
+		using Spi2ClockPins = Pair<IO::PinList<IO::Pb13, IO::Pb10, IO::Pd1>, NonTypeTemplateArray<0, 5, 1>>;
+		using Spi2MisoPins = Pair<IO::PinList<IO::Pb14, IO::Pc2, IO::Pd3>, NonTypeTemplateArray<0, 1, 1>>;
+		using Spi2MosiPins = Pair<IO::PinList<IO::Pb15, IO::Pc3, IO::Pd4>, NonTypeTemplateArray<0, 1, 1>>;
     }
     using Spi1 = Private::Spi<
         Private::Spi1Regs, 

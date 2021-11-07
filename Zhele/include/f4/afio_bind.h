@@ -29,7 +29,7 @@ namespace Zhele::Private
         Spi1Regs, Spi2Regs, Spi3Regs, // SPI
         I2C1Regs, I2C2Regs, I2C3Regs // I2C
     >;
-    using AltFunctionNumbers = Zhele::TemplateUtils::UnsignedArray<
+    using AltFunctionNumbers = Zhele::TemplateUtils::NonTypeTemplateArray<
         7, 7, 7, 8, 8, 8, // Usart
         5, 5, 6, // SPI
         4, 4, 4 // I2C
@@ -38,7 +38,7 @@ namespace Zhele::Private
     template <typename _Regs>
     struct AltFuncHelper
     {
-        const static uint8_t value = static_cast<uint8_t>(GetNumber<TemplateUtils::TypeIndex<_Regs, Regs>::value, AltFunctionNumbers>::value);
+        const static uint8_t value = static_cast<uint8_t>(GetNonTypeValueByIndex<TemplateUtils::TypeIndex<_Regs, Regs>::value, AltFunctionNumbers>::value);
     };
 
     template<typename Regs>

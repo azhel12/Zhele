@@ -16,6 +16,9 @@
 #include "cdc.h"
 
 #include "../ioreg.h"
+#include "../../common/template_utils/fixed_string.h"
+
+#include <type_traits>
 
 namespace Zhele::Usb
 {
@@ -42,6 +45,18 @@ namespace Zhele::Usb
     };
 #pragma pack(pop)
     
+        /**
+     * @brief String descriptor
+     */
+#pragma pack(push, 1)    
+    struct LangIdDescriptor
+    {
+        uint8_t Length = sizeof(LangIdDescriptor);
+        uint8_t DescriptorType = static_cast<uint8_t>(DescriptorType::String);
+        uint16_t USLang = 0x0409;
+    };
+#pragma pack(pop)
+
     /**
      * @brief Implements USB device.
      * 
@@ -69,11 +84,14 @@ namespace Zhele::Usb
         uint16_t _VendorId,
         uint16_t _ProductId,
         uint16_t _DeviceReleaseNumber,
+        auto _Manufacturer,
+        auto _Product,
+        auto _Serial,
         typename _Ep0,
         typename... _Configurations>
     class DeviceBase : public _Ep0
     {
-        using This = DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Ep0, _Configurations...>;
+        using This = DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
 
         using Configurations = TypeList<_Configurations...>;
         using Interfaces = Append_t<typename _Configurations::Interfaces...>; 
@@ -151,6 +169,9 @@ namespace Zhele::Usb
                 .VendorId = _VendorId,
                 .ProductId = _ProductId,
                 .DeviceReleaseNumber = _DeviceReleaseNumber,
+                .ManufacturerStringIndex = (std::is_same_v<decltype(_Manufacturer), decltype(EmptyFixedString16)>) ? 0 : 1,
+                .ProductStringIndex = (std::is_same_v<decltype(_Product), decltype(EmptyFixedString16)>) ? 0 : 2,
+                .SerialNumberStringIndex = (std::is_same_v<decltype(_Serial), decltype(EmptyFixedString16)>) ? 0 : 3,
                 .ConfigurationsCount = sizeof...(_Configurations)
             };
         }
@@ -245,6 +266,45 @@ namespace Zhele::Usb
                             _Ep0::SendData(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]), setup->Length < size ? setup->Length : size);
                             break;
                         }
+                        case GetDescriptorParameter::StringLangDescriptor: {
+                            LangIdDescriptor langIdDescriptor;
+                            _Ep0::SendData(&langIdDescriptor, setup->Length < sizeof(langIdDescriptor) ? setup->Length : sizeof(langIdDescriptor));
+                            break;
+                        }
+                        case GetDescriptorParameter::StringManDescriptor: {
+                            uint8_t temp[sizeof(StringDescriptor) + _Manufacturer.Size];
+                            auto descriptor = reinterpret_cast<StringDescriptor*>(temp);
+                            *descriptor = StringDescriptor {.Length = sizeof(temp)};
+
+                            memcpy(descriptor->String, _Manufacturer.Text, _Manufacturer.Size);
+                            _Ep0::SendData(temp, setup->Length < descriptor->Length ? setup->Length : descriptor->Length);
+                            break;
+                        }
+
+                        case GetDescriptorParameter::StringProdDescriptor: {
+                            if constexpr (!std::is_same_v<decltype(_Product), bool>)
+                            {
+                                uint8_t temp[sizeof(StringDescriptor) + _Product.Size];
+                                auto descriptor = reinterpret_cast<StringDescriptor*>(temp);
+                                *descriptor = StringDescriptor {.Length = sizeof(temp)};
+
+                                memcpy(descriptor->String, _Product.Text, _Product.Size);
+                                _Ep0::SendData(temp, setup->Length < descriptor->Length ? setup->Length : descriptor->Length);
+                            }
+                            break;
+                        }
+                        case GetDescriptorParameter::StringSerialNumberDescriptor: {
+                            if constexpr (!std::is_same_v<decltype(_Serial), bool>)
+                            {
+                                uint8_t temp[sizeof(StringDescriptor) + _Serial.Size];
+                                auto descriptor = reinterpret_cast<StringDescriptor*>(temp);
+                                *descriptor = StringDescriptor {.Length = sizeof(temp)};
+
+                                memcpy(descriptor->String, _Serial.Text, _Serial.Size);
+                                _Ep0::SendData(temp, setup->Length < descriptor->Length ? setup->Length : descriptor->Length);
+                            }
+                            break;
+                        }
                         default:
                             _Ep0::SetTxStatus(EndpointStatus::Stall);
                             break;
@@ -292,10 +352,13 @@ namespace Zhele::Usb
             uint16_t _VendorId, \
             uint16_t _ProductId, \
             uint16_t _DeviceReleaseNumber, \
+            auto _Manufacturer, \
+            auto _Product, \
+            auto _Serial, \
             typename _Ep0, \
             typename... _Configurations>
 
-    #define USB_DEVICE_TEMPLATE_QUALIFIER DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Ep0, _Configurations...>
+    #define USB_DEVICE_TEMPLATE_QUALIFIER DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>
 
     USB_DEVICE_TEMPLATE_ARGS
     uint8_t USB_DEVICE_TEMPLATE_QUALIFIER::_tempAddressStorage = 0x00;

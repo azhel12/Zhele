@@ -47,7 +47,7 @@ namespace Zhele::Timers
 
             Pin::Port::Enable();
             Pin::template SetConfiguration<Pin::Port::AltFunc>();
-            Pin::template AltFuncNumber<GetNumber<PinNumber, PinAltFuncNumbers>::value>();
+            Pin::template AltFuncNumber<GetNonTypeValueByIndex<PinNumber, PinAltFuncNumbers>::value>();
         }
 
         template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>
@@ -63,10 +63,10 @@ namespace Zhele::Timers
 
 
         template<unsigned ChannelNumber> struct Tim3ChPins;
-        template<> struct Tim3ChPins<0>{ using Pins = Pair<IO::PinList<Pa6, Pb4>, UnsignedArray<1, 1>>; };
-        template<> struct Tim3ChPins<1>{ using Pins = Pair<IO::PinList<Pa7, Pb5>, UnsignedArray<1, 1>>; };
-        template<> struct Tim3ChPins<2>{ using Pins = Pair<IO::PinList<Pb0, Pb10>, UnsignedArray<1, 1>>; };
-        template<> struct Tim3ChPins<3>{ using Pins = Pair<IO::PinList<Pb1, Pb11>, UnsignedArray<1, 1>>; };
+        template<> struct Tim3ChPins<0>{ using Pins = Pair<IO::PinList<Pa6, Pb4>, NonTypeTemplateArray<1, 1>>; };
+        template<> struct Tim3ChPins<1>{ using Pins = Pair<IO::PinList<Pa7, Pb5>, NonTypeTemplateArray<1, 1>>; };
+        template<> struct Tim3ChPins<2>{ using Pins = Pair<IO::PinList<Pb0, Pb10>, NonTypeTemplateArray<1, 1>>; };
+        template<> struct Tim3ChPins<3>{ using Pins = Pair<IO::PinList<Pb1, Pb11>, NonTypeTemplateArray<1, 1>>; };
         
     #if defined (TIM1)
         IO_STRUCT_WRAPPER(TIM1, Tim1Regs, TIM_TypeDef);

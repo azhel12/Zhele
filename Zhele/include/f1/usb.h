@@ -41,9 +41,24 @@ namespace Zhele::Usb
         uint16_t _VendorId,
         uint16_t _ProductId,
         uint16_t _DeviceReleaseNumber,
+        auto _Manufacturer,
+        auto _Product,
+        auto _Serial,
         typename _Ep0,
         typename... _Configurations>
-    using Device = DeviceBase<UsbRegs, USB_LP_IRQn, Zhele::Clock::UsbClock, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Ep0, _Configurations...>;
+    using DeviceWithStrings = DeviceBase<UsbRegs, USB_LP_IRQn, Zhele::Clock::UsbClock, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
+
+    template<
+        uint16_t _UsbVersion,
+        DeviceAndInterfaceClass _Class,
+        uint8_t _SubClass,
+        uint8_t _Protocol,
+        uint16_t _VendorId,
+        uint16_t _ProductId,
+        uint16_t _DeviceReleaseNumber,
+        typename _Ep0,
+        typename... _Configurations>
+    using Device = DeviceBase<UsbRegs, USB_LP_IRQn, Zhele::Clock::UsbClock, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, EmptyFixedString16, EmptyFixedString16, EmptyFixedString16, _Ep0, _Configurations...>;
 }
 
 #endif //! ZHELE_USB_H
