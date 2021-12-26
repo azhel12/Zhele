@@ -2,7 +2,7 @@
  * @file
  * Driver for bmp 280
  * 
- * bases on AlexGyver library (url: https://github.com/GyverLibs/GyverBME280) and Adafruit
+ * bases on AlexGyver library (url: github.com/GyverLibs/GyverBME280) and Adafruit (url: github.com/adafruit/Adafruit_BMP280_Library)
  * 
  * @author Aleksei Zhelonkin
  * @date 2021
@@ -11,8 +11,6 @@
 
 #ifndef ZHELE_DRIVERS_BMP280_H
 #define ZHELE_DRIVERS_BMP280_H
-
-#include <delay.h>
 
 namespace Zhele::Drivers
 {
@@ -50,13 +48,11 @@ namespace Zhele::Drivers
 
             Calibration = 0xe1, ///< Calibration start register
 
-            ControlHumidity = 0xf2, ///< Humidity control register
             Status = 0xf3, ///< Status register
             Control = 0xf4, ///< Control register
             Config = 0xf5, ///< Config register
             PressureData = 0xf7, ///< Pressure data register
             TemperatureData = 0xfa, ///< Temperature data register
-            HumidityData = 0xfd, ///< Humidity data register
         };
 
         /// Sampling rates
@@ -154,6 +150,10 @@ namespace Zhele::Drivers
             if(!Reset())
                 return false;
             
+            for(unsigned i = 0; i < 100000; ++i)
+                __asm("nop");
+
+
             uint8_t chipId = ReadRegister(Register::ChipId);
 
             if(chipId != ChipId)
@@ -161,12 +161,11 @@ namespace Zhele::Drivers
             
             ReadCalibrationData();
 
-            WriteRegister(Register::ControlHumidity, Sampling::X1);
-            WriteRegister(Register::ControlHumidity, ReadRegister(Register::ControlHumidity));
             WriteRegister(Register::Control, *reinterpret_cast<uint8_t*>(&_control));
             WriteRegister(Register::Config, *reinterpret_cast<uint8_t*>(&_config));
 
-            delay_ms<100>();
+            for(unsigned i = 0; i < 100000; ++i)
+                __asm("nop");
 
             return true;
         }
@@ -197,7 +196,7 @@ namespace Zhele::Drivers
 
             firstTemp += secondTemp;
 
-            return static_cast<float>((firstTemp * 5 + 128) >> 8) / 100;
+            return static_cast<float>((firstTemp * 5) >> 8) / 100;
         }
 
     private:
@@ -231,8 +230,8 @@ namespace Zhele::Drivers
          * @return 3-bytes register value
          */
         static uint32_t ReadRegister24(Register regAddress)
-        {	 
-            uint32_t value;
+        {  
+            uint32_t value = 0;
         
             _I2CBus::Read(Bmp280Address, static_cast<uint16_t>(regAddress), (reinterpret_cast<uint8_t*>(&value)), 3);
             std::swap(reinterpret_cast<uint8_t*>(&value)[0], reinterpret_cast<uint8_t*>(&value)[2]);
