@@ -55,7 +55,7 @@ namespace Zhele::IO
 	template<typename _Port, uint8_t _Pin, typename _ConfigPort>
 	void TPin<_Port, _Pin, _ConfigPort>::SetDirWrite()
 	{
-		_ConfigPort:: template SetPinConfiguration<_Pin>(Port::Out);
+		_ConfigPort:: template SetConfiguration<1u << _Pin, _Port::Configuration::Out>();
 	}
 
 	template<typename _Port, uint8_t _Pin, typename _ConfigPort>
