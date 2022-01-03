@@ -39,7 +39,7 @@ namespace Zhele
          */
         template<typename... Args>
         BinaryStream(Args... args)
-            :_Source(args...)
+            : _Source(args...)
         {
         }
 
@@ -176,8 +176,8 @@ namespace Zhele
          * 
          * @tparam PtrType Receive buffer pointer type
          * 
-         * @param buffer Buffer pointer
-         * @param size Bytes to read
+         * @param buffer [out] Buffer pointer
+         * @param size [in] Bytes to read
          */
         template<typename PtrType>
         inline void Read(PtrType buffer, size_t size)
@@ -190,11 +190,27 @@ namespace Zhele
         }
 
         /**
+         * @brief Read data from source to buffer async
+         * 
+         * @tparam PtrType Receive buffer pointer type
+         * 
+         * @param buffer [out] Buffer pointer
+         * @param size [in] Bytes to read
+         * @param callback [in, opt] Read complete callback
+         * 
+         */
+        template<typename PtrType>
+        inline void ReadAsync(PtrType buffer, size_t size, TransferCallback callback = nullptr)
+        {
+            _Source::ReadAsync(buffer, size, callback);
+        }
+
+        /**
          * @brief Writes data
          * 
          * @tparam PtrType Source buffer pointer type
-         * @param buffer Buffer pointer
-         * @param size Bytes to write
+         * @param buffer [in] Buffer pointer
+         * @param size [in] Bytes to write
          */
         template<typename PtrType>
         inline void Write(PtrType buffer, size_t size)
@@ -204,6 +220,19 @@ namespace Zhele
                 _Source::Write(*buffer);
                 ++buffer;
             }
+        }
+
+        /**
+         * @brief Writes data async
+         * 
+         * @tparam PtrType Source buffer pointer type
+         * @param buffer [in] Buffer pointer
+         * @param size [in] Bytes to write
+         */
+        template<typename PtrType>
+        inline void WriteAsync(PtrType buffer, size_t size)
+        {
+            _Source::WriteAsync(buffer, size);
         }
     };
 }

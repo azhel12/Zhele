@@ -254,6 +254,32 @@ namespace Zhele::Drivers
             }
             return false;
         }
+
+        /**
+         * @brief Read multiple blocks from card
+         * 
+         * @tparam ReadIterator Iterator type
+         * 
+         * @param iter [in] Iterator
+         * @param logicalBlockAddress [in] Block address
+         * @param [in] blocksCount Block to read count
+         * 
+         * @return true Success
+         * @return false Fail
+         */
+        template<typename ReadIterator>
+        static bool ReadMultipleBlock(ReadIterator iter, uint32_t logicalBlockAddress, uint32_t blocksCount)
+        {
+            if(_type != SdhcCard)
+                logicalBlockAddress <<= 9;
+            if(!WaitWhileBusy())
+                return false;
+            if(SpiCommand(SdCardCommand::ReadMultipleBlock, logicalBlockAddress) == 0)
+            {
+                ReadDataBlock<ReadIterator>(iter, 512 * blocksCount);
+            }
+            return false;
+        }
     };
 
     template<typename _SpiModule, typename _CsPin>
