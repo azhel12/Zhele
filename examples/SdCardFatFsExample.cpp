@@ -19,11 +19,6 @@ using SdCardReader = Drivers::SdCard<Spi1, IO::Pa4>;
 using UsartConnection = Usart1;
 
 void ConfigureClock();
-void ConfigureUsart();
-
-void ProcessUartTask();
-
-volatile bool uartTask = false;
 
 int main()
 {	
