@@ -266,6 +266,41 @@ namespace Zhele
 
         template<typename... T>
         using Append_t = typename Append<T...>::type;
+
+        /**
+         * @brief Select list slice
+         */
+        template<int, int, typename...>
+        class Slice {};
+
+        template<int Offset, typename List>
+        class Slice<Offset, -1, List>
+        {
+        public:
+            using type = TypeList<>;
+        };
+
+        template<int Offset, typename List>
+        class Slice<Offset, 0, List>
+        {
+        public:
+            using type = TypeList<>;
+        };
+
+        template<int Offset, typename List>
+        class Slice<Offset, 1, List>
+        {
+        public:
+            using type = TypeList<typename GetType<Offset, List>::type>;
+        };
+
+        template<int Offset, int Length, typename List>
+        class Slice<Offset, Length, List>
+        {
+        public:
+            using type = typename InsertBack<typename Slice<Offset, Length - 1, List>::type, GetType<Offset + Length - 1, List>>::type;
+        };
+
         /**
          * @brief Select by bool template argument
          */
