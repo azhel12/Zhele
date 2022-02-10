@@ -75,6 +75,9 @@ namespace Zhele::Usb
      */
     template<
         typename _Regs,
+#if defined (USB_OTG_FS)
+        typename _DeviceRegs,
+#endif
         IRQn_Type _IRQNumber,
         typename _ClockCtrl, 
         uint16_t _UsbVersion,
@@ -91,13 +94,15 @@ namespace Zhele::Usb
         typename... _Configurations>
     class DeviceBase : public _Ep0
     {
+#if defined (USB)
         using This = DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
-
+#elif defined (USB_OTG_FS)
+        using This = DeviceBase<_Regs, _DeviceRegs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
+#endif
         using Configurations = TypeList<_Configurations...>;
         using Interfaces = Append_t<typename _Configurations::Interfaces...>; 
         using Endpoints = Append_t<typename _Configurations::Endpoints...>;
 
-        using EpBufferManager = EndpointsManager<Append_t<_Ep0, Endpoints>>;
         // Replace Ep0 with this for correct handler register.
         using EpHandlers = EndpointHandlers<Append_t<This, Endpoints>>;
         using IfHandlers = InterfaceHandlers<Interfaces>;
@@ -124,20 +129,15 @@ namespace Zhele::Usb
          * @par Returns
          *  Nothing
          */
-        static void Enable()
-        {
-            _ClockCtrl::Enable();
-            EpBufferManager::Init();
-            
-            _Regs()->CNTR = USB_CNTR_CTRM | USB_CNTR_RESETM;
-            _Regs()->ISTR = 0;
-            _Regs()->BTABLE = 0;
-        #if defined (USB_BCDR_DPPU)
-            _Regs()->BCDR |= USB_BCDR_DPPU;
-        #endif
+        static void Enable();
 
-            NVIC_EnableIRQ(_IRQNumber);
-        }
+        /**
+         * @brief Reset device
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void Reset();
 
         /**
          * @brief Allows check that device configure complete
@@ -145,10 +145,7 @@ namespace Zhele::Usb
          * @retval true Device is configured
          * @retval false Device is not configured yet
          */
-        static bool IsDeviceConfigured()
-        {
-            return _isDeviceConfigured;
-        }
+        static bool IsDeviceConfigured();
 
         /**
          * @brief Fills descriptor
@@ -158,23 +155,7 @@ namespace Zhele::Usb
          * @par Returns
          *  Nothing
          */
-        static void FillDescriptor(DeviceDescriptor* descriptor)
-        {
-           *descriptor = DeviceDescriptor {
-                .UsbVersion = _UsbVersion,
-                .Class = _Class,
-                .SubClass = _SubClass,
-                .Protocol = _Protocol,
-                .MaxPacketSize = _Ep0::MaxPacketSize,
-                .VendorId = _VendorId,
-                .ProductId = _ProductId,
-                .DeviceReleaseNumber = _DeviceReleaseNumber,
-                .ManufacturerStringIndex = (std::is_same_v<decltype(_Manufacturer), decltype(EmptyFixedString16)>) ? 0 : 1,
-                .ProductStringIndex = (std::is_same_v<decltype(_Product), decltype(EmptyFixedString16)>) ? 0 : 2,
-                .SerialNumberStringIndex = (std::is_same_v<decltype(_Serial), decltype(EmptyFixedString16)>) ? 0 : 3,
-                .ConfigurationsCount = sizeof...(_Configurations)
-            };
-        }
+        static void FillDescriptor(DeviceDescriptor* descriptor);
 
         /**
          * @brief Common USB handler
@@ -182,38 +163,7 @@ namespace Zhele::Usb
          * @par Returns
          *  Nothing
          */
-        static void CommonHandler()
-        {
-            NVIC_ClearPendingIRQ(_IRQNumber);
-
-            if(_Regs()->ISTR & USB_ISTR_RESET)
-            {
-                Reset();
-            }
-            if (_Regs()->ISTR & USB_ISTR_CTR)
-            {
-                uint8_t endpoint = _Regs()->ISTR & USB_ISTR_EP_ID;
-                EpHandlers::Handle(endpoint, ((_Regs()->ISTR & USB_ISTR_DIR) != 0 ? EndpointDirection::Out : EndpointDirection::In));
-            }
-        }
-
-        /**
-         * @brief Reset device
-         * 
-         * @par Returns
-         *  Nothing
-         */
-        static void Reset()
-        {
-            _Ep0::Reset();
-            
-            (_Configurations::Reset(), ...);
-
-            _Regs()->CNTR = USB_CNTR_CTRM | USB_CNTR_RESETM;
-            _Regs()->ISTR = 0;
-            _Regs()->BTABLE = 0;
-            _Regs()->DADDR = USB_DADDR_EF;
-        }
+        static void CommonHandler();
 
         /**
          * @brief Ep0 (device) CTR handler
@@ -221,152 +171,10 @@ namespace Zhele::Usb
          * @par Returns
          *  Nothing
          */
-        static void Handler()
-        {
-            if(_Ep0::Reg::Get() & USB_EP_CTR_RX)
-            {
-                _Ep0::ClearCtrRx();
-                
-                if(_Ep0::Reg::Get() & USB_EP_SETUP)
-                {
-                    SetupPacket* setup = reinterpret_cast<SetupPacket*>(_Ep0::RxBuffer);
-
-                    if(setup->RequestType.Recipient == 1)
-                    {
-                        IfHandlers::HandleSetupRequest(setup->Index & 0xff);
-                        return;
-                    }
-
-                    switch (setup->Request) {
-                    case StandartRequestCode::GetStatus: {
-                        uint16_t status = 0;
-                        _Ep0::SendData(&status, sizeof(status));
-                        break;
-                    }
-                    case StandartRequestCode::SetAddress: {
-                        _tempAddressStorage = setup->Value;                        
-                        _Ep0::SendZLP([](){
-                            _Regs()->DADDR = (USB_DADDR_EF | (_tempAddressStorage & USB_DADDR_ADD));
-                            _Ep0::SetRxStatus(EndpointStatus::Valid);
-                        });
-                        break;
-                    }
-                    case StandartRequestCode::GetDescriptor: {
-                        switch (static_cast<GetDescriptorParameter>(setup->Value)) {
-                        case GetDescriptorParameter::DeviceDescriptor: {
-                            DeviceDescriptor tempDeviceDescriptor;
-                            FillDescriptor(reinterpret_cast<DeviceDescriptor*>(&tempDeviceDescriptor));
-                            _Ep0::SendData(&tempDeviceDescriptor, setup->Length < sizeof(DeviceDescriptor) ? setup->Length : sizeof(DeviceDescriptor));
-                            break;
-                        }
-                        case GetDescriptorParameter::ConfigurationDescriptor: {
-                            uint8_t temp[128];
-                            // Now supports only one configuration. It will easy to support more by adding dispatcher like in endpoint/interface
-                            uint16_t size = GetType<0, Configurations>::type::FillDescriptor(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]));
-                            _Ep0::SendData(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]), setup->Length < size ? setup->Length : size);
-                            break;
-                        }
-                        case GetDescriptorParameter::StringLangDescriptor: {
-                            LangIdDescriptor langIdDescriptor;
-                            _Ep0::SendData(&langIdDescriptor, setup->Length < sizeof(langIdDescriptor) ? setup->Length : sizeof(langIdDescriptor));
-                            break;
-                        }
-                        case GetDescriptorParameter::StringManDescriptor: {
-                            if constexpr (!std::is_same_v<decltype(_Manufacturer), decltype(EmptyFixedString16)>)
-                            {
-                                uint8_t temp[sizeof(StringDescriptor) + _Manufacturer.Size];
-                                auto descriptor = reinterpret_cast<StringDescriptor*>(temp);
-                                *descriptor = StringDescriptor {.Length = sizeof(temp)};
-
-                                memcpy(descriptor->String, _Manufacturer.Text, _Manufacturer.Size);
-                                _Ep0::SendData(temp, setup->Length < descriptor->Length ? setup->Length : descriptor->Length);
-                                break;
-                            }
-                        }
-
-                        case GetDescriptorParameter::StringProdDescriptor: {
-                            if constexpr (!std::is_same_v<decltype(_Product), decltype(EmptyFixedString16)>)
-                            {
-                                uint8_t temp[sizeof(StringDescriptor) + _Product.Size];
-                                auto descriptor = reinterpret_cast<StringDescriptor*>(temp);
-                                *descriptor = StringDescriptor {.Length = sizeof(temp)};
-
-                                memcpy(descriptor->String, _Product.Text, _Product.Size);
-                                _Ep0::SendData(temp, setup->Length < descriptor->Length ? setup->Length : descriptor->Length);
-                                break;
-                            }
-                        }
-                        case GetDescriptorParameter::StringSerialNumberDescriptor: {
-                            if constexpr (!std::is_same_v<decltype(_Serial), decltype(EmptyFixedString16)>)
-                            {
-                                uint8_t temp[sizeof(StringDescriptor) + _Serial.Size];
-                                auto descriptor = reinterpret_cast<StringDescriptor*>(temp);
-                                *descriptor = StringDescriptor {.Length = sizeof(temp)};
-
-                                memcpy(descriptor->String, _Serial.Text, _Serial.Size);
-                                _Ep0::SendData(temp, setup->Length < descriptor->Length ? setup->Length : descriptor->Length);
-                                break;
-                            }
-                        }
-                        default:
-                            _Ep0::SetTxStatus(EndpointStatus::Stall);
-                            break;
-                        }
-                        break;
-                    }
-                    case StandartRequestCode::GetConfiguration: {
-                        uint8_t response = _isDeviceConfigured ? 1 : 0;
-                        _Ep0::SendData(&response, 1);
-                        break;
-                    }
-                    case StandartRequestCode::SetConfiguration: {
-                        _isDeviceConfigured = true;
-                        _Ep0::SendZLP();
-                        break;
-                    }
-                    default:
-                        _Ep0::SetTxStatus(EndpointStatus::Stall);
-                        break;
-                    }
-                }
-                else
-                {
-                    _Ep0::TryHandleDataTransfer();
-                }
-            }
-            if(_Ep0::Reg::Get() & USB_EP_CTR_TX)
-            {
-                _Ep0::ClearCtrTx();
-                _Ep0::HandleTx();
-            }
-        }
+        static void Handler();
     };
-
-    IO_STRUCT_WRAPPER(USB, UsbRegs, USB_TypeDef);
-
-    #define USB_DEVICE_TEMPLATE_ARGS template< \
-            typename _Regs, \
-            IRQn_Type _IRQNumber, \
-            typename _ClockCtrl, \
-            uint16_t _UsbVersion, \
-            DeviceAndInterfaceClass _Class, \
-            uint8_t _SubClass, \
-            uint8_t _Protocol, \
-            uint16_t _VendorId, \
-            uint16_t _ProductId, \
-            uint16_t _DeviceReleaseNumber, \
-            auto _Manufacturer, \
-            auto _Product, \
-            auto _Serial, \
-            typename _Ep0, \
-            typename... _Configurations>
-
-    #define USB_DEVICE_TEMPLATE_QUALIFIER DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>
-
-    USB_DEVICE_TEMPLATE_ARGS
-    uint8_t USB_DEVICE_TEMPLATE_QUALIFIER::_tempAddressStorage = 0x00;
-
-    USB_DEVICE_TEMPLATE_ARGS
-    volatile bool USB_DEVICE_TEMPLATE_QUALIFIER::_isDeviceConfigured = false;
 }
+
+#include "impl/device.h"
+
 #endif // ZHELE_USB_DEVICE_H
