@@ -67,7 +67,18 @@ namespace Zhele::Clock
 
     ClockFrequenceT PllClock::ClockFreq()
     {
+#if defined (RCC_PLLCFGR_PLLP)
+        uint8_t pllpValue = GetSystemOutputDivider() == SystemOutputDivider::Div2
+            ? 2
+            : GetSystemOutputDivider() == SystemOutputDivider::Div4
+                ? 4
+                : GetSystemOutputDivider() == SystemOutputDivider::Div6
+                    ? 6
+                    : 8;
+        return SrcClockFreq() / GetDivider() * GetMultipler() / pllpValue;
+#else
         return SrcClockFreq() / GetDivider() * GetMultipler();
+#endif
     }
 
     bool PllClock::Enable()
