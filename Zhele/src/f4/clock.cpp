@@ -46,25 +46,25 @@ namespace Zhele::Clock
 
     void PllClock::SelectClockSource(ClockSource clockSource)
     {
-        RCC->CFGR = clockSource == External
-            ? RCC->CFGR  | RCC_PLLCFGR_PLLSRC_HSE
-            : RCC->CFGR  & ~RCC_PLLCFGR_PLLSRC;
+        RCC->PLLCFGR = clockSource == External
+            ? RCC->PLLCFGR  | RCC_PLLCFGR_PLLSRC_HSE
+            : RCC->PLLCFGR  & ~RCC_PLLCFGR_PLLSRC;
     }
 
     PllClock::ClockSource PllClock::GetClockSource()
     {
-        return RCC->CFGR & RCC_PLLCFGR_PLLSRC_HSE
+        return RCC->PLLCFGR & RCC_PLLCFGR_PLLSRC_HSE
             ? ClockSource::External
             : ClockSource::Internal;
     }
 
-    ClockFrequenceT PllClock::GetSystemOutputDivider()
+    PllClock::SystemOutputDivider PllClock::GetSystemOutputDivider()
     {
-        return PllP::Get();
+        return static_cast<PllClock::SystemOutputDivider>(PllP::Get());
     }
-    void PllClock::SetSystemOutputDivider(ClockFrequenceT divider)
+    void PllClock::SetSystemOutputDivider(PllClock::SystemOutputDivider divider)
     {
-        PllP::Set(divider);
+        PllP::Set(static_cast<uint8_t>(divider));
     }
     ClockFrequenceT PllClock::GetUsbOutputDivider()
     {

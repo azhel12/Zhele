@@ -234,12 +234,24 @@ namespace Zhele
             static void SetMultiplier(ClockFrequenceT multiplier);		
 
         #if defined(RCC_PLLCFGR_PLLP)
+
+            /**
+             * @brief PllP values
+             */
+            enum class SystemOutputDivider : uint8_t
+            {
+                Div2 = 0b00,
+                Div4 = 0b01,
+                Div6 = 0b10,
+                Div8 = 0b11
+            };
+
             /**
              * @brief Return PLLP value
              * 
              * @returns PLLP value
              */
-            static ClockFrequenceT GetSystemOutputDivider();
+            static SystemOutputDivider GetSystemOutputDivider();
 
             /**
              * @brief Set PLLP
@@ -249,7 +261,7 @@ namespace Zhele
              * @par Returns
              *	Nothing
              */
-            static void SetSystemOutputDivider(ClockFrequenceT divider);
+            static void SetSystemOutputDivider(SystemOutputDivider divider);
 
             /**
              * @brief Return PLLQ value
