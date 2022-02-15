@@ -29,6 +29,11 @@ namespace Zhele::Usb
     using EpRequestHandler = std::add_pointer_t<void()>;
 
     /**
+     * @brief Endpoint transfer complete callback.
+     */
+    using EpRxFifoNotEmptyHandler = std::add_pointer_t<void(uint16_t size)>;
+
+    /**
      * @brief Predicate for search Tx endpoint by number
      * 
      * @tparam Number Endpoint number
@@ -201,7 +206,7 @@ namespace Zhele::Usb
         std::false_type>
     {};
 #elif defined (USB_OTG_FS)
-        /**
+    /**
      * @brief Comparator for endpoints sort (compare Number/Direction) for OTG
      * 
      * @tparam T First endpoint
@@ -480,18 +485,6 @@ namespace Zhele::Usb
         Sample_t<IsOutEndpoint, SortedUniqueEndpoints<Endpoints>>
     >;
 
-    /**
-     * @brief Endpoints initalizer
-     * 
-     * @tparam Endpoints All endpoints list
-     */
-    template<typename... Endpoints>
-    using EndpointsInitializer = EndpointsManagerBase
-    <
-        SortedUniqueEndpoints<TypeList<Endpoints...>>,
-        TypeList<>,
-        TypeList<>
-    >;
 #elif defined (USB_OTG_FS)
     #define USB_INEP(i)  (USB_OTG_FS_PERIPH_BASE + USB_OTG_IN_ENDPOINT_BASE + (i) * USB_OTG_EP_REG_SIZE)
     #define USB_OUTEP(i) (USB_OTG_FS_PERIPH_BASE + USB_OTG_OUT_ENDPOINT_BASE + (i) * USB_OTG_EP_REG_SIZE)
@@ -526,12 +519,26 @@ namespace Zhele::Usb
         template<typename Endpoint>
         static const uint32_t BufferOffset = OffsetOfBuffer<TypeIndex<Endpoint, TypeList<OutEndpoints...>>::value, TypeList<OutEndpoints...>>::value;
 
-        // RX fifo size recommended as sum of all OUT endpoint`s max packet size (+ 11 dwords. Minimum = 16).
-        static const uint32_t RxFifoSize = (11 + (3 + ... + OutEndpoints::MaxPacketSize) / 4) > 16
-            ? 11 + (3 + ... + OutEndpoints::MaxPacketSize) / 4
-            : 16; // 11 = 10 (SETUP) + 1 (global out NAK)
 
-        static_assert(RxFifoSize == 16);
+        /**
+         * @brief Comparator for endpoints sort by MaxPacketSize
+         * 
+         * @details RX fifo size recommended as 2x maximum of all OUT endpoint`s max packet size (+ 11 dwords. Minimum = 16)
+         * So, we can sort OUT endpoint by max packet size, get maximum and calculate RX fifo size.
+         * 
+         * @tparam T First endpoint
+         * @tparam U Second endpoint
+         */
+        template <typename T, typename U>
+        struct EndpointMaxPacketSizeComparator : std::conditional_t<U::MaxPacketSize < T::MaxPacketSize, std::true_type, std::false_type> {};
+        /// OUT (bidirectional) endpoints sorted by MaxPacketSize descending.
+        using OutEndpointsSortedByMaxPacketSizeDescending = typename TypeListSort<EndpointMaxPacketSizeComparator, TypeList<OutEndpoints...>>::type;
+        /// Maximum of MaxPacketSize
+        static const uint16_t MaximumOfOutEnpointsMaxPacketSize = GetType<0, OutEndpointsSortedByMaxPacketSizeDescending>::type::MaxPacketSize;
+        /// RX fifo size calculation
+        static const uint16_t RxFifoSize = (11 + 2 * ((3 + MaximumOfOutEnpointsMaxPacketSize) / 4)) > 16 // 11 = 10 (SETUP) + 1 (global out NAK)
+            ? 11 + 2 * ((3 + MaximumOfOutEnpointsMaxPacketSize) / 4)
+            : 16;
 
         static const uint32_t FifoBaseAddress = USB_OTG_FS_PERIPH_BASE + USB_OTG_FIFO_BASE;
         static const uint32_t EpFifoSize = USB_OTG_FIFO_SIZE;
@@ -550,6 +557,7 @@ namespace Zhele::Usb
                 Endpoint,
                 EndpointInReg<TypeIndex<Endpoint, TypeList<InEndpoints...>>::value>, // IN register
                 EndpointOutReg<TypeIndex<Endpoint, TypeList<OutEndpoints...>>::value>, // OUT register
+                TypeIndex<Endpoint, TypeList<InEndpoints...>>::value, // Fifo number
                 FifoBaseAddress + TypeIndex<Endpoint, TypeList<InEndpoints...>>::value * EpFifoSize>, // Fifo address = Fifo base + i * USB_OTG_FIFO_SIZE
             void>::value; // RxFifo (same for all endpoints)
 
@@ -567,18 +575,24 @@ namespace Zhele::Usb
         }
 
     private:
+        /**
+         * @brief Init TX fifo for endpoint.
+         * 
+         * @details TX fifo size for endpoint = 2 x MaxPacketSize
+         * 
+         * @tparam Endpoint Endpoint
+         */
         template<typename Endpoint>
         static void InitTransmitFifos()
         {
             if constexpr (TypeIndex<Endpoint, TypeList<InEndpoints...>>::value == 0)
             {
-                OtgFsGlobal()->DIEPTXF0_HNPTXFSIZ = (((Endpoint::MaxPacketSize + 3) / 4) << 16) | RxFifoSize * 4;
-                static_assert(((Endpoint::MaxPacketSize + 3) / 4) == 2);
+                OtgFsGlobal()->DIEPTXF0_HNPTXFSIZ = ((2 * ((Endpoint::MaxPacketSize + 3) / 4)) << 16) | RxFifoSize * 4;
             }
             else
             {
-                static const uint16_t FifoOffset = 4 *(RxFifoSize + SumOfFifoSize<typename Slice<0, TypeIndex<Endpoint, TypeList<InEndpoints...>>::value, TypeList<InEndpoints...>>::type>::value);
-                OtgFsGlobal()->DIEPTXF[TypeIndex<Endpoint, InEndpointWithoutZeroEndpoint>::value] = (((Endpoint::MaxPacketSize + 3) / 4) << 16) | FifoOffset;
+                static const uint16_t FifoOffset = 4 * (RxFifoSize + SumOfFifoSize<typename Slice<0, TypeIndex<Endpoint, TypeList<InEndpoints...>>::value, TypeList<InEndpoints...>>::type>::value);
+                OtgFsGlobal()->DIEPTXF[TypeIndex<Endpoint, InEndpointWithoutZeroEndpoint>::value] = (((2 * (Endpoint::MaxPacketSize + 3) / 4)) << 16) | FifoOffset;
             }
         }
 
@@ -589,7 +603,7 @@ namespace Zhele::Usb
         class SumOfFifoSize<TypeList<Endpoints...>>
         {
         public:
-            const static uint16_t value = (0 + ... + Endpoints::MaxPacketSize);
+            const static uint16_t value = 2 * (0 + ... + Endpoints::MaxPacketSize);
         };
     };
 
@@ -605,7 +619,7 @@ namespace Zhele::Usb
         Sample_t<IsInOrBidirectionalEndpoint, SortedUniqueEndpoints<Endpoints>>,
         Sample_t<IsOutOrBidirectionalEndpoint, SortedUniqueEndpoints<Endpoints>>
     >;
-
+#endif
     /**
      * @brief Endpoints initalizer
      * 
@@ -613,7 +627,7 @@ namespace Zhele::Usb
      */
     template<typename... Endpoints>
     using EndpointsInitializer = EndpointsManager<TypeList<Endpoints...>>;
-#endif
+
     /**
      * @brief Implements endpoint`s handlers management.
      * 
@@ -625,7 +639,14 @@ namespace Zhele::Usb
     template<typename... Endpoints, int8_t... Indexes>
     class EndpointHandlersBase<TypeList<Endpoints...>, Int8_tArray<Indexes...>>
     {
-    public:
+#if defined (USB_OTG_FS)
+        /**
+         * @todo Pack rx fifo handlers via add one In endpoints as template parameter.
+         */
+        static constexpr EpRxFifoNotEmptyHandler _rxFifoHandlers[] = {(Endpoints::Direction == EndpointDirection::Out || Endpoints::Direction == EndpointDirection::Bidirectional
+            ? Endpoints::HandlerFifoNotEmpty
+            : nullptr)...};
+#endif
         static constexpr EpRequestHandler _handlers[] = {Endpoints::Handler...};
         static constexpr int8_t _handlersIndexes[] = {Indexes...};
     public:
@@ -633,6 +654,12 @@ namespace Zhele::Usb
         {
             _handlers[_handlersIndexes[2 * number + (direction == EndpointDirection::Out ? 1 : 0)]]();
         }
+#if defined (USB_OTG_FS)
+        inline static void HandleRxFifoNotEmpty(uint8_t number, uint16_t size)
+        {
+            _rxFifoHandlers[_handlersIndexes[2 * number + 1]](size);
+        }
+#endif
     };
 
     /**

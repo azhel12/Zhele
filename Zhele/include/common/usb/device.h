@@ -103,6 +103,8 @@ namespace Zhele::Usb
         using Interfaces = Append_t<typename _Configurations::Interfaces...>; 
         using Endpoints = Append_t<typename _Configurations::Endpoints...>;
 
+        using EpBufferManager = EndpointsManager<Append_t<_Ep0, Endpoints>>;
+
         // Replace Ep0 with this for correct handler register.
         using EpHandlers = EndpointHandlers<Append_t<This, Endpoints>>;
         using IfHandlers = InterfaceHandlers<Interfaces>;
@@ -172,6 +174,27 @@ namespace Zhele::Usb
          *  Nothing
          */
         static void Handler();
+
+    private:
+        /**
+         * @brief Handle SETUP request
+         * 
+         * @param setupPacket 
+         * 
+         * @par Returns
+         *  Nohting
+         */
+        static void HandleSetupRequest(SetupPacket* setupPacket);
+
+        /**
+         * @brief Set device address
+         * 
+         * @param address Address
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void SetAddress(uint16_t address);
     };
 }
 
