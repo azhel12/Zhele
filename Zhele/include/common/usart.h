@@ -160,7 +160,12 @@ namespace Zhele
                 TxCompleteInt | RxNotEmptyInt | IdleInt | LineBreakInt |
                 ErrorInt | CtsInt;
     };
-     
+    
+    static const UsartBase::UsartMode DefaultUsartMode = {
+        .CR1 = static_cast<UsartBase::UsartMode::_CR1>(UsartBase::UsartMode::RxTxEnable),
+        .CR2 = static_cast<UsartBase::UsartMode::_CR2>(0),
+        .CR3 = static_cast<UsartBase::UsartMode::_CR3>(0)};
+
     namespace Private
     {
         template<typename _Regs, IRQn_Type _IRQNumber, typename _ClockCtrl, typename _TxPins, typename _RxPins, typename _DmaTx, typename _DmaRx>
@@ -177,7 +182,7 @@ namespace Zhele
              *	Nothing
              */
             template<unsigned long baud>
-            static inline void Init(UsartMode mode = UsartMode::Default);
+            static inline void Init(UsartMode mode = DefaultUsartMode);
             
 
             /**
@@ -189,7 +194,7 @@ namespace Zhele
              * @par Returns
              *	Nothing
              */
-            static void Init(unsigned baud, UsartMode mode = UsartMode::Default);
+            static void Init(unsigned baud, UsartMode mode = DefaultUsartMode);
             
 
             /**
