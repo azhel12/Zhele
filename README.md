@@ -1,8 +1,8 @@
 # Zhele
 Framework for Stm32 MCU on C++ templates. Project based on "mcucpp" by Konstantin Chizhov.
 # Getting started
-I'm using VSCode IDE + Platformio + GNU Arm Embedded Toolchain Version 10-2020-q4-major (it supports some features from c++20).
-Basically c++17 is required, c++20 needed only for USB (but you can port code for c++17 by add some 'typename' keyword. с++20 allows skip it where only 'typename' can be applied).
+I'm using VSCode IDE + Platformio + GNU Arm Embedded Toolchain Version 10.3-2021.10 (it supports features from c++20).
+Basically c++17 is required, c++20 needed only for USB. But I'm planning to use more new features from modern C++ (such as concepts and maybe coroutines), so it's recommended to use latest toolchain.
 1. Download Visual Studio Code from [official site](https://code.visualstudio.com/download) and install it.
 2. Run VS code, Press _Ctrl+Shift+X_ (or press _Extension_ in left sidebar), input _PlatformIO_ in search and push install.
 You can get some errors about python virtual environments. There is many solutions in Internet.
@@ -13,8 +13,8 @@ You can get some errors about python virtual environments. There is many solutio
 ![Install plaform](https://user-images.githubusercontent.com/8615986/117636624-ac0b7500-b189-11eb-8d93-2fd990c3a6fd.png)
 5. Open _PIO Home_ _Home_, press _New Project_, input project name, board (examples for stm32f103) and **CMSIS** in _Framework_.
 ![New project](https://user-images.githubusercontent.com/8615986/117640495-c2b3cb00-b18d-11eb-8f3a-791a0e9aa443.PNG)
-7. Download new Arm Embedded Toolchain from [official site](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads). Choose gcc-arm-none-eabi-10-2020-q4-major-win32.zip
-![Arm Embedded Toolchain download](https://user-images.githubusercontent.com/8615986/117637058-20461880-b18a-11eb-9870-599a88b69ce2.png)
+7. Download new Arm Embedded Toolchain from [official site](https://developer.arm.com/downloads/-/gnu-rm). Choose gcc-arm-none-eabi-10.3-2021.10-win32.zip
+![Arm Embedded Toolchain download](https://user-images.githubusercontent.com/8615986/173829139-9afdb9fe-0ac7-42ad-8ba0-a0308000940e.png)
 7. Unpack archive and copy witj replace folders _bin_, _share_, _arm-none-eabi_ and _lib_ to _C:\\Users\\%Username%\\.platformio\\packages\\toolchain-gccarmnoneeabi\\_. Warning! Do not delete files _.piopm_ and _package.json_.
 ![Copy new toolchain](https://user-images.githubusercontent.com/8615986/117638529-972fe100-b18b-11eb-9aff-e4deec2e6707.png)
 9. Open _PIO Home_ _Home_, press _New Project_, input project name, board (examples for stm32f103) and **CMSIS** in _Framework_. Press _Finish_.
