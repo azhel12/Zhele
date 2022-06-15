@@ -114,8 +114,8 @@ namespace Zhele::Usb
         static void SetupHandler()
         {
             SetupPacket* setup = reinterpret_cast<SetupPacket*>(_Ep0::RxBuffer);
-            
-             if (setup->Request == StandartRequestCode::GetDescriptor
+
+            if (setup->Request == StandartRequestCode::GetDescriptor
                 && static_cast<GetDescriptorParameter>(setup->Value) == GetDescriptorParameter::HidReportDescriptor)
             {
                 uint8_t temp[HidInterface::ReportsSize()];

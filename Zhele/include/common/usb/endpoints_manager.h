@@ -29,6 +29,11 @@ namespace Zhele::Usb
     using EpRequestHandler = std::add_pointer_t<void()>;
 
     /**
+     * @brief Endpoint transfer complete callback.
+     */
+    using EpRxFifoNotEmptyHandler = std::add_pointer_t<void(uint16_t size)>;
+
+    /**
      * @brief Predicate for search Tx endpoint by number
      * 
      * @tparam Number Endpoint number
@@ -153,6 +158,42 @@ namespace Zhele::Usb
     };
 
     /**
+     * @brief Predicate for search Rx (no control) endpoints.
+     * 
+     * @tparam Endpoint Endpoint
+     */
+    template<typename Endpoint>
+    class IsOutOrBidirectionalEndpoint
+    {
+    public:
+        static const bool value = Endpoint::Direction == EndpointDirection::Out || Endpoint::Direction == EndpointDirection::Bidirectional;
+    };
+
+    /**
+     * @brief Predicate for search Rx (no control) endpoints.
+     * 
+     * @tparam Endpoint Endpoint
+     */
+    template<typename Endpoint>
+    class IsInOrBidirectionalEndpoint
+    {
+    public:
+        static const bool value = Endpoint::Direction == EndpointDirection::In || Endpoint::Direction == EndpointDirection::Bidirectional;
+    };
+
+
+    /**
+     * @brief Null endpoint (useful for search, sort)
+     */
+    class NullEndpoint
+    {
+    public:
+        static const uint16_t Number = -1;
+        static const EndpointDirection Direction = EndpointDirection::In;
+        static const EndpointType Type = EndpointType::Control;
+    };
+#if defined (USB)
+    /**
      * @brief Comparator for endpoints sort (compare Number/Direction)
      * 
      * @tparam T First endpoint
@@ -164,6 +205,20 @@ namespace Zhele::Usb
         std::true_type,
         std::false_type>
     {};
+#elif defined (USB_OTG_FS)
+    /**
+     * @brief Comparator for endpoints sort (compare Number numbers only, because its different registers for IN/OUT endpoints) for OTG
+     * 
+     * @tparam T First endpoint
+     * @tparam U Second endpoint
+     */
+    template <typename T, typename U>
+    struct NumberAndDirectionComparator : std::conditional_t<
+                U::Number < T::Number,
+        std::true_type,
+        std::false_type>
+    {};
+#endif
 
     /**
      * @brief Sorts endpoints by number and direction.
@@ -208,6 +263,7 @@ namespace Zhele::Usb
                 : PreviousEndpoint::MaxPacketSize);
     };
 
+#if defined (USB)
     /**
      * @brief Calculates endpoint`s BDT cells offsets.
      * 
@@ -250,19 +306,6 @@ namespace Zhele::Usb
     template<uint8_t _EndpointNumber>
     using EndpointReg = Zhele::TemplateUtils::GetType<_EndpointNumber, EndpointRegs>::type;
 
-    /// USB PMA base address
-    static const uint32_t PmaBufferBase = USB_PMAADDR;
-
-    /**
-     * @brief Null endpoint (useful for search, sort)
-     */
-    class NullEndpoint
-    {
-    public:
-        static const uint16_t Number = -1;
-        static const EndpointDirection Direction = EndpointDirection::In;
-        static const EndpointType Type = EndpointType::Control;
-    };
     /**
      * @brief Calculates endpoint`s registers.
      * 
@@ -313,20 +356,21 @@ namespace Zhele::Usb
 
         using type = EndpointReg<RegisterNumber>;
     };
-    
+
     /**
      * @brief Implements endpoint`s buffers management.
      * 
      * @tparam AllEndpoints Sorted all endpoints list
      * @tparam BidirectionalAndBulkDoubleBufferedEndpoints Sorted bidirectional and double-buffered bulk endpoints
      * @tparam RxEndpoints Sorted RX endpoints (include double-buffered Bulk)
-     * 
      */
     template<typename AllEndpoints, typename BidirectionalAndBulkDoubleBufferedEndpoints, typename RxEndpoints>
     class EndpointsManagerBase;
     template<typename... AllEndpoints, typename... BidirectionalAndBulkDoubleBufferedEndpoints, typename... RxEndpoints>
     class EndpointsManagerBase<TypeList<AllEndpoints...>, TypeList<BidirectionalAndBulkDoubleBufferedEndpoints...>, TypeList<RxEndpoints...>>
     {
+        /// USB PMA base address
+        static const uint32_t PmaBufferBase = USB_PMAADDR;
     public:
         using AllEndpointsList = TypeList<AllEndpoints...>;
 
@@ -424,7 +468,7 @@ namespace Zhele::Usb
                 : 0x8000 | ((Endpoint::MaxPacketSize / 32 - 1) << 10);
         }
     };
-    
+
     /**
      * @brief Endpoints manager.
      * 
@@ -438,18 +482,184 @@ namespace Zhele::Usb
         Sample_t<IsOutEndpoint, SortedUniqueEndpoints<Endpoints>>
     >;
 
+#elif defined (USB_OTG_FS)
+    #define USB_INEP(i)  (USB_OTG_FS_PERIPH_BASE + USB_OTG_IN_ENDPOINT_BASE + (i) * USB_OTG_EP_REG_SIZE)
+    #define USB_OUTEP(i) (USB_OTG_FS_PERIPH_BASE + USB_OTG_OUT_ENDPOINT_BASE + (i) * USB_OTG_EP_REG_SIZE)
+
+    IO_STRUCT_WRAPPER(USB_INEP(0), InEp0Reg, USB_OTG_INEndpointTypeDef);
+    IO_STRUCT_WRAPPER(USB_INEP(1), InEp1Reg, USB_OTG_INEndpointTypeDef);
+    IO_STRUCT_WRAPPER(USB_INEP(2), InEp2Reg, USB_OTG_INEndpointTypeDef);
+    IO_STRUCT_WRAPPER(USB_INEP(3), InEp3Reg, USB_OTG_INEndpointTypeDef);
+    IO_STRUCT_WRAPPER(USB_OUTEP(0), OutEp0Reg, USB_OTG_OUTEndpointTypeDef);
+    IO_STRUCT_WRAPPER(USB_OUTEP(1), OutEp1Reg, USB_OTG_OUTEndpointTypeDef);
+    IO_STRUCT_WRAPPER(USB_OUTEP(2), OutEp2Reg, USB_OTG_OUTEndpointTypeDef);
+    IO_STRUCT_WRAPPER(USB_OUTEP(3), OutEp3Reg, USB_OTG_OUTEndpointTypeDef);
+    using EndpointInRegs = Zhele::TemplateUtils::TypeList<InEp0Reg, InEp1Reg, InEp2Reg, InEp3Reg>;
+    using EndpointOutRegs = Zhele::TemplateUtils::TypeList<OutEp0Reg, OutEp1Reg, OutEp2Reg, OutEp3Reg>;
+    
+    /**
+     * @brief Select endpoint register by number
+     */
+    template<uint8_t _EndpointNumber>
+    using EndpointInReg = Zhele::TemplateUtils::GetType<_EndpointNumber, EndpointInRegs>::type;
+    template<uint8_t _EndpointNumber>
+    using EndpointOutReg = Zhele::TemplateUtils::GetType<_EndpointNumber, EndpointOutRegs>::type;
+
+    template<typename AllEndpoints, typename InEndpoints, typename OutEndpoints>
+    class EndpointsManagerBase;
+    template<typename... AllEndpoints, typename... InEndpoints, typename... OutEndpoints>
+    class EndpointsManagerBase<TypeList<AllEndpoints...>, TypeList<InEndpoints...>, TypeList<OutEndpoints...>>
+    {
+        IO_STRUCT_WRAPPER(USB_OTG_FS, OtgFsGlobal, USB_OTG_GlobalTypeDef);
+
+        /// Buffer offset for endpoint
+        template<typename Endpoint>
+        static const uint32_t BufferOffset = OffsetOfBuffer<TypeIndex<Endpoint, TypeList<OutEndpoints...>>::value, TypeList<OutEndpoints...>>::value;
+
+
+        /**
+         * @brief Comparator for endpoints sort by MaxPacketSize
+         * 
+         * @details RX fifo size recommended as 2x maximum of all OUT endpoint`s max packet size (+ 11 dwords. Minimum = 16)
+         * So, we can sort OUT endpoint by max packet size, get maximum and calculate RX fifo size.
+         * 
+         * @tparam T First endpoint
+         * @tparam U Second endpoint
+         */
+        template <typename T, typename U>
+        struct EndpointMaxPacketSizeComparator : std::conditional_t<(U::MaxPacketSize > T::MaxPacketSize), std::true_type, std::false_type> {};
+        /// OUT (bidirectional) endpoints sorted by MaxPacketSize descending.
+        using OutEndpointsSortedByMaxPacketSizeDescending = typename TypeListSort<EndpointMaxPacketSizeComparator, TypeList<OutEndpoints...>>::type;
+        /// Maximum of MaxPacketSize
+        static const uint16_t MaximumOfOutEnpointsMaxPacketSize = GetType<0, OutEndpointsSortedByMaxPacketSizeDescending>::type::MaxPacketSize;
+
+        /// RX fifo size calculation
+        static const uint16_t RxFifoSize = (11 + 2 * ((3 + MaximumOfOutEnpointsMaxPacketSize) / 4)) > 16 // 11 = 10 (SETUP) + 1 (global out NAK)
+            ? 11 + 2 * ((3 + MaximumOfOutEnpointsMaxPacketSize) / 4)
+            : 16;
+
+        static const uint32_t FifoBaseAddress = USB_OTG_FS_PERIPH_BASE + USB_OTG_FIFO_BASE;
+        static const uint32_t EpFifoSize = USB_OTG_FIFO_SIZE;
+
+        using InEndpointsList = TypeList<InEndpoints...>;
+        using OutEndpointsList = TypeList<OutEndpoints...>;
+        using InEndpointWithoutZeroEndpoint = typename Slice<1, Length<InEndpointsList>::value - 1, InEndpointsList>::type;        
+    public:
+        /**
+         * @brief Extends endpoint (init addresses)
+         * 
+         * @tparam Endpoint Endpoint to extend
+         */
+        template<typename Endpoint>
+        using ExtendEndpoint = 
+            typename Select<Endpoint::Direction == EndpointDirection::Bidirectional,
+            BidirectionalEndpoint<
+                Endpoint,
+                EndpointInReg<TypeIndex<Endpoint, InEndpointsList>::value>, // IN register
+                EndpointOutReg<TypeIndex<Endpoint, InEndpointsList>::value>, // OUT register
+                static_cast<uint8_t>(TypeIndex<Endpoint, InEndpointsList>::value), // Fifo number
+                FifoBaseAddress + TypeIndex<Endpoint, InEndpointsList>::value * EpFifoSize>, // Fifo address = Fifo base + i * USB_OTG_FIFO_SIZE
+            typename Select<Endpoint::Direction == EndpointDirection::Out,
+            OutEndpoint<
+                Endpoint,
+                EndpointOutReg<TypeIndex<Endpoint, OutEndpointsList>::value>, // OUT register
+                FifoBaseAddress + TypeIndex<Endpoint, OutEndpointsList>::value * EpFifoSize>, // Fifo address = Fifo base + i * USB_OTG_FIFO_SIZE
+            typename Select<Endpoint::Direction == EndpointDirection::In,
+            InEndpoint<
+                Endpoint,
+                EndpointInReg<TypeIndex<Endpoint, InEndpointsList>::value>, // IN register
+                static_cast<uint8_t>(TypeIndex<Endpoint, InEndpointsList>::value), // Fifo number
+                FifoBaseAddress + TypeIndex<Endpoint, InEndpointsList>::value * EpFifoSize>, // Fifo address = Fifo base + i * USB_OTG_FIFO_SIZE
+        void>::value>::value>::value; // RxFifo (same for all endpoints)
+
+        /**
+         * @brief Inits USB PMA
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void Init()
+        {
+            OtgFsGlobal()->GRXFSIZ = RxFifoSize;
+
+            (InitTransmitFifos<InEndpoints>(), ...);            
+        }
+
+    private:
+        /**
+         * @brief Init TX fifo for endpoint.
+         * 
+         * @details TX fifo size for endpoint = 2 x MaxPacketSize
+         * 
+         * @tparam Endpoint Endpoint
+         */
+        template<typename Endpoint>
+        static void InitTransmitFifos()
+        {
+            if constexpr (Endpoint::Number == 0)
+            {
+                OtgFsGlobal()->DIEPTXF0_HNPTXFSIZ = (CalculateTxFifoDepth(Endpoint::MaxPacketSize) << 16) | RxFifoSize;
+            }
+            else
+            {
+                using InEndpointsBefore = Slice<0, TypeIndex<Endpoint, InEndpointsList>::value, InEndpointsList>::type;
+                static const uint16_t FifoOffset = RxFifoSize + SumOfFifoSize<InEndpointsBefore>::value;
+                OtgFsGlobal()->DIEPTXF[TypeIndex<Endpoint, InEndpointWithoutZeroEndpoint>::value] = (CalculateTxFifoDepth(Endpoint::MaxPacketSize) << 16) | FifoOffset;
+            }
+        }
+
+        /**
+         * @brief Calculates TX FIFO depth 
+         * 
+         * @details In default Tx buffer size is 2 * MaxPacketSize,
+         * but minimum value IN endpoint TxFIFO depth is 16 (in terms of 32-bit words).
+         * So, real size (in bytes) is Max(MaxPacketSize * 2, 64)
+         * 
+         * @param endpointMaxPacketSize Endpoint max packet size (in bytes)
+         * @return constexpr uint16_t (in terms of 32-bit words)
+         */
+        static consteval uint32_t CalculateTxFifoDepth(uint16_t endpointMaxPacketSize)
+        {
+            return (2 * ((endpointMaxPacketSize + 3) / 4)) > 16
+                ? (2 * ((endpointMaxPacketSize + 3) / 4))
+                : 16;
+        }
+
+        /**
+         * @brief Calculate sum of endpoints FIFO size.
+         * 
+         * @tparam Endpoints 
+         */
+        template<typename Endpoints>
+        class SumOfFifoSize{};
+        template<typename... Endpoints>
+        class SumOfFifoSize<TypeList<Endpoints...>>
+        {
+        public:
+            const static uint16_t value = (0 + ... + CalculateTxFifoDepth(Endpoints::MaxPacketSize));
+        };
+    };
+
+    /**
+     * @brief Endpoints manager.
+     * 
+     * @tparam Endpoints ALl endpoints list
+     */
+    template<typename Endpoints>
+    using EndpointsManager = EndpointsManagerBase
+    <
+        SortedUniqueEndpoints<Endpoints>,
+        Sample_t<IsInOrBidirectionalEndpoint, SortedUniqueEndpoints<Endpoints>>,
+        Sample_t<IsOutOrBidirectionalEndpoint, SortedUniqueEndpoints<Endpoints>>
+    >;
+#endif
     /**
      * @brief Endpoints initalizer
      * 
      * @tparam Endpoints All endpoints list
      */
     template<typename... Endpoints>
-    using EndpointsInitializer = EndpointsManagerBase
-    <
-        SortedUniqueEndpoints<TypeList<Endpoints...>>,
-        TypeList<>,
-        TypeList<>
-    >;
+    using EndpointsInitializer = EndpointsManager<TypeList<Endpoints...>>;
 
     /**
      * @brief Implements endpoint`s handlers management.
@@ -462,7 +672,6 @@ namespace Zhele::Usb
     template<typename... Endpoints, int8_t... Indexes>
     class EndpointHandlersBase<TypeList<Endpoints...>, Int8_tArray<Indexes...>>
     {
-    public:
         static constexpr EpRequestHandler _handlers[] = {Endpoints::Handler...};
         static constexpr int8_t _handlersIndexes[] = {Indexes...};
     public:
@@ -471,7 +680,30 @@ namespace Zhele::Usb
             _handlers[_handlersIndexes[2 * number + (direction == EndpointDirection::Out ? 1 : 0)]]();
         }
     };
-
+#if defined (USB_OTG_FS)
+    /**
+     * @brief Implements endpoint`s handlers management.
+     * 
+     * @tparam Endpoints Unique sorted endpoints.
+     * @tparam Indexes Handlers indexes.
+     */
+    template<typename OutEndpoints, typename Indexes>
+    class EndpointFifoNotEmptyHandlersBase;
+    template<typename... OutEndpoints, int8_t... Indexes>
+    class EndpointFifoNotEmptyHandlersBase<TypeList<OutEndpoints...>, Int8_tArray<Indexes...>>
+    {
+        /**
+         * @todo Pack rx fifo handlers via add one In endpoints as template parameter.
+         */
+        static constexpr EpRxFifoNotEmptyHandler _rxFifoHandlers[] = {OutEndpoints::HandlerFifoNotEmpty...};
+        static constexpr int8_t _handlersIndexes[] = {Indexes...};
+    public:
+        inline static void HandleRxFifoNotEmpty(uint8_t number, uint16_t size)
+        {
+            _rxFifoHandlers[_handlersIndexes[2 * number + 1]](size);
+        }
+    };
+#endif
     /**
      * @brief Implements endpoint`s handlers indexes management.
      * 
@@ -507,5 +739,14 @@ namespace Zhele::Usb
     template<typename Endpoints>
     using EndpointHandlers = EndpointHandlersBase<SortedUniqueEndpoints<Endpoints>,
         typename EndpointHandlersIndexes<MaxEndpointNumber<Endpoints> * 2 + 1, SortedUniqueEndpoints<Endpoints>>::type>;
+
+#if defined (USB_OTG_FS)
+    /**
+     * @brief Endpoint`s RXFLVLM handlers.
+     */
+    template<typename Endpoints>
+    using EndpointFifoNotEmptyHandlers = EndpointFifoNotEmptyHandlersBase<Sample_t<IsOutOrBidirectionalEndpoint, SortedUniqueEndpoints<Endpoints>>,
+        typename EndpointHandlersIndexes<MaxEndpointNumber<Endpoints> * 2 + 1, Sample_t<IsOutOrBidirectionalEndpoint, SortedUniqueEndpoints<Endpoints>>>::type>;
+#endif
 }
 #endif // ZHELE_USB_ENDPOINTS_MANAGER_H
