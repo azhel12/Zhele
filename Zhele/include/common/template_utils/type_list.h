@@ -274,13 +274,6 @@ namespace Zhele
         class Slice {};
 
         template<int Offset, typename List>
-        class Slice<Offset, -1, List>
-        {
-        public:
-            using type = TypeList<>;
-        };
-
-        template<int Offset, typename List>
         class Slice<Offset, 0, List>
         {
         public:
@@ -298,7 +291,7 @@ namespace Zhele
         class Slice<Offset, Length, List>
         {
         public:
-            using type = typename InsertBack<typename Slice<Offset, Length - 1, List>::type, GetType<Offset + Length - 1, List>>::type;
+            using type = typename InsertBack<typename Slice<Offset, Length - 1, List>::type, typename GetType<Offset + Length - 1, List>::type>::type;
         };
 
         /**

@@ -144,7 +144,6 @@ namespace Zhele::Usb
     class ZeroEndpointBase : public ControlEndpointBase<0, _MaxPacketSize>
     {
     }; 
-
 #if defined (USB)
     /**
      * @brief Endpoint type values for EPnR registers.
@@ -846,7 +845,6 @@ namespace Zhele::Usb
         InBulkDoubleBufferedEndpoint<_Base, _Reg, _Buffer0Address, _Count0RegAddress, _Buffer1Address, _Count1RegAddress>
         >;
 #elif defined (USB_OTG_FS)
-
     /**
      * @brief Implements endpoint
      * 
@@ -904,6 +902,12 @@ namespace Zhele::Usb
     private:
     };
 
+    /**
+     * @brief Calculates MPSIZ bits value for zero endpoint
+     * 
+     * @param maxPacketSize Max packet size in bytes
+     * @return constexpr uint8_t MPSIZE value
+     */
     constexpr uint8_t CalculateMpsizValueForZeroEndpoint(uint16_t maxPacketSize)
     {
         return maxPacketSize == 8
@@ -915,6 +919,7 @@ namespace Zhele::Usb
                     : 0b00;
     }
 
+    using OutTransferCallback = std::add_pointer_t<void()>;
     /**
      * @brief Implements out (RX) endpoint
      * 
@@ -925,31 +930,37 @@ namespace Zhele::Usb
     template<typename _Base, typename _Regs, uint32_t _FifoAddress>
     class OutEndpoint : public Endpoint<_Base>
     {
-        using Base = Endpoint<_Base>;
     public:
         static uint8_t BufferSize;
-        static uint8_t Buffer[Base::MaxPacketSize];
+        static uint8_t Buffer[_Base::MaxPacketSize];
 
         /**
          * @brief Reset endpoint
          */
         static void Reset()
         {
-            if constexpr (Base::Number == 0)
+            if constexpr (_Base::Number == 0)
             {
-                static_assert(Base::MaxPacketSize == 8 || Base::MaxPacketSize == 16 || Base::MaxPacketSize == 32 || Base::MaxPacketSize == 64);
+                static_assert(_Base::MaxPacketSize == 8 || _Base::MaxPacketSize == 16 || _Base::MaxPacketSize == 32 || _Base::MaxPacketSize == 64);
 
-                _Regs()->DOEPTSIZ = (0b01 << USB_OTG_DOEPTSIZ_STUPCNT_Pos)
+                _Regs()->DOEPTSIZ = (0b11 << USB_OTG_DOEPTSIZ_STUPCNT_Pos)
                     | (1 << USB_OTG_DOEPTSIZ_PKTCNT_Pos)
-                    | Base::MaxPacketSize;
+                    | (_Base::MaxPacketSize << USB_OTG_DOEPTSIZ_XFRSIZ_Pos);
 
                 _Regs()->DOEPCTL = USB_OTG_DOEPCTL_EPENA 
                     | USB_OTG_DOEPCTL_CNAK
                     | USB_OTG_DOEPCTL_USBAEP
-                    | CalculateMpsizValueForZeroEndpoint(Base::MaxPacketSize);
+                    | CalculateMpsizValueForZeroEndpoint(_Base::MaxPacketSize);
             }
             else
             {
+                _Regs()->DOEPTSIZ = (1 << USB_OTG_DOEPTSIZ_PKTCNT_Pos)
+                    | (_Base::MaxPacketSize << USB_OTG_DOEPTSIZ_XFRSIZ_Pos);
+                _Regs()->DOEPCTL = USB_OTG_DOEPCTL_EPENA 
+                    | USB_OTG_DOEPCTL_CNAK
+                    | (static_cast<uint32_t>(_Base::Type) << USB_OTG_DOEPCTL_EPTYP_Pos)
+                    | USB_OTG_DOEPCTL_USBAEP
+                    | _Base::MaxPacketSize;
             }
         }
 
@@ -960,6 +971,11 @@ namespace Zhele::Usb
         {
             HandleRx();
         }
+
+        /**
+         * @brief Rx handler
+         */
+        static void HandleRx();
 
         /**
          * @brief Set endpoint`s RX status.
@@ -985,11 +1001,39 @@ namespace Zhele::Usb
                 _Regs()->DOEPCTL |= USB_OTG_DOEPCTL_SNAK;
                 break;
             case EndpointStatus::Valid:
+                BufferSize = 0;
                 _Regs()->DOEPCTL |= USB_OTG_DOEPCTL_CNAK | USB_OTG_DOEPCTL_EPENA;
                 break;
             }
         }
 
+        /**
+         * @brief Set endpoint`s RX status valid
+         */
+        static void SetRxStatusValid()
+        {
+            SetRxStatus(EndpointStatus::Valid);
+        }
+
+        /**
+         * @brief Clear all interrupts for endpoint
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void ClearAllRxInterrupts()
+        {
+            _Regs()->DOEPINT = _Regs()->DOEPINT;
+        }
+
+        /**
+         * @brief RX fifo not empty handler
+         * 
+         * @param size Received size
+         * 
+         * @par Returns
+         *  Nothing
+         */
         static void HandlerFifoNotEmpty(uint16_t size)
         {
             for(int i = 0; i < (size + 3) / 4; ++i)
@@ -999,13 +1043,55 @@ namespace Zhele::Usb
             BufferSize += size;
         }
 
-        static void HandleRx();
+        /**
+         * @brief Set out data transfer callback (RX handler can try call this method if cannot handle packet)
+         * 
+         * @param [in] callback Callback
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void SetOutDataTransferCallback(OutTransferCallback callback)
+        {
+            _dataTransferCallback = callback;
+        }
+
+        /**
+         * @brief Reset out data transfer callback
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void ResetOutDataTransferCallback()
+        {
+            _dataTransferCallback = nullptr;
+        }
+
+        /**
+         * @brief Try call transfer callback
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void TryHandleDataTransfer()
+        {
+            if (_dataTransferCallback != nullptr)
+                _dataTransferCallback();
+        }
+
+    private:
+        static OutTransferCallback _dataTransferCallback;
     };
+
+
+    template<typename _Base, typename _Regs, uint32_t _FifoAddress>
+    OutTransferCallback OutEndpoint<_Base, _Regs, _FifoAddress>::_dataTransferCallback = nullptr;
+
     template<typename _Base, typename _Regs, uint32_t _FifoAddress>
     uint8_t OutEndpoint<_Base, _Regs, _FifoAddress>::BufferSize = 0;
 
     template<typename _Base, typename _Regs, uint32_t _FifoAddress>
-    uint8_t OutEndpoint<_Base, _Regs, _FifoAddress>::Buffer[Base::MaxPacketSize] = {};
+    uint8_t OutEndpoint<_Base, _Regs, _FifoAddress>::Buffer[_Base::MaxPacketSize] = {};
 
     using InTransferCallback = std::add_pointer_t<void()>;
     /**
@@ -1015,7 +1101,6 @@ namespace Zhele::Usb
      * @tparam _Regs EP registers wrapper
      * @tparam _FifoNumber TX FIFO number
      * @tparam _BufferAddress TX buffer address
-     * @tparam _CountRegAddress TX_Count register address
      */
     template<typename _Base, typename _Regs, uint8_t _FifoNumber, uint32_t _FifoAddress>
     class InEndpoint : public Endpoint<_Base>
@@ -1032,14 +1117,27 @@ namespace Zhele::Usb
             {
                 static_assert(Base::MaxPacketSize == 8 || Base::MaxPacketSize == 16 || Base::MaxPacketSize == 32 || Base::MaxPacketSize == 64);
 
-                _Regs()->DIEPCTL = USB_OTG_DIEPCTL_EPENA 
-                    | USB_OTG_DOEPCTL_SNAK
+                _Regs()->DIEPCTL = USB_OTG_DIEPCTL_SNAK
+                    | (_FifoNumber << USB_OTG_DIEPCTL_TXFNUM_Pos)
                     | USB_OTG_DIEPCTL_USBAEP
                     | CalculateMpsizValueForZeroEndpoint(Base::MaxPacketSize);
             }
             else
             {
+                _Regs()->DIEPCTL = USB_OTG_DIEPCTL_SNAK
+                    | (_FifoNumber << USB_OTG_DIEPCTL_TXFNUM_Pos)
+                    | (static_cast<uint32_t>(Base::Type) << USB_OTG_DIEPCTL_EPTYP_Pos)
+                    | USB_OTG_DIEPCTL_USBAEP
+                    | Base::MaxPacketSize;
             }
+        }
+        
+        /**
+         * @brief CTR Handler
+         */
+        static void Handler()
+        {
+            HandleTx();
         }
 
         /**
@@ -1072,11 +1170,14 @@ namespace Zhele::Usb
         }
 
         /**
-         * @brief CTR Handler
+         * @brief Clear all endpoint`s interrupts.
+         * 
+         * @par Returns
+         *  Nothing
          */
-        static void Handler()
+        static void ClearAllTxInterrupts()
         {
-            HandleTx();
+            _Regs()->DIEPINT = _Regs()->DIEPINT;
         }
 
         /**
@@ -1086,10 +1187,10 @@ namespace Zhele::Usb
          */
         static void SendZLP(InTransferCallback callback = nullptr)
         {
-            _bytesRemain = 0;
+            _bytesRemain = -1;
             _txCompleteCallback = callback;
-            _Regs()->DIEPTSIZ |= (1 << USB_OTG_DIEPTSIZ_PKTCNT_Pos)
-                | (0 << USB_OTG_DIEPTSIZ_XFRSIZ);
+            _Regs()->DIEPTSIZ = (1 << USB_OTG_DIEPTSIZ_PKTCNT_Pos)
+                | (0 << USB_OTG_DIEPTSIZ_XFRSIZ_Pos);
             SetTxStatus(EndpointStatus::Valid);
         }
 
@@ -1102,56 +1203,98 @@ namespace Zhele::Usb
          */
         static void SendData(const void* data, uint32_t size, InTransferCallback callback = nullptr)
         {
-            _dataToTransmit = reinterpret_cast<const uint8_t*>(data);
+            _dataToTransmit = reinterpret_cast<const uint32_t*>(data);
             _bytesRemain = size;
             _txCompleteCallback = callback;
 
-            uint16_t packetsCount = (size +  _Base::MaxPacketSize - 1u) / _Base::MaxPacketSize; 
-            _Regs()->DIEPTSIZ |= (packetsCount << USB_OTG_DIEPTSIZ_PKTCNT_Pos)
-                | (size << USB_OTG_DIEPTSIZ_XFRSIZ);
-            
-            SetTxStatus(EndpointStatus::Valid);
-            SendPacket(_dataToTransmit, _bytesRemain > _Base::MaxPacketSize ? _Base::MaxPacketSize : _bytesRemain);
+            SendPacket();
         }
     protected:
+        /**
+         * @brief TX complete handler
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void HandleTxComplete()
+        {
+            if(_txCompleteCallback)
+                _txCompleteCallback();
+        }
+        
+        /**
+         * @brief Handle TX FIFO not empty
+         * 
+         * @par Returns
+         *  Nothing
+         */
         static void HandleTx()
         {
-            _bytesRemain -= _Base::MaxPacketSize;
-            _dataToTransmit += _Base::MaxPacketSize;
+            if (_Regs()->DIEPINT & USB_OTG_DIEPINT_XFRC) {
+                _Regs()->DIEPINT = USB_OTG_DIEPINT_XFRC;
 
-            if(_bytesRemain >= 0)
-            {
-               SendPacket(_dataToTransmit, _bytesRemain > _Base::MaxPacketSize ? _Base::MaxPacketSize : _bytesRemain);
-                return;
-            }
+                if (_bytesRemain > 0) {
+                    SendPacket();
+                    return;
+                }
+                if (_bytesRemain == 0) {
+                    SendZLP(_txCompleteCallback);
+                    return;
+                }
 
-            if(_txCompleteCallback)
-            {
-                _txCompleteCallback();
+                if (_txCompleteCallback)
+                   _txCompleteCallback();
             }
         }
 
-        inline static void SendPacket(const void* data, uint16_t size)
+        /**
+         * @brief Send packet
+         * 
+         * @param size Packet size
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        inline static void SendPacket()
         {
-            for(int i = 0; i < (size + 3) / 4; ++i)
+            uint16_t transferSize = _bytesRemain  < _Base::MaxPacketSize
+                ? _bytesRemain
+                : _Base::MaxPacketSize;
+            
+            _Regs()->DIEPTSIZ = (1 << USB_OTG_DIEPTSIZ_PKTCNT_Pos) | (transferSize << USB_OTG_DIEPTSIZ_XFRSIZ_Pos);
+            SetTxStatus(EndpointStatus::Valid);
+
+            for(int i = 0; i < (transferSize + 3) / 4; ++i)
             {
-                reinterpret_cast<uint32_t*>(_FifoAddress)[i] = reinterpret_cast<const uint32_t*>(data)[i];
+                *reinterpret_cast<uint32_t*>(_FifoAddress) = *(_dataToTransmit++);
+                _bytesRemain -= 4;
             }
         }
 
     private:
-        static const uint8_t* _dataToTransmit;
-        static int32_t _bytesRemain;
+        static const uint32_t* _dataToTransmit;
+        static volatile int32_t _bytesRemain;
         static InTransferCallback _txCompleteCallback;
     };
     
     template<typename _Base, typename _Regs, uint8_t _FifoNumber, uint32_t _FifoAddress>
-    const uint8_t* InEndpoint<_Base, _Regs, _FifoNumber, _FifoAddress>::_dataToTransmit = nullptr;
+    const uint32_t* InEndpoint<_Base, _Regs, _FifoNumber, _FifoAddress>::_dataToTransmit = nullptr;
+
     template<typename _Base, typename _Regs, uint8_t _FifoNumber, uint32_t _FifoAddress>
-    int32_t InEndpoint<_Base, _Regs, _FifoNumber, _FifoAddress>::_bytesRemain = -1;
+    volatile int32_t InEndpoint<_Base, _Regs, _FifoNumber, _FifoAddress>::_bytesRemain = -1;
+
     template<typename _Base, typename _Regs, uint8_t _FifoNumber, uint32_t _FifoAddress>
     InTransferCallback InEndpoint<_Base, _Regs, _FifoNumber, _FifoAddress>::_txCompleteCallback = nullptr;
 
+    /**
+     * @brief Implements bidirectional endpoint
+     * 
+     * @tparam _Base Base endpoint
+     * @tparam _InReg IN register
+     * @tparam _OutReg OUT register
+     * @tparam _FifoNumber FIFO number
+     * @tparam _FifoAddress FIFO address
+     */
     template<typename _Base, typename _InReg, typename _OutReg, uint8_t _FifoNumber, uint32_t _FifoAddress>
     class BidirectionalEndpoint : public OutEndpoint<_Base, _OutReg, _FifoAddress>, public InEndpoint<_Base, _InReg, _FifoNumber, _FifoAddress>
     {
@@ -1159,6 +1302,8 @@ namespace Zhele::Usb
         using In = InEndpoint<_Base, _InReg, _FifoNumber, _FifoAddress>;
         using Out = OutEndpoint<_Base, _OutReg, _FifoAddress>;
     public:
+        using InRegs = _InReg;
+
         static const uint16_t Number = _Base::Number;
         static const EndpointDirection Direction = _Base::Direction;
         static const EndpointType Type = _Base::Type;
@@ -1175,21 +1320,53 @@ namespace Zhele::Usb
 
         static void Handler()
         {
+            In::HandleTx();
+            if(_OutReg()->DOEPINT & USB_OTG_DOEPINT_XFRC)
+            {
+                HandleRx();
+            }
         }
 
-        static void HandlerFifoNotEmpty(uint16_t size)
+        /**
+         * @brief Send ZLP
+         * 
+         * @param callback Transmit complete callback (Set RX valid as default)
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        inline static void SendZLP(InTransferCallback callback = Out::SetRxStatusValid)
         {
-            Out::HandlerFifoNotEmpty(size);
+            In::SendZLP(callback);
         }
 
-        static std::enable_if_t<_Base::Number == 0, uint32_t> GetOutInterrupts()
+        /**
+         * @brief Send data
+         * 
+         * @param data Data to transmit
+         * @param size Data size
+         * @param callback Transmit complete callback (Set RX valid as default)
+         */
+        inline static void SendData(const void* data, uint32_t size, InTransferCallback callback = Out::SetRxStatusValid)
+        {
+            In::SendData(data, size, callback);
+        }
+
+        template<typename T = uint32_t>
+        static std::enable_if_t<_Base::Number == 0, T> GetOutInterrupts()
         {
             return _OutReg()->DOEPINT;
         }
+
+        template<typename T = uint32_t>
+        static std::enable_if_t<_Base::Number == 0, T> GetInInterrupts()
+        {
+            return _InReg()->DIEPINT;
+        }
+
+        static void HandleRx();
     };
 #endif
-
-
     /**
      * @brief Default Ep0 instance
      */

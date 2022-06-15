@@ -94,6 +94,7 @@ namespace Zhele::Usb
         typename... _Configurations>
     class DeviceBase : public _Ep0
     {
+    public:
 #if defined (USB)
         using This = DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
 #elif defined (USB_OTG_FS)
@@ -104,9 +105,11 @@ namespace Zhele::Usb
         using Endpoints = Append_t<typename _Configurations::Endpoints...>;
 
         using EpBufferManager = EndpointsManager<Append_t<_Ep0, Endpoints>>;
-
         // Replace Ep0 with this for correct handler register.
         using EpHandlers = EndpointHandlers<Append_t<This, Endpoints>>;
+#if defined (USB_OTG_FS)
+        using EpFifoNotEmptyHandlers = EndpointFifoNotEmptyHandlers<Append_t<This, Endpoints>>;
+#endif
         using IfHandlers = InterfaceHandlers<Interfaces>;
 
         static uint8_t _tempAddressStorage;

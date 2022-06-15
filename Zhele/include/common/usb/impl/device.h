@@ -12,11 +12,9 @@
 
 namespace Zhele::Usb
 {
-
 #if defined (USB)
     #define USB_DEVICE_TEMPLATE_ARGS template< \
         typename _Regs, \
-        typename _DeviceRegs, \
         IRQn_Type _IRQNumber, \
         typename _ClockCtrl, \
         uint16_t _UsbVersion, \
@@ -53,9 +51,7 @@ namespace Zhele::Usb
     #define USB_DEVICE_TEMPLATE_QUALIFIER DeviceBase<_Regs, _DeviceRegs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>
 #endif
 
-
 #if defined (USB)
-
     USB_DEVICE_TEMPLATE_ARGS
     void USB_DEVICE_TEMPLATE_QUALIFIER::Enable()
     {
@@ -140,113 +136,120 @@ namespace Zhele::Usb
         
         EpBufferManager::Init();
 
+
         while (!(_Regs()->GRSTCTL & USB_OTG_GRSTCTL_AHBIDL)) continue;
+
+        _DeviceRegs()->DCFG = _VAL2FLD(USB_OTG_DCFG_DAD, 0) | _VAL2FLD(USB_OTG_DCFG_DSPD, 0b11); // Clear address, full-speed
 
         _Regs()->GUSBCFG = USB_OTG_GUSBCFG_FDMOD // Force device mode
                         | (0x06 << USB_OTG_GUSBCFG_TRDT_Pos) // ??
                         | USB_OTG_GUSBCFG_PHYSEL; // USB 2.0
 
-        _Regs()->GCCFG |= USB_OTG_GCCFG_NOVBUSSENS; // Exit Power Down mode
+        _Regs()->GCCFG = USB_OTG_GCCFG_NOVBUSSENS; // Exit Power Down mode
+        _Regs()->GINTSTS = 0xfffffffful;
 
-        _Regs()->GINTMSK |= USB_OTG_GINTMSK_IEPINT |   // Enable USB IN TX endpoint interrupt
-                                USB_OTG_GINTMSK_OEPINT |   // Enable USB OUT RX endpoint interrupt
-                                USB_OTG_GINTMSK_RXFLVLM |  // USB reciving
-                                USB_OTG_GINTMSK_USBRST;    // Reset interrupt
-
-        _Regs()->GAHBCFG = USB_OTG_GAHBCFG_GINT;       // On USB general interrupt
-
-        NVIC_EnableIRQ(_IRQNumber);
+        _Regs()->GINTMSK = USB_OTG_GINTMSK_IEPINT   // Enable USB IN TX endpoint interrupt
+                            | USB_OTG_GINTMSK_OEPINT   // Enable USB OUT RX endpoint interrupt
+                            | USB_OTG_GINTMSK_RXFLVLM // USB reciving
+                            | USB_OTG_GINTMSK_USBRST
+                            | USB_OTG_GINTMSK_ENUMDNEM;    // Reset interrupt
 
         _Regs()->GCCFG |= USB_OTG_GCCFG_PWRDWN; // Enable USB
         _DeviceRegs()->DCTL = 0;
+
+        NVIC_EnableIRQ(_IRQNumber);
+        _Regs()->GAHBCFG = USB_OTG_GAHBCFG_GINT;       // On USB general interrupt
     }
 
-    void flushTx()
+    template<typename _Regs>
+    void FlushTx()
     {
-        USB_OTG_FS->GRSTCTL = USB_OTG_GRSTCTL_TXFFLSH | (1 << 10);
-        while(USB_OTG_FS->GRSTCTL & USB_OTG_GRSTCTL_TXFFLSH);
+        while ((_Regs()->GRSTCTL & USB_OTG_GRSTCTL_AHBIDL) == 0U) continue;
+
+        _Regs()->GRSTCTL = USB_OTG_GRSTCTL_TXFFLSH | (1 << 10);
+        while(_Regs()->GRSTCTL & USB_OTG_GRSTCTL_TXFFLSH) continue;;
     }
-    
-    
-    void flushRx()
+        
+    template<typename _Regs>
+    void FlushRx()
     {
-        USB_OTG_FS->GRSTCTL = USB_OTG_GRSTCTL_RXFFLSH;
-        while (USB_OTG_FS->GRSTCTL & USB_OTG_GRSTCTL_RXFFLSH);
+        while ((_Regs()->GRSTCTL & USB_OTG_GRSTCTL_AHBIDL) == 0U) continue;
+        _Regs()->GRSTCTL = USB_OTG_GRSTCTL_RXFFLSH;
+        while (_Regs()->GRSTCTL & USB_OTG_GRSTCTL_RXFFLSH);
     }  
 
     USB_DEVICE_TEMPLATE_ARGS
     void USB_DEVICE_TEMPLATE_QUALIFIER::Reset()
     {
+        for (auto i = 0; i < 3; ++i)
+            _Regs()->DIEPTXF[i] = 0;
+
+        EpBufferManager::Init();
+
         _Ep0::Reset();
         (_Configurations::Reset(), ...);
 
-        _DeviceRegs()->DAINTMSK |= 0x10001U; // EP0 OUT, EP0 IN Interupt
-        _DeviceRegs()->DOEPMSK |= USB_OTG_DOEPMSK_STUPM // Enable setup-done irq
+        _DeviceRegs()->DAINTMSK = 0x70007U;
+        _DeviceRegs()->DOEPMSK = USB_OTG_DOEPMSK_STUPM // Enable setup-done irq
                                 | USB_OTG_DOEPMSK_XFRCM;  // Enable tx-done irq
 
-        _DeviceRegs()->DIEPMSK |= USB_OTG_DIEPMSK_XFRCM; // Enable transfer complete irq
+        _DeviceRegs()->DIEPMSK = USB_OTG_DIEPMSK_XFRCM; // Enable transfer complete irq
 
-        _Regs()->GRSTCTL = USB_OTG_GRSTCTL_TXFFLSH | (1 << 10);
-        while(_Regs()->GRSTCTL & USB_OTG_GRSTCTL_TXFFLSH);
-
-        _Regs()->GRSTCTL = USB_OTG_GRSTCTL_RXFFLSH;
-        while (_Regs()->GRSTCTL & USB_OTG_GRSTCTL_RXFFLSH);
-
-        _DeviceRegs()->DCFG = _VAL2FLD(USB_OTG_DCFG_DAD, 0) | (0b11 << USB_OTG_DCFG_DSPD_Pos); // Clear address, full-speed
-        _Regs()->GINTSTS = USB_OTG_GINTSTS_USBRST; // Clear flag
+        FlushTx<_Regs>();
+        FlushRx<_Regs>();
     }
 
     USB_DEVICE_TEMPLATE_ARGS
     void USB_DEVICE_TEMPLATE_QUALIFIER::CommonHandler()
     {
-        if(_Regs()->GINTSTS & USB_OTG_GINTSTS_USBRST)
-        {
+        if (_Regs()->GINTSTS & USB_OTG_GINTSTS_USBRST) {
+            _Regs()->GINTSTS = USB_OTG_GINTSTS_USBRST;
             Reset();
         }
 
-        if(_Regs()->GINTSTS & USB_OTG_GINTSTS_ENUMDNE)
-        { 
+        if (_Regs()->GINTSTS & USB_OTG_GINTSTS_ENUMDNE) { 
+            _Regs()->GINTSTS = USB_OTG_GINTSTS_ENUMDNE;
             _isDeviceConfigured = true;
-            _Regs()->GINTSTS |= USB_OTG_GINTSTS_ENUMDNE;
         } 
 
-        if(_Regs()->GINTSTS & USB_OTG_GINTSTS_RXFLVL)
-        {
-            IO::Pc13::Clear();
-            EpHandlers::HandleRxFifoNotEmpty(0, 8);
+        if (_Regs()->GINTSTS & USB_OTG_GINTSTS_RXFLVL) {
+            uint32_t status = _Regs()->GRXSTSP;
+            uint16_t size = (status & USB_OTG_GRXSTSP_BCNT) >> USB_OTG_GRXSTSP_BCNT_Pos;
+            uint8_t enpointNumber = status & USB_OTG_GRXSTSP_EPNUM;
+
+            EpFifoNotEmptyHandlers::HandleRxFifoNotEmpty(enpointNumber, size);
         }
 
-        if(_Regs()->GINTSTS & USB_OTG_GINTSTS_OEPINT)
-        {
-            uint8_t endpoints = _DeviceRegs()->DAINT & _DeviceRegs()->DAINTMSK;
-            if(endpoints & (1 << 0))
-            {
+        if(_Regs()->GINTSTS & USB_OTG_GINTSTS_OEPINT) {
+            uint32_t endpoints = _DeviceRegs()->DAINT & _DeviceRegs()->DAINTMSK;
+
+            if (endpoints & (1 << 16)) {
                 EpHandlers::Handle(0, EndpointDirection::Out);
             }
-            if(endpoints & (1 << 1))
-            {
+            if (endpoints & (1 << 17)) {
                 EpHandlers::Handle(1, EndpointDirection::Out);
             }
-            if(endpoints & (1 << 2))
-            {
+            if (endpoints & (1 << 18)) {
                 EpHandlers::Handle(2, EndpointDirection::Out);
+            }
+            if (endpoints & (1 << 19)) {
+                EpHandlers::Handle(3, EndpointDirection::Out);
             }
         }
 
-        if(_Regs()->GINTSTS & USB_OTG_GINTSTS_IEPINT)
-        {
-            uint8_t endpoints = _DeviceRegs()->DAINT & _DeviceRegs()->DAINTMSK;
-            if(endpoints & (1 << 0))
-            {
+        if(_Regs()->GINTSTS & USB_OTG_GINTSTS_IEPINT) {
+            uint32_t endpoints = _DeviceRegs()->DAINT & _DeviceRegs()->DAINTMSK;
+            if (endpoints & (1 << 0)) {
                 EpHandlers::Handle(0, EndpointDirection::In);
             }
-            if(endpoints & (1 << 1))
-            {
+            if (endpoints & (1 << 1)) {
                 EpHandlers::Handle(1, EndpointDirection::In);
             }
-            if(endpoints & (1 << 2))
-            {
+            if (endpoints & (1 << 2)) {
                 EpHandlers::Handle(2, EndpointDirection::In);
+            }
+            if (endpoints & (1 << 3)) {
+                EpHandlers::Handle(3, EndpointDirection::In);
             }
         }
     }
@@ -254,20 +257,22 @@ namespace Zhele::Usb
     USB_DEVICE_TEMPLATE_ARGS
     void USB_DEVICE_TEMPLATE_QUALIFIER::Handler()
     {
-        if(_Ep0::GetOutInterrupts() & USB_OTG_DOEPINT_STUP)
-        {
+        if (_Ep0::GetOutInterrupts() & USB_OTG_DOEPINT_STUP) {
             HandleSetupRequest(reinterpret_cast<SetupPacket*>(_Ep0::RxBuffer));
         }
+        if (_Ep0::GetOutInterrupts() & USB_OTG_DOEPINT_XFRC) {
+            _Ep0::TryHandleDataTransfer();
+        }
+
+        _Ep0::ClearAllRxInterrupts();
+        _Ep0::HandleTx();
     }
 
     USB_DEVICE_TEMPLATE_ARGS
     void USB_DEVICE_TEMPLATE_QUALIFIER::SetAddress(uint16_t address)
-    {
-        _tempAddressStorage = address;
-        _Ep0::SendZLP([](){
-            _DeviceRegs()->DCFG |= ((uint32_t)_tempAddressStorage << 4);
-            _Ep0::SetRxStatus(EndpointStatus::Valid);
-        });
+    {        
+        _DeviceRegs()->DCFG |= static_cast<uint32_t>(address) << USB_OTG_DCFG_DAD_Pos;
+        _Ep0::SendZLP();
     }
 
 #endif
@@ -299,12 +304,11 @@ namespace Zhele::Usb
     USB_DEVICE_TEMPLATE_ARGS
     void USB_DEVICE_TEMPLATE_QUALIFIER::HandleSetupRequest(SetupPacket* setupRequest)
     {
-        if(setupRequest->RequestType.Recipient == 1)
-        {
+        if (setupRequest->RequestType.Recipient == 1) {
             IfHandlers::HandleSetupRequest(setupRequest->Index & 0xff);
             return;
         }
-
+        
         switch (setupRequest->Request) {
         case StandartRequestCode::GetStatus: {
             uint16_t status = 0;
@@ -315,6 +319,7 @@ namespace Zhele::Usb
             SetAddress(setupRequest->Value);
             break;
         }
+
         case StandartRequestCode::GetDescriptor: {
             switch (static_cast<GetDescriptorParameter>(setupRequest->Value)) {
             case GetDescriptorParameter::DeviceDescriptor: {
@@ -323,6 +328,7 @@ namespace Zhele::Usb
                 _Ep0::SendData(&tempDeviceDescriptor, setupRequest->Length < sizeof(DeviceDescriptor) ? setupRequest->Length : sizeof(DeviceDescriptor));
                 break;
             }
+
             case GetDescriptorParameter::ConfigurationDescriptor: {
                 uint8_t temp[128];
                 // Now supports only one configuration. It will easy to support more by adding dispatcher like in endpoint/interface
@@ -401,10 +407,10 @@ namespace Zhele::Usb
     IO_STRUCT_WRAPPER(USB_OTG_FS_PERIPH_BASE + USB_OTG_DEVICE_BASE, UsbDeviceRegs, USB_OTG_DeviceTypeDef);
 #endif
 
-#if defined (USB)
-    #define USB_IRQ USB_IRQn
-#elif defined (USB_LP_IRQn)
+#if defined (USB_LP_IRQn)
     #define USB_IRQ USB_LP_IRQn
+#elif defined (USB)
+    // #define USB_IRQ USB_IRQ
 #elif defined (USB_OTG_FS)
     #define USB_IRQ OTG_FS_IRQn
 #endif
@@ -447,10 +453,10 @@ namespace Zhele::Usb
 #elif defined (USB_OTG_FS)
     using Device = DeviceBase<UsbRegs, UsbDeviceRegs, USB_IRQ, UsbClock, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, EmptyFixedString16, EmptyFixedString16, EmptyFixedString16, _Ep0, _Configurations...>;
 #endif
-
+#if defined (USB)
     USB_DEVICE_TEMPLATE_ARGS
     uint8_t USB_DEVICE_TEMPLATE_QUALIFIER::_tempAddressStorage = 0x00;
-
+#endif
     USB_DEVICE_TEMPLATE_ARGS
     volatile bool USB_DEVICE_TEMPLATE_QUALIFIER::_isDeviceConfigured = false;
 }

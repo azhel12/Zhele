@@ -23,16 +23,20 @@ namespace Zhele::Private
     class Spi1Regs; class Spi2Regs; class Spi3Regs;
     // I2C
     class I2C1Regs; class I2C2Regs; class I2C3Regs; 
+    // USB
+    class UsbRegs;
 
     using Regs = Zhele::TemplateUtils::TypeList<
         Usart1Regs, Usart2Regs, Usart3Regs, Uart4Regs, Uart5Regs, Usart6Regs, // Usart
         Spi1Regs, Spi2Regs, Spi3Regs, // SPI
-        I2C1Regs, I2C2Regs, I2C3Regs // I2C
+        I2C1Regs, I2C2Regs, I2C3Regs, // I2C
+        UsbRegs // USB_FS
     >;
     using AltFunctionNumbers = Zhele::TemplateUtils::NonTypeTemplateArray<
         7, 7, 7, 8, 8, 8, // Usart
         5, 5, 6, // SPI
-        4, 4, 4 // I2C
+        4, 4, 4, // I2C
+        10
     >;
 
     template <typename _Regs>
