@@ -259,12 +259,16 @@ namespace Zhele::Usb
     {
         if (_Ep0::GetOutInterrupts() & USB_OTG_DOEPINT_STUP) {
             HandleSetupRequest(reinterpret_cast<SetupPacket*>(_Ep0::RxBuffer));
+#if defined(USB_OTG_FS)
+        _Ep0::SetRxStatus(EndpointStatus::Valid);
+#endif
         }
         if (_Ep0::GetOutInterrupts() & USB_OTG_DOEPINT_XFRC) {
             _Ep0::TryHandleDataTransfer();
         }
 
         _Ep0::ClearAllRxInterrupts();
+
         _Ep0::HandleTx();
     }
 
@@ -378,12 +382,8 @@ namespace Zhele::Usb
                     break;
                 }
             }
-#define USBINEP(n) ((USB_OTG_INEndpointTypeDef*)(USB_OTG_FS_PERIPH_BASE + USB_OTG_IN_ENDPOINT_BASE + n * USB_OTG_EP_REG_SIZE))
             default:
                 _Ep0::SetTxStatus(EndpointStatus::Stall);
-#if defined (USB_OTG_FS)
-                _Ep0::SetRxStatus(EndpointStatus::Valid);
-#endif
                 break;
             }
             break;
@@ -400,9 +400,6 @@ namespace Zhele::Usb
         }
         default:
             _Ep0::SetTxStatus(EndpointStatus::Stall);
-#if defined (USB_OTG_FS)
-            _Ep0::SetRxStatus(EndpointStatus::Valid);
-#endif
             break;
         }
     }
