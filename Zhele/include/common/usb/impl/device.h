@@ -139,7 +139,7 @@ namespace Zhele::Usb
 
         while (!(_Regs()->GRSTCTL & USB_OTG_GRSTCTL_AHBIDL)) continue;
 
-        _DeviceRegs()->DCFG = _VAL2FLD(USB_OTG_DCFG_DAD, 0) | _VAL2FLD(USB_OTG_DCFG_DSPD, 0b11); // Clear address, full-speed
+        _DeviceRegs()->DCFG = USB_OTG_DCFG_DSPD;
 
         _Regs()->GUSBCFG = USB_OTG_GUSBCFG_FDMOD // Force device mode
                         | (0x06 << USB_OTG_GUSBCFG_TRDT_Pos) // ??
@@ -189,7 +189,7 @@ namespace Zhele::Usb
         _Ep0::Reset();
         (_Configurations::Reset(), ...);
 
-        _DeviceRegs()->DAINTMSK = 0x70007U;
+        _DeviceRegs()->DAINTMSK = 0x70007U; // TODO:: Calculate used endpoints numbers
         _DeviceRegs()->DOEPMSK = USB_OTG_DOEPMSK_STUPM // Enable setup-done irq
                                 | USB_OTG_DOEPMSK_XFRCM;  // Enable tx-done irq
 
@@ -308,7 +308,7 @@ namespace Zhele::Usb
             IfHandlers::HandleSetupRequest(setupRequest->Index & 0xff);
             return;
         }
-        
+        IO::Pc13Inv::Clear();
         switch (setupRequest->Request) {
         case StandartRequestCode::GetStatus: {
             uint16_t status = 0;
@@ -378,8 +378,12 @@ namespace Zhele::Usb
                     break;
                 }
             }
+#define USBINEP(n) ((USB_OTG_INEndpointTypeDef*)(USB_OTG_FS_PERIPH_BASE + USB_OTG_IN_ENDPOINT_BASE + n * USB_OTG_EP_REG_SIZE))
             default:
                 _Ep0::SetTxStatus(EndpointStatus::Stall);
+#if defined (USB_OTG_FS)
+                _Ep0::SetRxStatus(EndpointStatus::Valid);
+#endif
                 break;
             }
             break;
@@ -396,6 +400,9 @@ namespace Zhele::Usb
         }
         default:
             _Ep0::SetTxStatus(EndpointStatus::Stall);
+#if defined (USB_OTG_FS)
+            _Ep0::SetRxStatus(EndpointStatus::Valid);
+#endif
             break;
         }
     }
