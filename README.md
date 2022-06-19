@@ -1,5 +1,6 @@
 # Zhele
 Framework for Stm32 MCU on C++ templates. Project based on "mcucpp" by Konstantin Chizhov.
+Support: I created public group in [telegram](https://t.me/stm32_zhele), where I'll try help everyone with using the framework. Sorry, but I can answer only on russian:)
 # Getting started
 I'm using VSCode IDE + Platformio + GNU Arm Embedded Toolchain Version 10.3-2021.10 (it supports features from c++20).
 Basically c++17 is required, c++20 needed only for USB. But I'm planning to use more new features from modern C++ (such as concepts and maybe coroutines), so it's recommended to use latest toolchain.
