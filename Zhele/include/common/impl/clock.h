@@ -70,6 +70,32 @@ namespace Zhele::Clock
     {
         _Reg::And(~_Mask);
     }
+
+#if defined (RCC_CSR_LSION)
+    constexpr ClockFrequenceT LsiClock::SrcClockFreq()
+    {
+        return 32768;
+    }
+
+    constexpr ClockFrequenceT LsiClock::GetDivider() { return 1; }
+
+    constexpr ClockFrequenceT LsiClock::GetMultipler() { return 1; }
+
+    constexpr ClockFrequenceT LsiClock::ClockFreq()
+    {
+        return SrcClockFreq();
+    }
+
+    bool LsiClock::Enable()
+    {
+        return ClockBase::EnableClockSource(RCC_CSR_LSION, RCC_CSR_LSIRDY);
+    }
+
+    bool LsiClock::Disable()
+    {
+        return ClockBase::DisableClockSource(RCC_CSR_LSION, RCC_CSR_LSIRDY);
+    }
+#endif
 }
 
 #endif //! ZHELE_CLOCK_IMPL_COMMON_H

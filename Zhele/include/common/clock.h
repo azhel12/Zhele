@@ -338,7 +338,7 @@ namespace Zhele
              * 
              * @returns Internal low source (LSI) clock frequence
              */
-            static ClockFrequenceT SrcClockFreq();
+            static constexpr ClockFrequenceT SrcClockFreq();
          
 
             /**
@@ -346,14 +346,14 @@ namespace Zhele
              * 
              * @returns Lse divider
              */
-            static ClockFrequenceT GetDivider();
+            static constexpr ClockFrequenceT GetDivider();
 
             /**
              * @brief Returns LSI multiplier
              * 
              * @returns Hsi multiplier
              */
-            static ClockFrequenceT GetMultipler();
+            static constexpr ClockFrequenceT GetMultipler();
 
 
             /**
@@ -361,7 +361,7 @@ namespace Zhele
              * 
              * @returns Final frequence
              */
-            static ClockFrequenceT ClockFreq();
+            static constexpr ClockFrequenceT ClockFreq();
             
 
             /**
