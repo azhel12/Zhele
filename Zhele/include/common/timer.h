@@ -295,16 +295,164 @@ namespace Zhele::Timers
             using ModeList = TypeList<Channel1Mode, Channel2Mode, Channel3Mode, Channel4Mode>;
             using Base = BaseTimer<_Regs, _ClockEnReg, _IRQNumber>;
 
+            /**
+             * @brief Private class for channels
+             * 
+             * @tparam _ChannelNumber Channel number
+             */
+            template<unsigned _ChannelNumber>
+            class ChannelBase
+            {
+            protected:
+                using ModeBitField = typename GetType<_ChannelNumber, ModeList>::type;
+            
+            public:
+                static_assert(_ChannelNumber < 4);
+                using Pins = typename _ChPins<_ChannelNumber>::Pins::Key;
+                using PinsAltFuncNumber = typename _ChPins<_ChannelNumber>::Pins::Value;
+
+                /**
+                 * @brief Enable interrupt
+                 * 
+                 * @par Returns
+                 * 	Nothing
+                 */
+                static void EnableInterrupt();
+
+                /**
+                 * @brief Disable interrupt
+                 * 
+                 * @par Returns
+                 * 	Nothing
+                 */
+                static void DisableInterrupt();
+
+                /**
+                 * @brief Check that interrupt is enabled
+                 * 
+                 * @retval true Interrupt enabled
+                 * @retval false Interrupt disabled
+                 */
+                static bool IsInterrupt();
+
+                /**
+                 * @brief Clear interrupt flag
+                 * 
+                 * @par Returns
+                 * 	Nothing
+                 */
+                static void ClearInterruptFlag();
+
+                /**
+                 * @brief Enable OC channel
+                 * 
+                 * @par Returns
+                 * 	Nothing
+                 */
+                static void Enable();
+            
+                /**
+                 * @brief Disable OC channel
+                 * 
+                 * @par Returns
+                 * 	Nothing
+                 */
+                static void Disable();
+
+                /**
+                 * @brief Select channel pin
+                 * 
+                 * @param [in] pinNumber Pin number
+                 * 
+                 * @par Returns
+                 * 	Nothing
+                 */
+                static void SelectPins(int pinNumber);
+            
+                /**
+                 * @brief Select channel pin by number (template method)
+                 * 
+                 * @tparam PinNumber Pin number
+                 */
+                template<unsigned PinNumber>
+                static void SelectPins();
+
+                /**
+                 * @brief Select channel pin (template method)
+                 * 
+                 * @tparam Pin Pin class
+                 * 
+                 * @par Returns
+                 * 	Nothing
+                 */
+                template<typename Pin>
+                static void SelectPins();
+            };
+
         public:
+            /**
+             * @brief Internal class for input capture feature
+             * 
+             * @tparam _ChannelNumber Channel number
+             */
+            template<unsigned _ChannelNumber>
+            class InputCapture : public ChannelBase<_ChannelNumber>
+            {
+                using Channel = ChannelBase<_ChannelNumber>;
+            public:
+                /// Capture polarity
+                enum CapturePolarity
+                {
+                    RisingEdge = 0, ///< Rising edge
+                    FallingEdge = TIM_CCER_CC1P, ///< Falling edge
+                    BothEdges = TIM_CCER_CC1P | TIM_CCER_CC1NP ///< Rising and falling edges both (WARNING:: NOT FOR ALL TIMERS/CHANNELS)
+                };
+                
+                /// Capture mode
+                enum CaptureMode
+                {
+                    Direct = TIM_CCMR1_CC1S_0, ///< Capture input 1
+                    Indirect = TIM_CCMR1_CC1S_1, ///< Capture input 2
+                    CaptureTrc = TIM_CCMR1_CC1S_0 | TIM_CCMR1_CC1S_1 ///< Capture input TRC
+                };
+
+                /**
+                 * @brief Set capture polarity
+                 * 
+                 * @param [in] polarity Capture polarity
+                 * 
+                 * @par Returns
+                 *  Nothing
+                 */
+                static void SetCapturePolarity(CapturePolarity polarity);
+
+                /**
+                 * @brief Set capture mode
+                 * 
+                 * @param [in] mode Capture mode
+                 * 
+                 * @par Returns
+                 *  Nothing
+                 */
+                static void SetCaptureMode(CaptureMode mode);
+
+                /**
+                 * @brief Get the Value object
+                 * 
+                 * @return Counter 
+                 */
+                static Base::Counter GetValue();
+            };
+
             /**
              * @brief Internal class for output compare feature
              * 
              * @tparam _ChannelNumber Channel number
              */
             template<unsigned _ChannelNumber>
-            class OutputCompare
+            class OutputCompare : public ChannelBase<_ChannelNumber>
             {
-                using ModeBitField = typename GetType<_ChannelNumber, ModeList>::type;
+                using Channel = ChannelBase<_ChannelNumber>;
             public:
                 /// Output polarity
                 enum OutputPolarity
@@ -345,62 +493,7 @@ namespace Zhele::Timers
                  * 
                  * @returns Pulse value
                  */
-                static typename Base::Counter GetPulse();
-                
-
-                /**
-                 * @brief Enable interrupt
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                static void EnableInterrupt();
-               
-            
-                /**
-                 * @brief Disable interrupt
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                static void DisableInterrupt();
-               
-
-                /**
-                 * @brief Check that interrupt is enabled
-                 * 
-                 * @retval true Interrupt enabled
-                 * @retval false Interrupt disabled
-                 */
-                static bool IsInterrupt();
-                
-        
-                /**
-                 * @brief Clear interrupt flag
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                static void ClearInterruptFlag();
-               
-            
-                /**
-                 * @brief Enable OC channel
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                static void Enable();
-               
-            
-                /**
-                 * @brief Disable OC channel
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                static void Disable();
-                
+                static typename Base::Counter GetPulse();                
             
                 /**
                  * @brief Set output polarity
@@ -422,36 +515,6 @@ namespace Zhele::Timers
                  * 	Nothing
                  */
                 static void SetOutputMode(OutputMode mode);
-               
-            
-                /**
-                 * @brief Select channel pin
-                 * 
-                 * @param [in] pinNumber Pin number
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                static void SelectPins(int pinNumber);
-            
-                /**
-                 * @brief Select channel pin by number (template method)
-                 * 
-                 * @tparam PinNumber Pin number
-                 */
-                template<unsigned PinNumber>
-                static void SelectPins();
-
-                /**
-                 * @brief Select channel pin (template method)
-                 * 
-                 * @tparam Pin Pin class
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                template<typename Pin>
-                static void SelectPins();
             };
 
             /**
@@ -516,7 +579,6 @@ namespace Zhele::Timers
                  */
                 template<typename Pin>
                 static void SelectPins();
-               
             };
         };
         

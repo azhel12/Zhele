@@ -101,6 +101,18 @@ namespace Zhele::Clock
         ClockBase::DisableClockSource(RCC_CR_PLLON, RCC_CR_PLLRDY);
     }
 
+#if defined (RCC_CSR_LSION)
+    bool LsiClock::Enable()
+    {
+        return ClockBase::EnableClockSource(RCC_CSR_LSION, RCC_CSR_LSIRDY);
+    }
+
+    bool LsiClock::Disable()
+    {
+        return ClockBase::DisableClockSource(RCC_CSR_LSION, RCC_CSR_LSIRDY);
+    }
+#endif
+
     SysClock::ErrorCode SysClock::SelectClockSource(ClockSource clockSource)
     {
         uint32_t clockStatusValue;
