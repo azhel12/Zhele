@@ -85,16 +85,6 @@ namespace Zhele::Clock
     {
         return SrcClockFreq();
     }
-
-    bool LsiClock::Enable()
-    {
-        return ClockBase::EnableClockSource(RCC_CSR_LSION, RCC_CSR_LSIRDY);
-    }
-
-    bool LsiClock::Disable()
-    {
-        return ClockBase::DisableClockSource(RCC_CSR_LSION, RCC_CSR_LSIRDY);
-    }
 #endif
 }
 

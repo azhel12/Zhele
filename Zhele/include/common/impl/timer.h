@@ -139,6 +139,70 @@ namespace Zhele::Timers::Private
 
     GPTIMER_TEMPLATE_ARGS
     template<unsigned _ChannelNumber>
+    void GPTIMER_TEMPLATE_QUALIFIER::ChannelBase<_ChannelNumber>::EnableInterrupt()
+    {
+        _Regs()->DIER |= (TIM_DIER_CC1IE << _ChannelNumber);
+        NVIC_EnableIRQ(_IRQNumber);
+    }
+
+    GPTIMER_TEMPLATE_ARGS
+    template<unsigned _ChannelNumber>
+    void GPTIMER_TEMPLATE_QUALIFIER::ChannelBase<_ChannelNumber>::DisableInterrupt()
+    {
+        _Regs()->DIER &= ~(TIM_DIER_CC1IE << _ChannelNumber);
+    }
+
+    GPTIMER_TEMPLATE_ARGS
+    template<unsigned _ChannelNumber>
+    bool GPTIMER_TEMPLATE_QUALIFIER::ChannelBase<_ChannelNumber>::IsInterrupt()
+    {
+        return _Regs()->SR & (TIM_SR_CC1IF << _ChannelNumber);
+    }
+
+    GPTIMER_TEMPLATE_ARGS
+    template<unsigned _ChannelNumber>
+    void GPTIMER_TEMPLATE_QUALIFIER::ChannelBase<_ChannelNumber>::ClearInterruptFlag()
+    {
+        _Regs()->SR &= ~(TIM_SR_CC1IF << _ChannelNumber);
+    }
+
+    GPTIMER_TEMPLATE_ARGS
+    template<unsigned _ChannelNumber>
+    void GPTIMER_TEMPLATE_QUALIFIER::ChannelBase<_ChannelNumber>::Enable()
+    {
+        _Regs()->CCER |= (TIM_CCER_CC1E << _ChannelNumber * 4);
+    }
+
+    GPTIMER_TEMPLATE_ARGS
+    template<unsigned _ChannelNumber>
+    void GPTIMER_TEMPLATE_QUALIFIER::ChannelBase<_ChannelNumber>::Disable()
+    {
+        _Regs()->CCER &= ~(TIM_CCER_CC1E << _ChannelNumber * 4);
+    }
+
+    GPTIMER_TEMPLATE_ARGS
+    template<unsigned _ChannelNumber>
+    void GPTIMER_TEMPLATE_QUALIFIER::InputCapture<_ChannelNumber>::SetCapturePolarity(CapturePolarity polarity)
+    {
+        _Regs()->CCER = (_Regs()->CCER & ~((TIM_CCER_CC1E | TIM_CCER_CC1P | TIM_CCER_CC1NP) << _ChannelNumber * 4)) | (polarity << _ChannelNumber * 4);
+    }
+
+    GPTIMER_TEMPLATE_ARGS
+    template<unsigned _ChannelNumber>
+    void GPTIMER_TEMPLATE_QUALIFIER::InputCapture<_ChannelNumber>::SetCaptureMode(CaptureMode mode)
+    {
+        Channel::ModeBitField::Set(mode);
+    }
+
+    GPTIMER_TEMPLATE_ARGS
+    template<unsigned _ChannelNumber>
+    GPTIMER_TEMPLATE_QUALIFIER::Base::Counter GPTIMER_TEMPLATE_QUALIFIER::InputCapture<_ChannelNumber>::GetValue()
+    {
+        return (&_Regs()->CCR1)[_ChannelNumber];
+    }
+
+    GPTIMER_TEMPLATE_ARGS
+    template<unsigned _ChannelNumber>
     void GPTIMER_TEMPLATE_QUALIFIER::OutputCompare<_ChannelNumber>::SetPulse(typename Base::Counter pulse)
     {
         (&_Regs()->CCR1)[_ChannelNumber] = pulse;
@@ -153,49 +217,6 @@ namespace Zhele::Timers::Private
 
     GPTIMER_TEMPLATE_ARGS
     template<unsigned _ChannelNumber>
-    void GPTIMER_TEMPLATE_QUALIFIER::OutputCompare<_ChannelNumber>::EnableInterrupt()
-    {
-        _Regs()->DIER |= (TIM_DIER_CC1IE << _ChannelNumber);
-        NVIC_EnableIRQ(_IRQNumber);
-    }
-
-    GPTIMER_TEMPLATE_ARGS
-    template<unsigned _ChannelNumber>
-    void GPTIMER_TEMPLATE_QUALIFIER::OutputCompare<_ChannelNumber>::DisableInterrupt()
-    {
-        _Regs()->DIER &= ~(TIM_DIER_CC1IE << _ChannelNumber);
-    }
-
-    GPTIMER_TEMPLATE_ARGS
-    template<unsigned _ChannelNumber>
-    bool GPTIMER_TEMPLATE_QUALIFIER::OutputCompare<_ChannelNumber>::IsInterrupt()
-    {
-        return _Regs()->SR & (TIM_SR_CC1IF << _ChannelNumber);
-    }
-
-    GPTIMER_TEMPLATE_ARGS
-    template<unsigned _ChannelNumber>
-    void GPTIMER_TEMPLATE_QUALIFIER::OutputCompare<_ChannelNumber>::ClearInterruptFlag()
-    {
-        _Regs()->SR &= ~(TIM_SR_CC1IF << _ChannelNumber);
-    }
-
-    GPTIMER_TEMPLATE_ARGS
-    template<unsigned _ChannelNumber>
-    void GPTIMER_TEMPLATE_QUALIFIER::OutputCompare<_ChannelNumber>::Enable()
-    {
-        _Regs()->CCER |= (TIM_CCER_CC1E << _ChannelNumber * 4);
-    }
-
-    GPTIMER_TEMPLATE_ARGS
-    template<unsigned _ChannelNumber>
-    void GPTIMER_TEMPLATE_QUALIFIER::OutputCompare<_ChannelNumber>::Disable()
-    {
-        _Regs()->CCER &= ~(TIM_CCER_CC1E << _ChannelNumber * 4);
-    }
-
-    GPTIMER_TEMPLATE_ARGS
-    template<unsigned _ChannelNumber>
     void GPTIMER_TEMPLATE_QUALIFIER::OutputCompare<_ChannelNumber>::SetOutputPolarity(OutputPolarity polarity)
     {
         _Regs()->CCER = (_Regs()->CCER & ~((TIM_CCER_CC1E | TIM_CCER_CC1P | TIM_CCER_CC1NP) << _ChannelNumber * 4)) | (polarity << _ChannelNumber * 4);
@@ -206,7 +227,7 @@ namespace Zhele::Timers::Private
     void GPTIMER_TEMPLATE_QUALIFIER::OutputCompare<_ChannelNumber>::SetOutputMode(OutputMode mode)
     {
         _Regs()->CCER = (_Regs()->CCER & ~(TIM_CCER_CC1NP << _ChannelNumber * 4)) | (TIM_CCER_CC1E << _ChannelNumber * 4);
-        ModeBitField::Set(mode);
+        Channel::ModeBitField::Set(mode);
         _Regs()->BDTR |= TIM_BDTR_MOE;
     }
 
