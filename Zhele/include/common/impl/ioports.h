@@ -29,8 +29,7 @@ namespace Zhele::IO::Private
     PORTIMPL_TEMPLATE_ARGS
     void PORTIMPL_TEMPLATE_QUALIFIER::ClearAndSet(PORTIMPL_TEMPLATE_QUALIFIER::DataType clearMask, PORTIMPL_TEMPLATE_QUALIFIER::DataType setMask)
     {
-        Clear(clearMask);
-        Set(setMask);
+        _Regs()->BSRR = clearMask << 16 | setMask;
     }
 
     PORTIMPL_TEMPLATE_ARGS
@@ -48,7 +47,7 @@ namespace Zhele::IO::Private
     PORTIMPL_TEMPLATE_ARGS
     void PORTIMPL_TEMPLATE_QUALIFIER::Toggle(PORTIMPL_TEMPLATE_QUALIFIER::DataType value)
     {
-        _Regs()->ODR ^= value;
+        _Regs()->BSRR = value << 16 | ~_Regs()->ODR & value;
     }
 
     PORTIMPL_TEMPLATE_ARGS
