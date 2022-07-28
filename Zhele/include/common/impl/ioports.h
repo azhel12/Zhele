@@ -60,15 +60,14 @@ namespace Zhele::IO::Private
     template<typename PORTIMPL_TEMPLATE_QUALIFIER::DataType clearMask, typename PORTIMPL_TEMPLATE_QUALIFIER::DataType setMask>
     void PORTIMPL_TEMPLATE_QUALIFIER::ClearAndSet()
     {
-        Clear<clearMask>();
-        Set<setMask>();
+        _Regs()->BSRR = clearMask << 16 | setMask;
     }
 
     PORTIMPL_TEMPLATE_ARGS
     template<typename PORTIMPL_TEMPLATE_QUALIFIER::DataType value>
     void PORTIMPL_TEMPLATE_QUALIFIER::Toggle()
     {
-        _Regs()->ODR ^= value;
+        _Regs()->BSRR = value << 16 | ~_Regs()->ODR & value;
     }
 
     PORTIMPL_TEMPLATE_ARGS
