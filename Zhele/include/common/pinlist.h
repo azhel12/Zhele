@@ -69,9 +69,31 @@ namespace Zhele
             class PinListExpander<TypeList<_PortPins...>>
             {
             public:
+                /**
+                 * @brief Expand pinlist value to one port's value (ODR)
+                 * 
+                 * @tparam _PinList Pinlist
+                 * @tparam _DataType Data type
+                 * 
+                 * @param value Pinlist value
+                 * 
+                 * @return NativePortBase::DataType value for specific port
+                 */
                 template<typename _PinList, typename _DataType>
                 static NativePortBase::DataType ExpandPinlistValue(_DataType value);
-                
+
+                /**
+                 * @brief Extact pinlist value part from one port's value (IDR)
+                 * 
+                 * @tparam _PinList Pinlist
+                 * @tparam _DataType Data type
+                 * 
+                 * @param value Port value
+                 * 
+                 * @return _DataType Pinlist part value (for next OR operation)
+                 */
+                template<typename _PinList, typename _DataType>
+                static _DataType ExtractPinlistValueFromPort(NativePortBase::DataType value);
             };
 
             /**
@@ -79,7 +101,12 @@ namespace Zhele
              */
             template<typename _Port, typename _PinList, typename _DataType>
             typename _Port::DataType GetPinlistValueForPort(_DataType value);
-        
+
+            /**
+             * @brief Get pinlist's part from port value
+             */
+            template<typename _Port, typename _PinList, typename _DataType>
+            _DataType GetPinlistValuePartFromPort();
 
             /**
              * @brief Writer to ports
@@ -136,7 +163,8 @@ namespace Zhele
                  * 
                  * @returns Pinlist input value
                  */
-                static auto Read();
+                template<typename _DataType>
+                static _DataType Read();
                 
 
                 /**

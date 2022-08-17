@@ -21,10 +21,23 @@ namespace Zhele::IO
             return (((value & (1 << TypeIndex<_PortPins, _PinList>::value)) > 0 ? 1 << _PortPins::Number : 0) | ...);
         }
 
+        template<typename... _PortPins>
+        template<typename _PinList, typename _DataType>
+        _DataType PinListExpander<TypeList<_PortPins...>>::ExtractPinlistValueFromPort(NativePortBase::DataType value)
+        {
+            return (((value & (1 << _PortPins::Number)) > 0 ? (1 << TypeIndex<_PortPins, _PinList>::value) : 0) | ...);
+        }
+
         template<typename _Port, typename _PinList, typename _DataType>
         typename _Port::DataType GetPinlistValueForPort(_DataType value)
         {
             return PinListExpander<PinsForPort<_Port, _PinList>>::template ExpandPinlistValue<_PinList>(value);
+        }
+
+        template<typename _Port, typename _PinList, typename _DataType>
+        _DataType GetPinlistValuePartFromPort()
+        {
+            return PinListExpander<PinsForPort<_Port, _PinList>>::template ExtractPinlistValueFromPort<_PinList, _DataType>(_Port::PinRead());
         }
 
         template<typename _PinList, typename... _Ports>
@@ -55,9 +68,10 @@ namespace Zhele::IO
         }
 
         template<typename _PinList, typename... _Ports>
-        auto PortsWriter<_PinList, TypeList<_Ports...>>::Read()
+        template<typename _DataType>
+        _DataType PortsWriter<_PinList, TypeList<_Ports...>>::Read()
         {
-            return 0xdeadbeef;
+            return (Private::GetPinlistValuePartFromPort<_Ports, _PinList, _DataType>() | ...);
         }
 
         template<typename _PinList, typename... _Ports>
@@ -132,7 +146,7 @@ namespace Zhele::IO
     template<typename... _Pins>
     typename PinList<_Pins...>::DataType PinList<_Pins...>::Read()
     {
-        return 0xdeadbeef;
+        return PortWriter::template Read<DataType>();
     }
 
     template<typename... _Pins>
