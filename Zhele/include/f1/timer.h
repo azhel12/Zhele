@@ -35,10 +35,10 @@ namespace Zhele::Timers
 
         template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>
         template <unsigned _ChannelNumber>
-        void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::SelectPins(int pinNumber)
+        void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::ChannelBase<_ChannelNumber>::SelectPins(int pinNumber)
         {
-            using Pins = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::Pins;
-            using PinsAltFuncNumbers = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::PinsAltFuncNumber;
+            using Pins = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::ChannelBase<_ChannelNumber>::Pins;
+            using PinsAltFuncNumbers = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::ChannelBase<_ChannelNumber>::PinsAltFuncNumber;
             using Type = typename Pins::DataType;
 
             Type mask = 1 << pinNumber;
@@ -50,10 +50,10 @@ namespace Zhele::Timers
         template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>
         template <unsigned _ChannelNumber>
         template <typename Pin>
-        void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::SelectPins()
+        void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::ChannelBase<_ChannelNumber>::SelectPins()
         {
-            using Pins = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::Pins;
-            using PinsAltFuncNumbers = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::PinsAltFuncNumber;
+            using Pins = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::ChannelBase<_ChannelNumber>::Pins;
+            using PinsAltFuncNumbers = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::ChannelBase<_ChannelNumber>::PinsAltFuncNumber;
             static_assert(Pins::template IndexOf<Pin> >= 0);
             Pin::Port::Enable();
             Pin::template SetConfiguration<Pins::AltFunc>();

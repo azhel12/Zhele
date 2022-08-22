@@ -138,6 +138,24 @@ namespace Zhele::Timers::Private
     #define GPTIMER_TEMPLATE_QUALIFIER GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>
 
     GPTIMER_TEMPLATE_ARGS
+    void GPTIMER_TEMPLATE_QUALIFIER::SlaveMode::EnableSlaveMode(Mode mode)
+    {
+        _Regs()->SMCR = (_Regs()->SMCR & ~TIM_SMCR_SMS_Msk) | static_cast<uint16_t>(mode);
+    }
+
+    GPTIMER_TEMPLATE_ARGS
+    void GPTIMER_TEMPLATE_QUALIFIER::SlaveMode::DisableSlaveMode()
+    {
+        _Regs()->SMCR &= ~TIM_SMCR_SMS_Msk;
+    }
+
+    GPTIMER_TEMPLATE_ARGS
+    void GPTIMER_TEMPLATE_QUALIFIER::SlaveMode::SelectTrigger(Trigger trigger)
+    {
+        _Regs()->SMCR = (_Regs()->SMCR & ~TIM_SMCR_TS_Msk) | static_cast<uint16_t>(trigger);
+    }
+
+    GPTIMER_TEMPLATE_ARGS
     template<unsigned _ChannelNumber>
     void GPTIMER_TEMPLATE_QUALIFIER::ChannelBase<_ChannelNumber>::EnableInterrupt()
     {
