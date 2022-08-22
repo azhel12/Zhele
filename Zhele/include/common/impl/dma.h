@@ -58,7 +58,7 @@ namespace Zhele
 
     if(Data.transferCallback)
         mode = mode | DmaBase::TransferCompleteInterrupt | DmaBase::TransferErrorInterrupt;
-        
+
     NVIC_EnableIRQ(_IRQNumber);
 
     #if defined (DMA_CCR_EN)

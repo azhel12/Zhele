@@ -47,7 +47,7 @@ namespace Zhele
          * 
          * @note There are only two DMA types
          */
-        enum Mode
+        enum Mode : uint16_t
         {
         #if defined (DMA_CCR_EN)
             PriorityLow = 0, ///< Low priority

@@ -105,6 +105,12 @@ namespace Zhele::Private
     }
 
     SPI_TEMPLATE_ARGS
+    bool SPI_TEMPLATE_QUALIFIER::Busy()
+    {
+        return (_Regs()->SR & SPI_SR_BSY) > 0;
+    }
+
+    SPI_TEMPLATE_ARGS
     uint16_t SPI_TEMPLATE_QUALIFIER::Send(uint16_t value)
     {
         while ((_Regs()->SR & SPI_SR_TXE) == 0);
@@ -144,11 +150,12 @@ namespace Zhele::Private
         _Regs()->CR2 |= (SPI_CR2_RXDMAEN | SPI_CR2_TXDMAEN);
         auto dataSize = 
         #if defined(SPI_CR1_DFF)
-            _Regs()->CR1 & SPI_CR1_DFF > 0
+            (_Regs()->CR1 & SPI_CR1_DFF) > 0
         #else
             (_Regs()->CR2 & SPI_CR2_DS) > DataSize8
         #endif
-            ? _DmaTx::PSize16Bits : _DmaTx::PSize8Bits;
+            ? (_DmaTx::PSize16Bits | _DmaTx::MSize16Bits)
+            : (_DmaTx::PSize8Bits | _DmaTx::MSize8Bits);
         _DmaRx::SetTransferCallback(callback);
         _DmaRx::Transfer(_DmaRx::Periph2Mem | _DmaRx::MemIncrement | _DmaRx::Circular | dataSize, receiveBuffer, &_Regs()->DR, bufferSize);
 
@@ -162,18 +169,39 @@ namespace Zhele::Private
     }
 
     SPI_TEMPLATE_ARGS
-    void SPI_TEMPLATE_QUALIFIER::WriteAsync(const void* data, uint16_t size)
+    void SPI_TEMPLATE_QUALIFIER::WriteAsync(const void* data, uint16_t size, TransferCallback callback)
+    {
+        _DmaTx::ClearTransferComplete();
+        _Regs()->CR2 |= SPI_CR2_TXDMAEN;
+        typename _DmaTx::Mode dataSize = 
+        #if defined(SPI_CR1_DFF)
+            (_Regs()->CR1 & SPI_CR1_DFF) > 0
+        #else
+            (_Regs()->CR2 & SPI_CR2_DS) > DataSize8
+        #endif
+            ? (_DmaTx::PSize16Bits | _DmaTx::MSize16Bits)
+            : (_DmaTx::PSize8Bits | _DmaTx::MSize8Bits);
+
+        _DmaTx::SetTransferCallback(callback);
+        _DmaTx::Transfer(_DmaTx::Mem2Periph | _DmaTx::MemIncrement | dataSize, data, &_Regs()->DR, size);
+    }
+
+    SPI_TEMPLATE_ARGS
+    void SPI_TEMPLATE_QUALIFIER::WriteAsyncNoIncrement(const void* data, uint16_t size, TransferCallback callback)
     {
         _DmaTx::ClearTransferComplete();
         _Regs()->CR2 |= SPI_CR2_TXDMAEN;
         auto dataSize = 
         #if defined(SPI_CR1_DFF)
-            _Regs()->CR1 & SPI_CR1_DFF > 0
+            (_Regs()->CR1 & SPI_CR1_DFF) > 0
         #else
             (_Regs()->CR2 & SPI_CR2_DS) > DataSize8
         #endif
-            ? _DmaTx::PSize16Bits : _DmaTx::PSize8Bits;
-        _DmaTx::Transfer(_DmaTx::Mem2Periph | _DmaTx::MemIncrement | dataSize, data, &_Regs()->DR, size);
+            ? (_DmaTx::PSize16Bits | _DmaTx::MSize16Bits)
+            : (_DmaTx::PSize8Bits | _DmaTx::MSize8Bits);
+
+        _DmaTx::SetTransferCallback(callback);
+        _DmaTx::Transfer(_DmaTx::Mem2Periph | dataSize, data, &_Regs()->DR, size);
     }
 
     SPI_TEMPLATE_ARGS
@@ -189,11 +217,12 @@ namespace Zhele::Private
         _Regs()->CR2 |= (SPI_CR2_RXDMAEN | SPI_CR2_TXDMAEN);
         auto dataSize = 
         #if defined(SPI_CR1_DFF)
-            _Regs()->CR1 & SPI_CR1_DFF > 0
+            (_Regs()->CR1 & SPI_CR1_DFF) > 0
         #else
             (_Regs()->CR2 & SPI_CR2_DS) > DataSize8
         #endif
-            ? _DmaTx::PSize16Bits : _DmaTx::PSize8Bits;
+            ? (_DmaTx::PSize16Bits | _DmaTx::MSize16Bits)
+            : (_DmaTx::PSize8Bits | _DmaTx::MSize8Bits);
         _DmaRx::SetTransferCallback(callback);
         _DmaRx::Transfer(_DmaRx::Periph2Mem | _DmaRx::MemIncrement | _DmaRx::Circular | dataSize, receiveBuffer, &_Regs()->DR, bufferSize);
 

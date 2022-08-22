@@ -264,6 +264,14 @@ namespace Zhele
              * 	Nothing
              */
             static void ClearSS();
+
+            /**
+             * @brief Returns busy state
+             * 
+             * @return true SPI is busy
+             * @return false SPI is not busy
+             */
+            static bool Busy();
             
             /**
              * @brief Send and receive data
@@ -274,7 +282,6 @@ namespace Zhele
              */
             static uint16_t Send(uint16_t value);
            
-
             /**
              * @brief Send data async (by DMA)
              * 
@@ -286,8 +293,8 @@ namespace Zhele
              * @par Returns
              *  Nothing
              */
-            static void SendAsync(void* transmitBuffer, void* receiveBuffer, size_t bufferSize, TransferCallback callback = nullptr);
             
+            static void SendAsync(void* transmitBuffer, void* receiveBuffer, size_t bufferSize, TransferCallback callback = nullptr);
             /**
              * @brief Send data with ignored receive
              * 
@@ -308,8 +315,18 @@ namespace Zhele
              * @par Returns
              * 	Nothing
              */
-            static void WriteAsync(const void* data, uint16_t size);
-          
+            static void WriteAsync(const void* data, uint16_t size, TransferCallback callback = nullptr);
+
+            /**
+             * @brief Send data async (by DMA) with ignored receive.
+             * 
+             * @param [in] data Data buffer
+             * @param [in] size Buffer size (count of elements)
+             * 
+             * @par Returns
+             * 	Nothing
+             */
+            static void WriteAsyncNoIncrement(const void* data, uint16_t size, TransferCallback callback = nullptr);
 
             /**
              * @brief Read data (via send 0xFF dummy value)
