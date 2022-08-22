@@ -35,7 +35,7 @@ namespace Zhele::Drivers
             Mx = 0x40,
             Mv = 0x20, 
             Ml = 0x10,
-            Rfb = 0x00,
+            Rgb = 0x00,
             Bgr = 0x08,
             Mh = 0x04
         };
@@ -91,9 +91,10 @@ namespace Zhele::Drivers
             GmctrN1 = 0xe1
         };
 
-        static const uint8_t Rotation = _Width < _Height
-            ? MadCtl::Mx | MadCtl::My
-            : MadCtl::My | MadCtl::Mv;
+        static const uint8_t Rotation = MadCtl::Rgb
+            | (_Width < _Height
+                ? MadCtl::Mx | MadCtl::My
+                : MadCtl::My | MadCtl::Mv);
 
         static bool _busy;
     public:
@@ -207,7 +208,6 @@ namespace Zhele::Drivers
             delay_ms<100>();
 
             _SsPin::Set();
-            _SsPin::WaitForSet();
         }
 
         /**
@@ -318,6 +318,119 @@ namespace Zhele::Drivers
         }
 
         /**
+         * @brief Write char to display
+         * 
+         * @tparam Font Font
+         * 
+         * @param x X coordinate
+         * @param y Y coordinate
+         * @param symbol Symbol
+         * @param color Symbol color
+         * @param background Background color
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        template<typename Font>
+        static void WriteChar(uint8_t x, uint8_t y, char symbol, uint16_t color, uint16_t background)
+        {
+            _SsPin::Clear();
+
+            // For compatibility with old fonts I need to fill display by column not by row
+            // So, temporarily change the X and Y axes
+            WriteCommand(Command::MadCtl);
+            WriteData(Rotation ^ MadCtl::Mv);
+
+            uint8_t width;
+            if constexpr (Font::MonoSpace)
+                width = Font::Width;
+            else
+                width = Font::GetWidth(symbol);
+
+            SetAddressWindow(y, x, y + Font::Height - 1, x + width - 1);
+
+            _SpiBus::SetDataSize(_SpiBus::DataSize::DataSize16);
+            _DcPin::Set();
+
+            const uint8_t extraBits = Font::Height % 8;
+
+            for (uint8_t column = 0; column < width; ++column) {
+
+                uint8_t page = 0;
+                for(page = 0; page < Font::Height / 8; ++page) {
+                    uint8_t temp = Font::Get(symbol)[page * width + column];
+
+                    for(uint8_t i = 0; i < 8; ++i) {
+                        _SpiBus::Write((temp & 0x01) > 0 ? color : background);
+                        temp >>= 1;
+                    }
+                }
+
+                if constexpr (extraBits > 0) {
+                    uint8_t temp = Font::Get(symbol)[page * width + column] >> (8 - extraBits);
+
+                    for(uint8_t i = 0; i < extraBits; ++i) {
+                        _SpiBus::Write((temp & 0x01) > 0 ? color : background);
+                        temp >>= 1;
+                    }
+                }
+            }
+
+            _SpiBus::SetDataSize(_SpiBus::DataSize::DataSize8);
+
+            // Put back
+            WriteCommand(Command::MadCtl);
+            WriteData(Rotation);
+            
+            _SsPin::Set();
+        }
+
+        /**
+         * @brief Write string
+         * 
+         * @tparam Font Font
+         * 
+         * @param x X coordinate
+         * @param y Y coordinate
+         * @param str String
+         * @param color Symbol color
+         * @param background Background color
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        template<typename Font>
+        static void WriteString(uint8_t x, uint8_t y, const char* str, uint16_t color, uint16_t background)
+        {
+            while(*str) {
+                uint8_t width;
+                if constexpr (Font::MonoSpace)
+                    width = Font::Width;
+                else
+                    width = Font::GetWidth(*str);
+                    
+                if(x + width >= _Width) {
+                    x = 0;
+                    y += Font::Height;
+                    
+                    if(y + Font::Height >= _Height)
+                        break;
+
+                    if(*str == ' ') {
+                        // skip spaces in the beginning of the new line
+                        ++str;
+                        continue;
+                    }
+                }
+                WriteChar<Font>(x, y, *str, color, background);
+
+                x += width;
+
+                ++str;
+            }
+        }
+
+        /**
          * @brief Reset controller
          * 
          * @par Returns
@@ -325,11 +438,14 @@ namespace Zhele::Drivers
          */
         static void Reset()
         {
-            _ResetPin::Clear();
-            
-            delay_ms<5>();
+            _ResetPin::Set();
+            delay_ms<50>();
+
+            _ResetPin::Clear();            
+            delay_ms<50>();
 
             _ResetPin::Set();
+            delay_ms<50>();
         }
 
         /**
@@ -373,6 +489,20 @@ namespace Zhele::Drivers
 
             for (uint8_t dataByte : data)
                 _SpiBus::Write(dataByte);
+        }
+
+        /**
+         * @brief Write data to display (1 or 2 bytes)
+         * 
+         * @param data Data
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void WriteData(uint16_t data)
+        {
+            _DcPin::Set();
+            _SpiBus::Write(data);
         }
 
         /**
