@@ -35,7 +35,7 @@ namespace Zhele
     void delay_us()
     {
         static const unsigned int loops = (CpuFreq / 1000000u * us - DelayInitInstructionsCount) / InstructionsPerCycle;
-        for (unsigned int i = 0; i < loops; ++i) ;
+        for (unsigned int i = 0; i < loops; ++i) __asm("nop");
     }
 
 }
