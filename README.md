@@ -16,7 +16,7 @@ You can get some errors about python virtual environments. There is many solutio
 ![New project](https://user-images.githubusercontent.com/8615986/117640495-c2b3cb00-b18d-11eb-8f3a-791a0e9aa443.PNG)
 7. Download new Arm Embedded Toolchain from [official site](https://developer.arm.com/downloads/-/gnu-rm). Choose gcc-arm-none-eabi-10.3-2021.10-win32.zip
 ![Arm Embedded Toolchain download](https://user-images.githubusercontent.com/8615986/173829139-9afdb9fe-0ac7-42ad-8ba0-a0308000940e.png)
-7. Unpack archive and copy witj replace folders _bin_, _share_, _arm-none-eabi_ and _lib_ to _C:\\Users\\%Username%\\.platformio\\packages\\toolchain-gccarmnoneeabi\\_. Warning! Do not delete files _.piopm_ and _package.json_.
+7. Unpack archive and copy witj replace folders _bin_, _share_, _arm-none-eabi_ and _lib_ to _C:\\Users\\%Username%\\.platformio\\packages\\toolchain-gccarmnoneeabi\\_ (With last Platofrmio update this directory has new name: _toolchain-gccarmnoneeabi@VERSION_). Warning! Do not delete files _.piopm_ and _package.json_.
 ![Copy new toolchain](https://user-images.githubusercontent.com/8615986/117638529-972fe100-b18b-11eb-9aff-e4deec2e6707.png)
 9. Open _PIO Home_ _Home_, press _New Project_, input project name, board (examples for stm32f103) and **CMSIS** in _Framework_. Press _Finish_.
 ![New project](https://user-images.githubusercontent.com/8615986/117637568-964a7f80-b18a-11eb-8022-35007a8d913f.PNG)
