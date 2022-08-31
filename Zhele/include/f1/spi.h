@@ -136,27 +136,29 @@ namespace Zhele
         }
 
         IO_STRUCT_WRAPPER(SPI1, Spi1Regs, SPI_TypeDef);
-		IO_STRUCT_WRAPPER(SPI2, Spi2Regs, SPI_TypeDef);
-        #if defined (SPI3)
-            IO_STRUCT_WRAPPER(SPI3, Spi3Regs, SPI_TypeDef);
-        #endif
+    #if defined (SPI2)
+        IO_STRUCT_WRAPPER(SPI2, Spi2Regs, SPI_TypeDef);
+    #endif
+    #if defined (SPI3)
+        IO_STRUCT_WRAPPER(SPI3, Spi3Regs, SPI_TypeDef);
+    #endif
 
         using Spi1SsPins = IO::PinList<IO::Pa4, IO::Pa15>;
 		using Spi1ClockPins = IO::PinList<IO::Pa5, IO::Pb3>;
 		using Spi1MisoPins = IO::PinList<IO::Pa6, IO::Pb4>;
 		using Spi1MosiPins = IO::PinList<IO::Pa7, IO::Pb5>;
-		
+	#if defined (SPI2)
 		using Spi2SsPins = IO::PinList<IO::Pb12>;
 		using Spi2ClockPins = IO::PinList<IO::Pb13>;
 		using Spi2MisoPins = IO::PinList<IO::Pb14>;
 		using Spi2MosiPins = IO::PinList<IO::Pb15>;
-
-        #if defined (SPI3)
-            using Spi3SsPins = IO::PinList<IO::Pa15, IO::Pa4>;
-            using Spi3ClockPins = IO::PinList<IO::Pb3, IO::Pc10>;
-		    using Spi3MisoPins = IO::PinList<IO::Pb4, IO::Pc11>;
-		    using Spi3MosiPins = IO::PinList<IO::Pb5, IO::Pc12>;
-        #endif
+    #endif
+    #if defined (SPI3)
+        using Spi3SsPins = IO::PinList<IO::Pa15, IO::Pa4>;
+        using Spi3ClockPins = IO::PinList<IO::Pb3, IO::Pc10>;
+        using Spi3MisoPins = IO::PinList<IO::Pb4, IO::Pc11>;
+        using Spi3MosiPins = IO::PinList<IO::Pb5, IO::Pc12>;
+    #endif
     }
     using Spi1 = Private::Spi<
         Private::Spi1Regs, 
@@ -168,6 +170,7 @@ namespace Zhele
         Dma1Channel3,
         Dma1Channel2>;
 
+#if defined(SPI2)
     using Spi2 = Private::Spi<
         Private::Spi2Regs, 
         Clock::Spi2Clock, 
@@ -177,18 +180,18 @@ namespace Zhele
         Private::Spi2SsPins,
         Dma1Channel5,
         Dma1Channel4>;
-
-    #if defined(SPI3)
-        using Spi3 = Private::Spi<
-            Private::Spi3Regs, 
-            Clock::Spi3Clock, 
-            Private::Spi3MosiPins, 
-            Private::Spi3MisoPins,
-            Private::Spi3ClockPins,
-            Private::Spi3SsPins,
-            Dma2Channel2,
-            Dma2Channel1>;
-    #endif
+#endif
+#if defined(SPI3)
+    using Spi3 = Private::Spi<
+        Private::Spi3Regs, 
+        Clock::Spi3Clock, 
+        Private::Spi3MosiPins, 
+        Private::Spi3MisoPins,
+        Private::Spi3ClockPins,
+        Private::Spi3SsPins,
+        Dma2Channel2,
+        Dma2Channel1>;
+#endif
     
 }
 

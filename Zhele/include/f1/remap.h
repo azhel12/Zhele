@@ -52,9 +52,10 @@ namespace Zhele::IO
 
         DECLARE_IO_BITFIELD_WRAPPER(AFIO->MAPR, Timer3RemapBitField, AFIO_MAPR_TIM3_REMAP)
         DECLARE_PERIPH_REMAP(Zhele::Clock::Tim3Clock, Timer3RemapBitField)
-
+    #if defined (TIM4)
         DECLARE_IO_BITFIELD_WRAPPER(AFIO->MAPR, Timer4RemapBitField, AFIO_MAPR_TIM4_REMAP)
         DECLARE_PERIPH_REMAP(Zhele::Clock::Tim4Clock, Timer4RemapBitField)
+    #endif
 
         // Usarts remap
         DECLARE_IO_BITFIELD_WRAPPER(AFIO->MAPR, Usart1RemapBitField, AFIO_MAPR_USART1_REMAP)
@@ -94,16 +95,19 @@ namespace Zhele::IO
     using Timer1Remap = Private::PeriphRemap<Zhele::Clock::Tim1Clock>;
     using Timer2Remap = Private::PeriphRemap<Zhele::Clock::Tim2Clock>;
     using Timer3Remap = Private::PeriphRemap<Zhele::Clock::Tim3Clock>;
+#if defined (TIM4)
     using Timer4Remap = Private::PeriphRemap<Zhele::Clock::Tim4Clock>;
-
+#endif
     using Usart1Remap = Private::PeriphRemap<Zhele::Clock::Usart1Clock>;
     using Usart2Remap = Private::PeriphRemap<Zhele::Clock::Usart2Clock>;
-    using Usart3Remap = Private::PeriphRemap<Zhele::Clock::Usart3Clock>;
 
+#if defined (USART3)
+    using Usart3Remap = Private::PeriphRemap<Zhele::Clock::Usart3Clock>;
+#endif
     using Spi1Remap = Private::PeriphRemap<Zhele::Clock::Spi1Clock>;
-    #if defined(SPI3)
-        using Spi3Remap = Private::PeriphRemap<Zhele::Clock::Spi3Clock>;
-    #endif
+#if defined(SPI3)
+    using Spi3Remap = Private::PeriphRemap<Zhele::Clock::Spi3Clock>;
+#endif
 
     using I2c1Remap = Private::PeriphRemap<Zhele::Clock::I2c1Clock>;
 
