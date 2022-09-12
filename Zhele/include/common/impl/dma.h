@@ -176,13 +176,19 @@ namespace Zhele
         if(TransferComplete())
         {
             ClearFlags();
-            Disable();
+            
+            if(static_cast<uint32_t>(_ChannelRegs()->CR & Mode::Circular) == 0)
+                Disable();
+
             Data.NotifyTransferComplete();
         }
         if(TransferError())
         {
             ClearFlags();
-            Disable();
+
+            if(static_cast<uint32_t>(_ChannelRegs()->CR & Mode::Circular) == 0)
+                Disable();
+
             Data.NotifyError();
         }
     }
