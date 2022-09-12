@@ -123,6 +123,12 @@ namespace Zhele::Timers::Private
     }
 
     BASETIMER_TEMPLATE_ARGS
+    void BASETIMER_TEMPLATE_QUALIFIER::SetMasterMode(BASETIMER_TEMPLATE_QUALIFIER::MasterMode mode)
+    {
+        _Regs()->CR2 |= static_cast<uint32_t>(mode);
+    }
+
+    BASETIMER_TEMPLATE_ARGS
     void BASETIMER_TEMPLATE_QUALIFIER::DmaRequestEnable()
     {
         _Regs()->DIER |= TIM_DIER_UDE;
@@ -182,6 +188,20 @@ namespace Zhele::Timers::Private
     void GPTIMER_TEMPLATE_QUALIFIER::ChannelBase<_ChannelNumber>::ClearInterruptFlag()
     {
         _Regs()->SR &= ~(TIM_SR_CC1IF << _ChannelNumber);
+    }
+
+    GPTIMER_TEMPLATE_ARGS
+    template<unsigned _ChannelNumber>
+    void GPTIMER_TEMPLATE_QUALIFIER::ChannelBase<_ChannelNumber>::EnableDmaRequest()
+    {
+        _Regs()->DIER |= (TIM_DIER_CC1DE << _ChannelNumber);
+    }
+
+    GPTIMER_TEMPLATE_ARGS
+    template<unsigned _ChannelNumber>
+    void GPTIMER_TEMPLATE_QUALIFIER::ChannelBase<_ChannelNumber>::DisableDmaRequest()
+    {
+        _Regs()->DIER &= ~(TIM_DIER_CC1DE << _ChannelNumber);
     }
 
     GPTIMER_TEMPLATE_ARGS

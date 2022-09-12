@@ -56,6 +56,18 @@ namespace Zhele::Timers
             };
             DECLARE_ENUM_OPERATIONS_IN_CLASS(Interrupt)
 
+            /// All timer`s DMA requests
+            enum class DmaRequest
+            {
+                Update = TIM_DIER_UDE,	///< Update DMA request enable
+                CC1 = TIM_DIER_CC1DE,	///< Capture compare (1 channel) DMA request enable
+                CC2 = TIM_DIER_CC2DE,	///< Capture compare (2 channel) DMA request enable
+                CC3 = TIM_DIER_CC3DE,	///< Capture compare (3 channel) DMA request enable
+                CC4 = TIM_DIER_CC4DE,	///< Capture compare (4 channel) DMA request enable
+                Trigger = TIM_DIER_UDE,	///< Trigger DMA request enable
+            };
+            DECLARE_ENUM_OPERATIONS_IN_CLASS(DmaRequest)
+
             /// Timer counter mode
             enum class CounterMode
             {
@@ -67,6 +79,19 @@ namespace Zhele::Timers
 
             };
 
+            /// Timer master mode
+            enum class MasterMode : uint16_t
+            {
+                Reset = 0x0 << TIM_CR2_MMS_Pos, ///< Reset is used as TRGO
+                Enable = 0x1 << TIM_CR2_MMS_Pos, ///< Counter enable is used as TRGO
+                Update = 0x2 << TIM_CR2_MMS_Pos, ///< Update event is used as TRGO
+                ComparePulse = 0x3 << TIM_CR2_MMS_Pos, ///< CC1F set is used as TRGO
+                CompareCh1 = 0x04 << TIM_CR2_MMS_Pos, ///< OC1REF signal is used as TRGO
+                CompareCh2 = 0x05 << TIM_CR2_MMS_Pos, ///< OC2REF signal is used as TRGO
+                CompareCh3 = 0x06 << TIM_CR2_MMS_Pos, ///< OC3REF signal is used as TRGO
+                CompareCh4 = 0x07 << TIM_CR2_MMS_Pos, ///< OC4REF signal is used as TRGO
+            };
+
             /**
              * @brief Returns frequence of timer`s clock (bus)
              * 
@@ -74,7 +99,6 @@ namespace Zhele::Timers
              */
             static unsigned GetClockFreq();
             
-
             /**
              * @brief Enables timer`s clocking
              * 
@@ -88,15 +112,13 @@ namespace Zhele::Timers
              */
             static void Enable();
          
-
             /**
              * @brief Disables timer`s clocking
              * 
              * @par Returns
              *	Nothing
              */
-            static void Disable();
-            
+            static void Disable(); 
 
             /**
              * @brief Set timer`s counter value
@@ -107,7 +129,6 @@ namespace Zhele::Timers
              *	Nothing
              */
             static void SetCounterValue(Counter counter);
-            
 
             /**
              * @brief Returns timer`s counter value
@@ -115,7 +136,6 @@ namespace Zhele::Timers
              * @returns Current counter value
              */
             static Counter GetCounterValue();
-           
 
             /**
              * @brief Reset timer`s counter value (set to zero)
@@ -124,7 +144,6 @@ namespace Zhele::Timers
              *	Nothing
                 */
             static void ResetCounterValue();
-            
 
             /**
              * @brief Set timer`s prescaler (PSC register) value
@@ -135,7 +154,6 @@ namespace Zhele::Timers
              *	Nothing
                 */
             static void SetPrescaler(Prescaler prescaler);
-           
 
             /**
              * @brief Returns timer`s prescaler value
@@ -143,7 +161,6 @@ namespace Zhele::Timers
              * @returns Current prescaler (PSC register value) value
              */
             static Counter GetPrescaler();
-        
 
             /**
              * @brief Set timer`s period (ARR register) value
@@ -157,7 +174,6 @@ namespace Zhele::Timers
              * (auto-reload preload enable) bit in CR1 register
              */
             static void SetPeriod(Counter period);
-           
 
             /**
              * @brief Set timer`s period immediately (and reset CNT)
@@ -170,7 +186,6 @@ namespace Zhele::Timers
              *	Nothing
              */
             static void SetPeriodAndUpdate(Counter value);
-          
 
             /**
              * @brief Returns timer`s period (ARR register value)
@@ -207,7 +222,6 @@ namespace Zhele::Timers
              *	Nothing
              */
             static void Start();
-           
 
             /**
              * @brief Enables update interrupt for timer
@@ -220,8 +234,6 @@ namespace Zhele::Timers
              *	Nothing
              */
             static void EnableInterrupt();
-            
-
 
             /**
              * @brief Disables update event interrupt
@@ -230,7 +242,6 @@ namespace Zhele::Timers
              *	Nothing
              */
             static void DisableInterrupt();
-            
 
             /**
              * @brief Returns is interrupt was occured.
@@ -239,8 +250,6 @@ namespace Zhele::Timers
              * @retval true Interrupt was occured (update event)
              */
             static bool IsInterrupt();
-            
-
 
             /**
              * @brief Reset interrupt
@@ -251,8 +260,16 @@ namespace Zhele::Timers
              *	Nothing
              */
             static void ClearInterruptFlag();
-          
 
+            /**
+             * @brief Set master mode
+             * 
+             * @param mode Master mode selection
+             * 
+             * @par Returns
+             *  Nothing
+             */
+            static void SetMasterMode(MasterMode mode);
 
             /**
              * @brief Enable DMA requests
@@ -265,7 +282,6 @@ namespace Zhele::Timers
              * Nothing
              */
             static void DmaRequestEnable();
-           
 
             /**
              * @brief Disable DMA requests
@@ -274,7 +290,6 @@ namespace Zhele::Timers
              * Nothing
              */
             static void DmaRequestDisable();
-          
         };
 
         /**
@@ -342,6 +357,22 @@ namespace Zhele::Timers
                  * 	Nothing
                  */
                 static void ClearInterruptFlag();
+
+                /**
+                 * @brief Enable DMA request for channel
+                 * 
+                 * @par Returns
+                 *  Nothing
+                 */
+                static void EnableDmaRequest();
+
+                /**
+                 * @brief Disable DMA request for channel
+                 * 
+                 * @par Returns
+                 *  Nothing
+                 */
+                static void DisableDmaRequest();
 
                 /**
                  * @brief Enable OC channel

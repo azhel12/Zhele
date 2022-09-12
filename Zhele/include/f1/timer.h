@@ -22,7 +22,11 @@ namespace Zhele::Timers
     {
         class Tim1Regs; class Tim2Regs; class Tim3Regs; class Tim4Regs;
         using TimerRegs = TypeList<Tim1Regs, Tim2Regs, Tim3Regs, Tim4Regs>;
-        using TimerRemaps = TypeList<Zhele::IO::Timer1Remap, Zhele::IO::Timer2Remap, Zhele::IO::Timer3Remap, Zhele::IO::Timer4Remap>;
+        using TimerRemaps = TypeList<Zhele::IO::Timer1Remap, Zhele::IO::Timer2Remap, Zhele::IO::Timer3Remap
+#if defined (TIM4)
+        , Zhele::IO::Timer4Remap
+#endif
+        >;
 
         template <typename _Regs>
         struct TimerRemapHelper
@@ -73,21 +77,26 @@ namespace Zhele::Timers
         template<> struct Tim3ChPins<2>{ using Pins = Pair<IO::PinList<Pb0, Pc8>, NonTypeTemplateArray<0, 3>>; };
         template<> struct Tim3ChPins<3>{ using Pins = Pair<IO::PinList<Pb1, Pc9>, NonTypeTemplateArray<0, 3>>; };
 
+#if defined (TIM4)
         template<unsigned ChannelNumber> struct Tim4ChPins;
         template<> struct Tim4ChPins<0>{ using Pins = Pair<IO::PinList<Pb6, Pd12>, NonTypeTemplateArray<0, 1>>; };
         template<> struct Tim4ChPins<1>{ using Pins = Pair<IO::PinList<Pb7, Pd13>, NonTypeTemplateArray<0, 1>>; };
         template<> struct Tim4ChPins<2>{ using Pins = Pair<IO::PinList<Pb8, Pd14>, NonTypeTemplateArray<0, 1>>; };
         template<> struct Tim4ChPins<3>{ using Pins = Pair<IO::PinList<Pb9, Pd15>, NonTypeTemplateArray<0, 1>>; };
-
+#endif
         IO_STRUCT_WRAPPER(TIM1, Tim1Regs, TIM_TypeDef);
         IO_STRUCT_WRAPPER(TIM2, Tim2Regs, TIM_TypeDef);
         IO_STRUCT_WRAPPER(TIM3, Tim3Regs, TIM_TypeDef);
+#if defined (TIM4)
         IO_STRUCT_WRAPPER(TIM4, Tim4Regs, TIM_TypeDef);
+#endif
     }
 
     using Timer2 = Private::GPTimer<Private::Tim2Regs, Clock::Tim2Clock, TIM2_IRQn, Private::Tim2ChPins>;
     using Timer3 = Private::GPTimer<Private::Tim3Regs, Clock::Tim3Clock, TIM3_IRQn, Private::Tim3ChPins>;
+#if defined (TIM4)
     using Timer4 = Private::GPTimer<Private::Tim4Regs, Clock::Tim4Clock, TIM4_IRQn, Private::Tim4ChPins>;
+#endif
 }
 
 #endif //! ZHELE_TIMER_H

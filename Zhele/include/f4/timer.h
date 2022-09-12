@@ -9,6 +9,8 @@
 #ifndef ZHELE_TIMER_H
 #define ZHELE_TIMER_H
 
+#include <stm32f4xx.h>
+
 #include "iopins.h"
 
 #include "../common/timer.h"
