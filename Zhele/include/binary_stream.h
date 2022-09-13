@@ -10,7 +10,7 @@
 #ifndef ZHELE_BINARY_STREAM_H
 #define ZHELE_BINARY_STREAM_H
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace Zhele
 {

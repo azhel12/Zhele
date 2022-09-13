@@ -130,6 +130,9 @@ namespace Zhele::Clock
     IO_REG_WRAPPER(RCC->AHB2ENR, Ahb2ClockEnableReg, uint32_t);
     IO_REG_WRAPPER(RCC->AHB3ENR, Ahb3ClockEnableReg, uint32_t);
     
+    IO_REG_WRAPPER(RCC->APB1ENR, PeriphClockEnable1, uint32_t);
+    IO_REG_WRAPPER(RCC->APB2ENR, PeriphClockEnable2, uint32_t);
+
     IO_REG_WRAPPER(RCC->APB1RSTR, Apb1ResetReg, uint32_t);
     IO_REG_WRAPPER(RCC->APB2RSTR, Apb2ResetReg, uint32_t);
 

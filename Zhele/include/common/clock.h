@@ -13,6 +13,8 @@
 #include <flash.h>
 #include "ioreg.h"
 
+#include <stdint.h>
+
 namespace Zhele
 {
     using ClockFrequenceT = uint32_t;
@@ -450,9 +452,6 @@ namespace Zhele
             static ClockFrequenceT SetClockFreq(ClockFrequenceT freq);
           
         };
-
-        IO_REG_WRAPPER(RCC->APB1ENR, PeriphClockEnable1, uint32_t);
-        IO_REG_WRAPPER(RCC->APB2ENR, PeriphClockEnable2, uint32_t);
 
         /**
          * @brief Base class for bus clock

@@ -16,5 +16,9 @@
 #if defined(STM32F4)
     #include <stm32f4xx.h>
 #endif
+#if defined(STM32L4)
+    #include <stm32l4xx.h>
+#endif
+
 
 #include <common/watchdog.h>

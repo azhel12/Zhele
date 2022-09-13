@@ -31,6 +31,12 @@
     #define ONLY_FOR_SXCR(TEXT)
 #endif
 
+#if defined (DMA_SxCR_EN) || defined (DMA_CSELR_C1S)
+    #define ONLY_IF_STREAM_SUPPORTED(TEXT) TEXT
+#else
+    #define ONLY_IF_STREAM_SUPPORTED(TEXT)
+#endif
+
 // Dummy function for fix compiler problem.
 // Without this hook compiler does not overload weak irq handlers (not include cpp files with handlers).
 // So, I have placed declaration here and empty definition in each cpp file.
@@ -139,7 +145,6 @@ namespace Zhele
          *	Nothing
          */
         inline void NotifyTransferComplete();
-       
 
         /**
          * @brief Transfer error handler. Call user`s callback if it has been set.
@@ -167,7 +172,7 @@ namespace Zhele
         using DmaBase::Mode;
 
         /**
-         * @brief Initialize DMA channel
+         * @brief Initialize DMA channel and start transfer
          * 
          * @param [in] mode Channel mode (support logic operations, OR ("||") for example)
          * @param [in] buffer Memory buffer
@@ -178,8 +183,7 @@ namespace Zhele
          *	Nothing
          */
         static void Transfer(Mode mode, const void* buffer, volatile void* periph, uint32_t bufferSize
-        ONLY_FOR_SXCR(COMMA uint8_t channel = 0));
-      
+        ONLY_IF_STREAM_SUPPORTED(COMMA uint8_t channel = 0));
 
         /**
          * @brief Set transfer callback function 
@@ -190,7 +194,6 @@ namespace Zhele
          *	Nothing
          */
         static void SetTransferCallback(TransferCallback callback);
-        
 
         /**
          * @brief Check that DMA ready to transfer data
@@ -215,7 +218,6 @@ namespace Zhele
          *	Nothing
          */
         static void Enable();
-        
 
         /**
          * @brief Disable DMA channel
@@ -224,7 +226,7 @@ namespace Zhele
          *	Nothing
          */
         static void Disable();
-      
+
         /**
          * @brief Returns remaining bytes to transfer
          * 
@@ -234,14 +236,13 @@ namespace Zhele
          *	@returns Byte to transfer remaining
          */
         static uint32_t RemainingTransfers();
-       
+
         /**
          * @brief Returns peripheral address
          * 
          * @returns Peripheral address
          */
         static void* PeriphAddress();
-       
 
         /**
          * @brief Returns memory buffer address
@@ -249,7 +250,6 @@ namespace Zhele
          * @returns Memory buffer address
          */
         static void* MemAddress();
-        
 
         /**
          * @brief Returns transfer error state
@@ -258,7 +258,7 @@ namespace Zhele
          * @retval false No transfer error was occured (flag is reset)
          */
         static bool TransferError();
-       
+
         /**
          * @brief Returns transfer half of data
          * 
@@ -266,7 +266,7 @@ namespace Zhele
          * @retval false If not half of data was transfered (flag is reset)
          */
         static bool HalfTransfer();
-       
+
         /**
          * @brief Returns transfer complete
          * 
@@ -293,7 +293,7 @@ namespace Zhele
          *	Nothing
          */
         static void ClearFlags();
-        
+
         /**
          * @brief Clear transfer error flag
          * 
@@ -301,7 +301,6 @@ namespace Zhele
          *	Nothing
          */
         static void ClearTransferError();
-       
 
         /**
          * @brief Clear half transfer complete flag
@@ -310,7 +309,6 @@ namespace Zhele
          *	Nothing
          */
         static void ClearHalfTransfer();
-       
 
         /**
          * @brief Clear transfer complete flag
@@ -319,7 +317,6 @@ namespace Zhele
          *	Nothing
          */
         static void ClearTransferComplete();
-       
 
         /**
          * @brief Clear interrupt flag
@@ -328,7 +325,7 @@ namespace Zhele
          *	Nothing
          */
         static void ClearInterrupt();
-        
+
         /**
          * @brief DMA channel IRQ handler
          * 
@@ -377,7 +374,6 @@ namespace Zhele
          */
         template<int ChannelNum, Flags FlagMask>
         static bool ChannelFlag();
-     
 
         /**
          * @brief Clear channel flag
@@ -390,7 +386,6 @@ namespace Zhele
          */
         template<int ChannelNum, Flags FlagMask>
         static void ClearChannelFlag();
-     
         
     public:
         static const int Channels = _Channels;		
@@ -405,8 +400,6 @@ namespace Zhele
          */
         template<int ChannelNum>
         static bool TransferError();
-        
-
 
         /**
          * @brief Returns transfer half of data
@@ -418,7 +411,6 @@ namespace Zhele
          */
         template<int ChannelNum>
         static bool HalfTransfer();
-        
 
         /**
          * @brief Returns transfer complete
@@ -430,12 +422,11 @@ namespace Zhele
          */
         template<int ChannelNum>
         static bool TransferComplete();
-       
 
     #if defined(DMA_SxCR_EN)
         template<int ChannelNum>
 		static bool FifoError();
-				
+
 		template<int ChannelNum>
 		static bool DirectError();
     #endif
@@ -451,7 +442,6 @@ namespace Zhele
          */
         template<int ChannelNum>
         static bool Interrupt();
-       
     #endif
         /**
          * @brief Clear channel flags
@@ -463,7 +453,6 @@ namespace Zhele
          */
         template<int ChannelNum>
         static void ClearChannelFlags();
-       
 
         /**
          * @brief Clear transfer error flag
@@ -475,7 +464,6 @@ namespace Zhele
          */
         template<int ChannelNum>
         static void ClearTransferError();
-        
 
         /**
          * @brief Clear half transfer complete flag
@@ -487,7 +475,7 @@ namespace Zhele
          */
         template<int ChannelNum>
         static void ClearHalfTransfer();
-       
+
         /**
          * @brief Clear transfer complete flag
          * 
@@ -509,16 +497,13 @@ namespace Zhele
          */
         template<int ChannelNum>
         static void ClearInterrupt();
-        
     #endif
     #if defined(DMA_SxCR_EN)
         template<int ChannelNum>
 		static void ClearFifoError();
-		
-		
+
 		template<int ChannelNum>
 		static void ClearDirectError();
-		
     #endif
         /**
          * @brief Enable DMA module clocking
@@ -527,7 +512,6 @@ namespace Zhele
          *	Nothing
          */
         static void Enable();
-       
 
         /**
          * @brief Disable DMA module clocking
@@ -536,7 +520,21 @@ namespace Zhele
          *	Nothing
          */
         static void Disable();
-        
+    
+    #if defined (DMA_CSELR_C1S)
+        /**
+         * @brief Set CSELR value for channel
+         * 
+         * @tparam channel Channel number
+         * 
+         * @param channelSelect CSEL value
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        template<uint8_t channel>
+        static void SetChannelSelect(uint8_t channelSelect);
+    #endif
     };
 
     template<typename _Module, typename _ChannelRegs, unsigned _Channel, IRQn_Type _IRQnumber>

@@ -15,7 +15,6 @@
 
 namespace Zhele::Clock
 {
-    IO_REG_WRAPPER(RCC->AHBENR, AhbClockEnableReg, uint32_t);
     const static unsigned AhbPrescalerBitFieldOffset = RCC_CFGR_HPRE_Pos;
     const static unsigned AhbPrescalerBitFieldLength = GetBitFieldLength<(RCC_CFGR_HPRE_Msk >> RCC_CFGR_HPRE_Pos)>;
     IO_BITFIELD_WRAPPER(RCC->CFGR, AhbPrescalerBitField, uint32_t, AhbPrescalerBitFieldOffset, AhbPrescalerBitFieldLength);
@@ -194,6 +193,10 @@ namespace Zhele::Clock
             return SrcClockFreq() / ((AdcPrescalerBitField::Get() + 1) * 2);
         }
     };
+
+    IO_REG_WRAPPER(RCC->AHBENR, AhbClockEnableReg, uint32_t);
+    IO_REG_WRAPPER(RCC->APB1ENR, PeriphClockEnable1, uint32_t);
+    IO_REG_WRAPPER(RCC->APB2ENR, PeriphClockEnable2, uint32_t);
 
     using CrcClock = ClockControl<AhbClockEnableReg, RCC_AHBENR_CRCEN, AhbClock>;
     using Dma1Clock = ClockControl<AhbClockEnableReg, RCC_AHBENR_DMA1EN, AhbClock>;

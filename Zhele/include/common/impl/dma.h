@@ -33,7 +33,7 @@ namespace Zhele
 
     DMACHANNEL_TEMPLATE_ARGS
     void DMACHANNEL_TEMPLATE_QUALIFIER::Transfer(Mode mode, const void* buffer, volatile void* periph, uint32_t bufferSize
-    ONLY_FOR_SXCR(COMMA uint8_t channel))
+    ONLY_IF_STREAM_SUPPORTED(COMMA uint8_t channel))
     {
         _Module::Enable();
         if(!TransferError())
@@ -62,6 +62,7 @@ namespace Zhele
     NVIC_EnableIRQ(_IRQNumber);
 
     #if defined (DMA_CCR_EN)
+        ONLY_IF_STREAM_SUPPORTED (_Module::template SetChannelSelect<_Channel> (channel));
         _ChannelRegs()->CCR = mode | DMA_CCR_EN;
     #endif
     #if defined (DMA_SxCR_EN)
@@ -177,7 +178,7 @@ namespace Zhele
         {
             ClearFlags();
             
-            if(static_cast<uint32_t>(_ChannelRegs()->CR & Mode::Circular) == 0)
+            if(static_cast<uint32_t>(_ChannelRegs()->ONLY_FOR_CCR(CCR)ONLY_FOR_SXCR(CR) & Mode::Circular) == 0)
                 Disable();
 
             Data.NotifyTransferComplete();
@@ -186,7 +187,7 @@ namespace Zhele
         {
             ClearFlags();
 
-            if(static_cast<uint32_t>(_ChannelRegs()->CR & Mode::Circular) == 0)
+            if(static_cast<uint32_t>(_ChannelRegs()->ONLY_FOR_CCR(CCR)ONLY_FOR_SXCR(CR) & Mode::Circular) == 0)
                 Disable();
 
             Data.NotifyError();
@@ -359,5 +360,18 @@ namespace Zhele
     {
         _Clock::Disable();
     }
+
+    #if defined (DMA_CSELR_C1S)
+        DMAMODULE_TEMPLATE_ARGS
+        template<uint8_t channel>
+        void DMAMODULE_TEMPLATE_QUALIFIER::SetChannelSelect(uint8_t channelSelect)
+        {
+            static const uint32_t ChannelSelectRegisterOffset = 0x0a8;
+
+            *(reinterpret_cast<uint32_t*>(_DmaRegs::Get()) + ChannelSelectRegisterOffset) = 
+                (*(reinterpret_cast<uint32_t*>(_DmaRegs::Get()) + ChannelSelectRegisterOffset) & ~(0xf << 4 * channel)) 
+                | (channelSelect << 4 * channel);
+        }
+    #endif
 }
 #endif //! ZHELE_DMA_IMPL_COMMON_H

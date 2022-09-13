@@ -7,7 +7,7 @@
  * @license FreeBSD
  */
 
-#include "common/clock.h"
+#include <clock.h>
 
 namespace Zhele::Clock
 {

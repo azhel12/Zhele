@@ -16,3 +16,6 @@
 #if defined(STM32F4)
     #include <f4/exti.h>
 #endif
+#if defined(STM32L4)
+    #include <l4/exti.h>
+#endif
