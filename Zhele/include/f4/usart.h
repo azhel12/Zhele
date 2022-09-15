@@ -143,7 +143,7 @@ namespace Zhele
     using Uart4 = Private::Usart<Private::Uart4Regs, UART4_IRQn, Clock::Uart4Clock, Private::Uart4TxPins, Private::Uart4RxPins, Dma1Stream4Channel4, Dma1Stream2Channel4>;
 #endif
 #if defined(UART5)
-    using Uart5 = Private::Usart<Private::Uart5Regs, UART5_IRQn, Clock::Uart4Clock, Private::Uart5TxPins, Private::Uart5RxPins, Dma2Stream7Channel4, Dma2Stream0Channel4>;
+    using Uart5 = Private::Usart<Private::Uart5Regs, UART5_IRQn, Clock::Uart5Clock, Private::Uart5TxPins, Private::Uart5RxPins, Dma2Stream7Channel4, Dma2Stream0Channel4>;
 #endif
 #if defined(USART6)
     using Usart6 = Private::Usart<Private::Usart6Regs, USART6_IRQn, Clock::Usart6Clock, Private::Usart6TxPins, Private::Usart6RxPins, Dma2Stream7Channel5, Dma2Stream2Channel5>;

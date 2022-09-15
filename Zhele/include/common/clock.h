@@ -63,7 +63,7 @@ namespace Zhele
              * 
              * @returns External source (HSE) clock frequence
              */
-            static ClockFrequenceT SrcClockFreq();
+            static constexpr ClockFrequenceT SrcClockFreq();
             
 
             /**
@@ -71,14 +71,14 @@ namespace Zhele
              * 
              * @returns Hse divider
              */
-            static ClockFrequenceT GetDivider();
+            static constexpr ClockFrequenceT GetDivider();
 
             /**
              * @brief Returns HSE multiplier
              * 
              * @returns Hse multiplier
              */
-            static ClockFrequenceT GetMultipler();
+            static constexpr ClockFrequenceT GetMultipler();
 
 
             /**
@@ -89,7 +89,7 @@ namespace Zhele
              * 
              * @returns Final frequence
              */
-            static ClockFrequenceT ClockFreq();
+            static constexpr ClockFrequenceT ClockFreq();
             
 
             /**
@@ -122,7 +122,7 @@ namespace Zhele
              * 
              * @returns External source (HSE) clock frequence
              */
-            static ClockFrequenceT SrcClockFreq();
+            static constexpr ClockFrequenceT SrcClockFreq();
            
 
             /**
@@ -130,15 +130,14 @@ namespace Zhele
              * 
              * @returns Hsi divider
              */
-            static ClockFrequenceT GetDivider();
+            static constexpr ClockFrequenceT GetDivider();
 
             /**
              * @brief Returns HSI multiplier
              * 
              * @returns Hsi multiplier
              */
-            static ClockFrequenceT GetMultipler();
-
+            static constexpr ClockFrequenceT GetMultipler();
 
             /**
              * @brief Returns final clock frequence
@@ -148,8 +147,7 @@ namespace Zhele
              * 
              * @returns Final frequence
              */
-            static ClockFrequenceT ClockFreq();
-            
+            static constexpr ClockFrequenceT ClockFreq();
 
             /**
              * @brief Enables Hsi source
@@ -158,7 +156,6 @@ namespace Zhele
              * @retval false Fail enable
              */
             static bool Enable();
-           
 
             /**
              * @brief Disables Hsi source

@@ -11,16 +11,16 @@
 
 namespace Zhele::Clock
 {
-    ClockFrequenceT HseClock::SrcClockFreq()
+    constexpr ClockFrequenceT HseClock::SrcClockFreq()
     {
         return HSE_VALUE;
     }
 
-    ClockFrequenceT HseClock::GetDivider() { return 1; }
+    constexpr ClockFrequenceT HseClock::GetDivider() { return 1; }
 
-    ClockFrequenceT HseClock::GetMultipler() { return 1; }
+    constexpr ClockFrequenceT HseClock::GetMultipler() { return 1; }
 
-    ClockFrequenceT HseClock::ClockFreq()
+    constexpr ClockFrequenceT HseClock::ClockFreq()
     {
         return SrcClockFreq();
     }
@@ -35,15 +35,15 @@ namespace Zhele::Clock
         return ClockBase::DisableClockSource(RCC_CR_HSEON, RCC_CR_HSERDY);
     }
 
-    ClockFrequenceT HsiClock::SrcClockFreq()
+    constexpr ClockFrequenceT HsiClock::SrcClockFreq()
     {
         return HSI_VALUE;
     }
-    ClockFrequenceT HsiClock::GetDivider() { return 1; }
+    constexpr ClockFrequenceT HsiClock::GetDivider() { return 1; }
 
-    ClockFrequenceT HsiClock::GetMultipler() { return 1; }
+    constexpr ClockFrequenceT HsiClock::GetMultipler() { return 1; }
 
-    ClockFrequenceT HsiClock::ClockFreq()
+    constexpr ClockFrequenceT HsiClock::ClockFreq()
     {
         return SrcClockFreq();
     }
