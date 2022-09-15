@@ -68,7 +68,7 @@ namespace Zhele
 
             using usedPorts = IO::PortList<typename TemplateUtils::Unique<TypeList<typename TxPin::Port, typename RxPin::Port>>::type>;
 
-            TxPin::Port::Enable();
+            usedPorts::Enable();
             TxPin::SetConfiguration(TxPin::Port::AltFunc);
             TxPin::AltFuncNumber(GetAltFunctionNumber<_Regs>);
 
