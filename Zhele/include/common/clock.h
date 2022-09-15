@@ -13,6 +13,8 @@
 #include <flash.h>
 #include "ioreg.h"
 
+#include <stdint.h>
+
 namespace Zhele
 {
     using ClockFrequenceT = uint32_t;
@@ -61,7 +63,7 @@ namespace Zhele
              * 
              * @returns External source (HSE) clock frequence
              */
-            static ClockFrequenceT SrcClockFreq();
+            static constexpr ClockFrequenceT SrcClockFreq();
             
 
             /**
@@ -69,14 +71,14 @@ namespace Zhele
              * 
              * @returns Hse divider
              */
-            static ClockFrequenceT GetDivider();
+            static constexpr ClockFrequenceT GetDivider();
 
             /**
              * @brief Returns HSE multiplier
              * 
              * @returns Hse multiplier
              */
-            static ClockFrequenceT GetMultipler();
+            static constexpr ClockFrequenceT GetMultipler();
 
 
             /**
@@ -87,7 +89,7 @@ namespace Zhele
              * 
              * @returns Final frequence
              */
-            static ClockFrequenceT ClockFreq();
+            static constexpr ClockFrequenceT ClockFreq();
             
 
             /**
@@ -120,7 +122,7 @@ namespace Zhele
              * 
              * @returns External source (HSE) clock frequence
              */
-            static ClockFrequenceT SrcClockFreq();
+            static constexpr ClockFrequenceT SrcClockFreq();
            
 
             /**
@@ -128,15 +130,14 @@ namespace Zhele
              * 
              * @returns Hsi divider
              */
-            static ClockFrequenceT GetDivider();
+            static constexpr ClockFrequenceT GetDivider();
 
             /**
              * @brief Returns HSI multiplier
              * 
              * @returns Hsi multiplier
              */
-            static ClockFrequenceT GetMultipler();
-
+            static constexpr ClockFrequenceT GetMultipler();
 
             /**
              * @brief Returns final clock frequence
@@ -146,8 +147,7 @@ namespace Zhele
              * 
              * @returns Final frequence
              */
-            static ClockFrequenceT ClockFreq();
-            
+            static constexpr ClockFrequenceT ClockFreq();
 
             /**
              * @brief Enables Hsi source
@@ -156,7 +156,6 @@ namespace Zhele
              * @retval false Fail enable
              */
             static bool Enable();
-           
 
             /**
              * @brief Disables Hsi source
@@ -450,9 +449,6 @@ namespace Zhele
             static ClockFrequenceT SetClockFreq(ClockFrequenceT freq);
           
         };
-
-        IO_REG_WRAPPER(RCC->APB1ENR, PeriphClockEnable1, uint32_t);
-        IO_REG_WRAPPER(RCC->APB2ENR, PeriphClockEnable2, uint32_t);
 
         /**
          * @brief Base class for bus clock

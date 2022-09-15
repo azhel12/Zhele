@@ -42,7 +42,9 @@ namespace Zhele::Private
         _Regs()->CR1 = static_cast<unsigned>(divider) | mode;
         _Regs()->CR2 = (mode >> 16) | SPI_CR2_SSOE;
         SetDataSize(DataSize::DataSize8);
+#if defined (SPI_I2SCFGR_I2SMOD)
         _Regs()->I2SCFGR &= (uint16_t)~((uint16_t)SPI_I2SCFGR_I2SMOD);
+#endif
         Enable();
     }
 

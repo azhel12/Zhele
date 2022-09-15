@@ -1,15 +1,15 @@
 /**
  * @file
- * @brief Implements USART protocol for stm32f4 series
+ * @brief Implements USART protocol for stm32l4 series
  * @author Alexey Zhelonkin
- * @date 2019
+ * @date 2022
  * @license FreeBSD
  */
 
 #ifndef ZHELE_USART_H
 #define ZHELE_USART_H
 
-#include <stm32f4xx.h>
+#include <stm32l4xx.h>
 
 #include "../common/usart.h"
 
@@ -134,19 +134,16 @@ namespace Zhele
         IO_STRUCT_WRAPPER(USART6, Usart6Regs, USART_TypeDef);
     #endif
     }
-    using Usart1 = Private::Usart<Private::Usart1Regs, USART1_IRQn, Clock::Usart1Clock, Private::Usart1TxPins, Private::Usart1RxPins, Dma2Stream7Channel4, Dma2Stream2Channel4>;
-    using Usart2 = Private::Usart<Private::Usart2Regs, USART2_IRQn, Clock::Usart2Clock, Private::Usart2TxPins, Private::Usart2RxPins, Dma1Stream6Channel4, Dma1Stream5Channel4>;
+    using Usart1 = Private::Usart<Private::Usart1Regs, USART1_IRQn, Clock::Usart1Clock, Private::Usart1TxPins, Private::Usart1RxPins, Dma1Stream4Channel2, Dma1Stream5Channel2>;
+    using Usart2 = Private::Usart<Private::Usart2Regs, USART2_IRQn, Clock::Usart2Clock, Private::Usart2TxPins, Private::Usart2RxPins, Dma1Stream7Channel2, Dma1Stream6Channel2>;
 #if defined(USART3)
-    using Usart3 = Private::Usart<Private::Usart3Regs, USART3_IRQn, Clock::Usart3Clock, Private::Usart3TxPins, Private::Usart3RxPins, Dma1Stream3Channel4, Dma1Stream1Channel4>;
+    using Usart3 = Private::Usart<Private::Usart3Regs, USART3_IRQn, Clock::Usart3Clock, Private::Usart3TxPins, Private::Usart3RxPins, Dma1Stream3Channel2, Dma1Stream2Channel2>;
 #endif
 #if defined(UART4)
-    using Uart4 = Private::Usart<Private::Uart4Regs, UART4_IRQn, Clock::Uart4Clock, Private::Uart4TxPins, Private::Uart4RxPins, Dma1Stream4Channel4, Dma1Stream2Channel4>;
+    using Uart4 = Private::Usart<Private::Uart4Regs, UART4_IRQn, Clock::Uart4Clock, Private::Uart4TxPins, Private::Uart4RxPins, Dma2Stream6Channel2, Dma2Stream5Channel2>;
 #endif
 #if defined(UART5)
-    using Uart5 = Private::Usart<Private::Uart5Regs, UART5_IRQn, Clock::Uart5Clock, Private::Uart5TxPins, Private::Uart5RxPins, Dma2Stream7Channel4, Dma2Stream0Channel4>;
-#endif
-#if defined(USART6)
-    using Usart6 = Private::Usart<Private::Usart6Regs, USART6_IRQn, Clock::Usart6Clock, Private::Usart6TxPins, Private::Usart6RxPins, Dma2Stream7Channel5, Dma2Stream2Channel5>;
+    using Uart5 = Private::Usart<Private::Uart5Regs, UART5_IRQn, Clock::Uart5Clock, Private::Uart5TxPins, Private::Uart5RxPins, Dma2Stream1Channel2, Dma2Stream1Channel2>;
 #endif
 }
 

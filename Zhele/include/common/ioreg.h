@@ -9,7 +9,7 @@
 #ifndef ZHELE_IOREG_COMMON_H
 #define ZHELE_IOREG_COMMON_H
 
-#include <stddef.h>
+#include <cstdint>
 
 namespace Zhele
 {
