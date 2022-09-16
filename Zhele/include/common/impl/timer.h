@@ -208,21 +208,21 @@ namespace Zhele::Timers::Private
     template<unsigned _ChannelNumber>
     void GPTIMER_TEMPLATE_QUALIFIER::ChannelBase<_ChannelNumber>::Enable()
     {
-        _Regs()->CCER |= (TIM_CCER_CC1E << _ChannelNumber * 4);
+        _Regs()->CCER |= (TIM_CCER_CC1E << (_ChannelNumber * 4));
     }
 
     GPTIMER_TEMPLATE_ARGS
     template<unsigned _ChannelNumber>
     void GPTIMER_TEMPLATE_QUALIFIER::ChannelBase<_ChannelNumber>::Disable()
     {
-        _Regs()->CCER &= ~(TIM_CCER_CC1E << _ChannelNumber * 4);
+        _Regs()->CCER &= ~(TIM_CCER_CC1E << (_ChannelNumber * 4));
     }
 
     GPTIMER_TEMPLATE_ARGS
     template<unsigned _ChannelNumber>
     void GPTIMER_TEMPLATE_QUALIFIER::InputCapture<_ChannelNumber>::SetCapturePolarity(CapturePolarity polarity)
     {
-        _Regs()->CCER = (_Regs()->CCER & ~((TIM_CCER_CC1E | TIM_CCER_CC1P | TIM_CCER_CC1NP) << _ChannelNumber * 4)) | (polarity << _ChannelNumber * 4);
+        _Regs()->CCER = (_Regs()->CCER & ~((TIM_CCER_CC1E | TIM_CCER_CC1P | TIM_CCER_CC1NP) << (_ChannelNumber * 4))) | (polarity << (_ChannelNumber * 4));
     }
 
     GPTIMER_TEMPLATE_ARGS
@@ -257,14 +257,14 @@ namespace Zhele::Timers::Private
     template<unsigned _ChannelNumber>
     void GPTIMER_TEMPLATE_QUALIFIER::OutputCompare<_ChannelNumber>::SetOutputPolarity(OutputPolarity polarity)
     {
-        _Regs()->CCER = (_Regs()->CCER & ~((TIM_CCER_CC1E | TIM_CCER_CC1P | TIM_CCER_CC1NP) << _ChannelNumber * 4)) | (polarity << _ChannelNumber * 4);
+        _Regs()->CCER = (_Regs()->CCER & ~((TIM_CCER_CC1E | TIM_CCER_CC1P | TIM_CCER_CC1NP) << (_ChannelNumber * 4))) | (polarity << (_ChannelNumber * 4));
     }
 
     GPTIMER_TEMPLATE_ARGS
     template<unsigned _ChannelNumber>
     void GPTIMER_TEMPLATE_QUALIFIER::OutputCompare<_ChannelNumber>::SetOutputMode(OutputMode mode)
     {
-        _Regs()->CCER = (_Regs()->CCER & ~(TIM_CCER_CC1NP << _ChannelNumber * 4)) | (TIM_CCER_CC1E << _ChannelNumber * 4);
+        _Regs()->CCER = (_Regs()->CCER & ~(TIM_CCER_CC1NP << (_ChannelNumber * 4))) | (TIM_CCER_CC1E << (_ChannelNumber * 4));
         Channel::ModeBitField::Set(mode);
         _Regs()->BDTR |= TIM_BDTR_MOE;
     }
