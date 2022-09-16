@@ -40,7 +40,7 @@ namespace Zhele::Timers
         {
         public:
             using Prescaler = uint16_t;
-            using Counter = uint16_t;
+            using Counter = uint32_t;
 
             /// All timer`s interrupts
             enum class Interrupt
