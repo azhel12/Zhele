@@ -574,7 +574,7 @@ namespace Zhele::Timers
                  * 
                  * @return Counter 
                  */
-                static Base::Counter GetValue();
+                static typename Base::Counter GetValue();
             };
 
             /**
