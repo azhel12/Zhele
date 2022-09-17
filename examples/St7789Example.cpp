@@ -24,7 +24,7 @@ int main()
     ConfigureSpi();
 
     // Init display
-    Lcd::Init();
+    Lcd::Init(Lcd::Rotation::Rot90);
     // Fill with black color
     Lcd::FillScreen(Lcd::Color::Black);
     // Wait for complete (fill operation is async)
