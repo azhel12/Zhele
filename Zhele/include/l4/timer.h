@@ -21,12 +21,12 @@ namespace Zhele::Timers
 {
     namespace Private
     {
-        template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>
+        template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins, typename _CounterType>
         template <unsigned _ChannelNumber>
-        void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::ChannelBase<_ChannelNumber>::SelectPins(int pinNumber)
+        void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins, _CounterType>::ChannelBase<_ChannelNumber>::SelectPins(int pinNumber)
         {
-            using Pins = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::ChannelBase<_ChannelNumber>::Pins;
-            using PinAltFuncNumbers = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::ChannelBase<_ChannelNumber>::PinsAltFuncNumber;
+            using Pins = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins, _CounterType>::ChannelBase<_ChannelNumber>::Pins;
+            using PinAltFuncNumbers = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins, _CounterType>::ChannelBase<_ChannelNumber>::PinsAltFuncNumber;
             using Type = typename Pins::DataType;
             Type mask = 1 << pinNumber;
             Pins::Enable();
@@ -34,13 +34,13 @@ namespace Zhele::Timers
             Pins::AltFuncNumber(mask, GetNumberRuntime<PinAltFuncNumbers>::Get(pinNumber));
         }
 
-        template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>
+        template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins, typename _CounterType>
         template <unsigned _ChannelNumber>
         template <unsigned PinNumber>
-        void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::ChannelBase<_ChannelNumber>::SelectPins()
+        void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins, _CounterType>::ChannelBase<_ChannelNumber>::SelectPins()
         {
-            using Pins = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::ChannelBase<_ChannelNumber>::Pins;
-            using PinAltFuncNumbers = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::ChannelBase<_ChannelNumber>::PinsAltFuncNumber;
+            using Pins = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins, _CounterType>::ChannelBase<_ChannelNumber>::Pins;
+            using PinAltFuncNumbers = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins, _CounterType>::ChannelBase<_ChannelNumber>::PinsAltFuncNumber;
             using Pin = typename Pins::template Pin<PinNumber>;
 
             Pin::Port::Enable();
@@ -48,10 +48,10 @@ namespace Zhele::Timers
             Pin::template AltFuncNumber<GetNonTypeValueByIndex<PinNumber, PinAltFuncNumbers>::value>();
         }
 
-        template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>
+        template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins, typename _CounterType>
         template <unsigned _ChannelNumber>
         template <typename Pin>
-        void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::ChannelBase<_ChannelNumber>::SelectPins()
+        void GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins, _CounterType>::ChannelBase<_ChannelNumber>::SelectPins()
         {
             static_assert(Pins::template IndexOf<Pin> >= 0);
             
