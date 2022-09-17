@@ -280,6 +280,26 @@ namespace Zhele
             static void SetUsbOutputDivider(ClockFrequenceT divider);
         #endif
 
+        #if defined(RCC_PLLCFGR_PLLR)
+
+            /**
+             * @brief Return PLLR value
+             *
+             * @returns PLLR value
+             */
+            static ClockFrequenceT GetI2SOutputDivider();
+
+            /**
+             * @brief Set PLLR
+             *
+             * @param [in] divider PLLR value
+             *
+             * @par Returns
+             *	Nothing
+             */
+            static void SetI2SOutputDivider(ClockFrequenceT divider);
+        #endif
+
             /**
              * @brief Set PLL clock source
              * 
