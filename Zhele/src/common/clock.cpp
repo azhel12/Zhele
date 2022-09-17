@@ -8,6 +8,7 @@
  */
 
 #include <clock.h>
+#include "common/flash.h"
 
 namespace Zhele::Clock
 {
