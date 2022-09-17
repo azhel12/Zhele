@@ -11,7 +11,7 @@ using namespace Zhele::Clock;
 using namespace Zhele::IO;
 using namespace Zhele::Drivers;
 
-using Lcd = St7789<Spi1, IO::Pa4, IO::Pa3, IO::Pa2, 240, 240>;
+using Lcd = St7789<Spi1, IO::Pa4, IO::Pa3, IO::Pa2, 240, 240, St77xxRotation::Rot90>;
 
 void ConfigureClock();
 void ConfigurePins();
@@ -24,7 +24,7 @@ int main()
     ConfigureSpi();
 
     // Init display
-    Lcd::Init(Lcd::Rotation::Rot90);
+    Lcd::Init();
     // Fill with black color
     Lcd::FillScreen(Lcd::Color::Black);
     // Wait for complete (fill operation is async)
