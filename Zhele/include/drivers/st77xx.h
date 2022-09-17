@@ -19,6 +19,14 @@
 namespace Zhele::Drivers
 {
     namespace Private {
+        #define ST77XX_TEMPLATE_ARGS template < \
+            typename _SpiBus,                   \
+            typename _SsPin,                    \
+            typename _DcPin,                    \
+            typename _ResetPin,                 \
+            uint16_t _Width,                     \
+            uint16_t _Height>
+
         enum MadCtl : uint8_t
         {
             My = 0x80,
@@ -30,19 +38,18 @@ namespace Zhele::Drivers
             Mh = 0x04
         };
 
-        /**
-         * @brief Implements driver for TFT based on ST7735
-         *
-         * @tparam _SpiBus Spi bus
-         * @tparam _SsPin Chip select pin
-         * @tparam _DcPin Data/Control pin
-         * @tparam _ResetPin Reset pin
-         * @tparam _Width Width
-         * @tparam _Height Height
-         */
-        template <typename _SpiBus, typename _SsPin, typename _DcPin, typename _ResetPin, uint8_t _Rotation, uint8_t _TextRotation, uint8_t _Width = 128, uint8_t _Height = 160>
+        template <typename _SpiBus, typename _SsPin, typename _DcPin, typename _ResetPin, uint16_t _Width = 128, uint16_t _Height = 160>
         class St77xx
         {
+        public:
+            /// Display rotations
+            enum class Rotation : uint8_t {
+                None = 0,
+                Rot90,
+                Rot180,
+                Rot270,
+            };
+
         protected:
             /// Display commands
             enum class Command : uint8_t
@@ -106,6 +113,13 @@ namespace Zhele::Drivers
             };
 
             static bool _busy;
+            static Rotation _rotation;
+            static uint8_t _rotation_value;
+            static uint8_t _rotation_value_text;
+            static uint16_t _x_offset;
+            static uint16_t _y_offset;
+            static uint16_t _x_offset_text;
+            static uint16_t _y_offset_text;
         public:
             /// Color
             enum Color : uint16_t
@@ -121,12 +135,14 @@ namespace Zhele::Drivers
             };
 
             /**
-             * @brief Init display
+             * @brief Get current rotation value
              *
              * @par Returns
-             *  Nothing
+             *  Rotation value
              */
-            static void Init();
+            static Rotation GetRotation() {
+                return _rotation;
+            }
 
             /**
              * @brief Set the Address Window
@@ -136,13 +152,24 @@ namespace Zhele::Drivers
              * @param x1 x1
              * @param y1 y1
              */
-            static void SetAddressWindow(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1)
+            static void SetAddressWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, bool text = false)
             {
+                x0 += text ? _x_offset_text : _x_offset;
+                x1 += text ? _x_offset_text : _x_offset;
+                y0 += text ? _y_offset_text : _y_offset;
+                y1 += text ? _y_offset_text : _y_offset;
+
                 WriteCommand(Command::CaSet);
-                WriteData({ 0x00, x0, 0x00, x1});
+                WriteData({
+                                  static_cast<uint8_t>(x0 >> 8), static_cast<uint8_t>(x0 & 0xff),
+                                  static_cast<uint8_t>(x1 >> 8), static_cast<uint8_t>(x1 & 0xff),
+                          });
 
                 WriteCommand(Command::RaSet);
-                WriteData({0x00, y0, 0x00, y1});
+                WriteData({
+                                  static_cast<uint8_t>(y0 >> 8), static_cast<uint8_t>(y0 & 0xff),
+                                  static_cast<uint8_t>(y1 >> 8), static_cast<uint8_t>(y1 & 0xff),
+                          });
 
                 WriteCommand(Command::RamWr);
             }
@@ -157,7 +184,7 @@ namespace Zhele::Drivers
              * @par Returns
              *  Nothing
              */
-            static void DrawPixel(uint8_t x, uint8_t y, uint16_t color)
+            static void DrawPixel(uint16_t x, uint16_t y, uint16_t color)
             {
                 _SsPin::Clear();
 
@@ -179,7 +206,7 @@ namespace Zhele::Drivers
              * @par Returns
              * Nothing
              */
-            static void FillRectangle(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint16_t color)
+            static void FillRectangle(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t color)
             {
                 _busy = true;
 
@@ -224,7 +251,7 @@ namespace Zhele::Drivers
              * @par Returns
              *  Nothing
              */
-            static void DrawImage(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint16_t* data)
+            static void DrawImage(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const uint16_t* data)
             {
                 _busy = true;
 
@@ -250,14 +277,14 @@ namespace Zhele::Drivers
              *  Nothing
              */
             template<typename Font>
-            static void WriteChar(uint8_t x, uint8_t y, char symbol, uint16_t color, uint16_t background)
+            static void WriteChar(uint16_t x, uint16_t y, char symbol, uint16_t color, uint16_t background)
             {
                 _SsPin::Clear();
 
                 // For compatibility with old fonts I need to fill display by column not by row
                 // So, temporarily change the X and Y axes
                 WriteCommand(Command::MadCtl);
-                WriteData(_TextRotation);
+                WriteData(_rotation_value_text);
 
                 uint8_t width;
                 if constexpr (Font::MonoSpace)
@@ -265,7 +292,7 @@ namespace Zhele::Drivers
                 else
                     width = Font::GetWidth(symbol);
 
-                SetAddressWindow(y, x, y + Font::Height - 1, x + width - 1);
+                SetAddressWindow(y, x, y + Font::Height - 1, x + width - 1, true);
 
                 _SpiBus::SetDataSize(_SpiBus::DataSize::DataSize16);
                 _DcPin::Set();
@@ -298,7 +325,7 @@ namespace Zhele::Drivers
 
                 // Put back
                 WriteCommand(Command::MadCtl);
-                WriteData(_Rotation);
+                WriteData(_rotation_value);
 
                 _SsPin::Set();
             }
@@ -318,7 +345,7 @@ namespace Zhele::Drivers
              *  Nothing
              */
             template<typename Font>
-            static void WriteString(uint8_t x, uint8_t y, const char* str, uint16_t color, uint16_t background)
+            static void WriteString(uint16_t x, uint16_t y, const char* str, uint16_t color, uint16_t background)
             {
                 while(*str) {
                     uint8_t width;
@@ -439,66 +466,102 @@ namespace Zhele::Drivers
             }
         };
 
-        template <typename _SpiBus, typename _SsPin, typename _DcPin, typename _ResetPin, uint8_t _Rotation, uint8_t _TextRotation, uint8_t _Width, uint8_t _Height>
-        bool St77xx<_SpiBus, _SsPin, _DcPin, _ResetPin, _Rotation, _TextRotation, _Width, _Height>::_busy = false;
+        ST77XX_TEMPLATE_ARGS
+        bool St77xx<_SpiBus, _SsPin, _DcPin, _ResetPin, _Width, _Height>::_busy = false;
+
+        ST77XX_TEMPLATE_ARGS
+        typename St77xx<_SpiBus, _SsPin, _DcPin, _ResetPin, _Width, _Height>::Rotation St77xx<_SpiBus, _SsPin, _DcPin, _ResetPin, _Width, _Height>::_rotation;
+
+        ST77XX_TEMPLATE_ARGS
+        uint8_t St77xx<_SpiBus, _SsPin, _DcPin, _ResetPin, _Width, _Height>::_rotation_value;
+
+        ST77XX_TEMPLATE_ARGS
+        uint8_t St77xx<_SpiBus, _SsPin, _DcPin, _ResetPin, _Width, _Height>::_rotation_value_text;
+
+        ST77XX_TEMPLATE_ARGS
+        uint16_t St77xx<_SpiBus, _SsPin, _DcPin, _ResetPin, _Width, _Height>::_x_offset;
+
+        ST77XX_TEMPLATE_ARGS
+        uint16_t St77xx<_SpiBus, _SsPin, _DcPin, _ResetPin, _Width, _Height>::_y_offset;
+
+        ST77XX_TEMPLATE_ARGS
+        uint16_t St77xx<_SpiBus, _SsPin, _DcPin, _ResetPin, _Width, _Height>::_x_offset_text;
+
+        ST77XX_TEMPLATE_ARGS
+        uint16_t St77xx<_SpiBus, _SsPin, _DcPin, _ResetPin, _Width, _Height>::_y_offset_text;
     }
 
-    template <typename _SpiBus, typename _SsPin, typename _DcPin, typename _ResetPin, uint8_t _Width = 128, uint8_t _Height = 160>
-    class St7735 : public Private::St77xx<
-            _SpiBus, _SsPin, _DcPin, _ResetPin,
-            Private::MadCtl::Rgb | (_Width < _Height ? Private::MadCtl::Mx | Private::MadCtl::My : Private::MadCtl::My | Private::MadCtl::Mv),
-            (Private::MadCtl::Rgb | (_Width < _Height ? Private::MadCtl::Mx | Private::MadCtl::My : Private::MadCtl::My | Private::MadCtl::Mv) ^ Private::MadCtl::Mv),
-            _Width, _Height> {
-    private:
-        static const uint8_t Rotation = St7735::MadCtl::Rgb
-                                        | (_Width < _Height
-                                           ? St7735::MadCtl::Mx | St7735::MadCtl::My
-                                           : St7735::MadCtl::My | St7735::MadCtl::Mv);
+    /**
+     * @brief Implements driver for TFT based on ST7735
+     *
+     * @tparam _SpiBus Spi bus
+     * @tparam _SsPin Chip select pin
+     * @tparam _DcPin Data/Control pin
+     * @tparam _ResetPin Reset pin
+     * @tparam _Width Width
+     * @tparam _Height Height
+     */
+    template <typename _SpiBus, typename _SsPin, typename _DcPin, typename _ResetPin, uint16_t _Width = 128, uint16_t _Height = 160>
+    class St7735 : public Private::St77xx<_SpiBus, _SsPin, _DcPin, _ResetPin, _Width, _Height> {
+        using Base = typename Private::St77xx<_SpiBus, _SsPin, _DcPin, _ResetPin, _Width, _Height>;
+        using MadCtl = typename Private::MadCtl;
+        using Command = typename Base::Command;
+
     public:
-        static void Init() {
+        using Rotation = typename Base::Rotation;
+
+        /**
+         * @brief Init display
+         *
+         * @par Returns
+         *  Nothing
+         */
+        static void Init(Rotation rotation = Rotation::None) {
+            St7735::_SetRotation(rotation);
+
             St7735::Reset();
 
-            St7735::WriteCommand(St7735::Command::SoftwareReset);
+            St7735::WriteCommand(Command::SoftwareReset);
             delay_ms<150>();
 
-            St7735::WriteCommand(St7735::Command::SlpOut);
+            St7735::WriteCommand(Command::SlpOut);
             delay_ms<500>();
 
-            St7735::WriteCommand(St7735::Command::FrmCtr1);
+            St7735::WriteCommand(Command::FrmCtr1);
             St7735::WriteData({0x01, 0x2c, 0x2d});
 
-            St7735::WriteCommand(St7735::Command::FrmCtr2);
+            St7735::WriteCommand(Command::FrmCtr2);
             St7735::WriteData({0x01, 0x2c, 0x2d});
 
-            St7735::WriteCommand(St7735::Command::FrmCtr3);
+            St7735::WriteCommand(Command::FrmCtr3);
             St7735::WriteData({0x01, 0x2c, 0x2d, 0x01, 0x2c, 0x2d});
 
-            St7735::WriteCommand(St7735::Command::InvCtr);
+            St7735::WriteCommand(Command::InvCtr);
             St7735::WriteData({0x07});
 
-            St7735::WriteCommand(St7735::Command::PwCtr1);
+            St7735::WriteCommand(Command::PwCtr1);
             St7735::WriteData({0xa2, 0x02, 0x84});
 
-            St7735::WriteCommand(St7735::Command::PwCtr2);
+            St7735::WriteCommand(Command::PwCtr2);
             St7735::WriteData({0xc5});
 
-            St7735::WriteCommand(St7735::Command::PwCtr3);
+            St7735::WriteCommand(Command::PwCtr3);
             St7735::WriteData({0x0a, 0x00});
 
-            St7735::WriteCommand(St7735::Command::PwCtr4);
+            St7735::WriteCommand(Command::PwCtr4);
             St7735::WriteData({0x8a, 0x2a});
 
-            St7735::WriteCommand(St7735::Command::PwCtr5);
+            St7735::WriteCommand(Command::PwCtr5);
             St7735::WriteData({0x8a, 0xee});
 
-            St7735::WriteCommand(St7735::Command::VmCtr1);
+            St7735::WriteCommand(Command::VmCtr1);
             St7735::WriteData({0x0e});
 
-            St7735::WriteCommand(St7735::Command::InvOff);
+            St7735::WriteCommand(Command::InvOff);
             St7735::WriteData({0x0e});
 
             St7735::WriteCommand(St7735::Command::MadCtl);
-            St7735::WriteData({St7735::Rotation});
+            St7735::WriteData({St7735::_rotation_value});
 
             St7735::WriteCommand(St7735::Command::ColMod);
             St7735::WriteData({0x05});
@@ -544,16 +607,53 @@ namespace Zhele::Drivers
 
             _SsPin::Set();
         }
+
+    protected:
+        static void _SetRotation(Rotation rotation) {
+            St7735::_rotation = rotation;
+
+            switch (St7735::_rotation) {
+                default:
+                case Rotation::None:
+                    St7735::_rotation_value = MadCtl::Rgb | (_Width < _Height ? MadCtl::Mx | MadCtl::My : MadCtl::My | MadCtl::Mv);
+                    St7735::_rotation_value_text = St7735::_rotation_value ^ MadCtl::Mv;
+                    St7735::_x_offset = 0;
+                    St7735::_y_offset = 0;
+                    St7735::_x_offset_text = 0;
+                    St7735::_y_offset_text = 0;
+                    break;
+            }
+        }
     };
 
-    template <typename _SpiBus, typename _SsPin, typename _DcPin, typename _ResetPin, uint8_t _Width = 240, uint8_t _Height = 240>
-    class St7789 : public Private::St77xx<
-            _SpiBus, _SsPin, _DcPin, _ResetPin,
-            Private::MadCtl::Rgb,
-            Private::MadCtl::Rgb ^ Private::MadCtl::Mv,
-            _Width, _Height> {
+    /**
+     * @brief Implements driver for TFT based on ST7789
+     *
+     * @tparam _SpiBus Spi bus
+     * @tparam _SsPin Chip select pin
+     * @tparam _DcPin Data/Control pin
+     * @tparam _ResetPin Reset pin
+     * @tparam _Width Width
+     * @tparam _Height Height
+     */
+    template <typename _SpiBus, typename _SsPin, typename _DcPin, typename _ResetPin, uint16_t _Width = 240, uint16_t _Height = 240>
+    class St7789 : public Private::St77xx<_SpiBus, _SsPin, _DcPin, _ResetPin, _Width, _Height> {
+        using Base = typename Private::St77xx<_SpiBus, _SsPin, _DcPin, _ResetPin, _Width, _Height>;
+        using MadCtl = typename Private::MadCtl;
+        using Command = typename Base::Command;
+
     public:
-        static void Init() {
+        using Rotation = typename Base::Rotation;
+
+        /**
+         * @brief Init display
+         *
+         * @par Returns
+         *  Nothing
+         */
+        static void Init(Rotation rotation = Rotation::None) {
+            St7789::_SetRotation(rotation);
+
             St7789::Reset();
 
             St7789::WriteCommand(St7789::Command::SlpOut);
@@ -589,7 +689,7 @@ namespace Zhele::Drivers
             St7789::WriteData({0xA4, 0xA1});
 
             St7789::WriteCommand(St7789::Command::MadCtl);
-            St7789::WriteData({ 0x00 });
+            St7789::WriteData({ St7789::_rotation_value });
 
             St7789::WriteCommand(St7789::Command::GmctrP1);
             St7789::WriteData({0xD0, 0x04, 0x0D, 0x11, 0x13, 0x2B, 0x3F, 0x54, 0x4C, 0x18, 0x0D, 0x0B, 0x1F, 0x23});
@@ -606,6 +706,46 @@ namespace Zhele::Drivers
             delay_ms<100>();
 
             _SsPin::Set();
+        }
+
+    protected:
+        static void _SetRotation(Rotation rotation) {
+            St7789::_rotation = rotation;
+
+            switch (St7789::_rotation) {
+                case Rotation::None:
+                    St7789::_rotation_value = MadCtl::Rgb;
+                    St7789::_rotation_value_text = St7789::_rotation_value ^ MadCtl::Mv;
+                    St7789::_x_offset = 0;
+                    St7789::_y_offset = 0;
+                    St7789::_x_offset_text = 0;
+                    St7789::_y_offset_text = 0;
+                    break;
+                case Rotation::Rot90:
+                    St7789::_rotation_value = MadCtl::Mx | MadCtl::Mv | MadCtl::Rgb;
+                    St7789::_rotation_value_text = St7789::_rotation_value ^ MadCtl::Mv;
+                    St7789::_x_offset = 0;
+                    St7789::_y_offset = 0;
+                    St7789::_x_offset_text = 0;
+                    St7789::_y_offset_text = 0;
+                    break;
+                case Rotation::Rot180:
+                    St7789::_rotation_value = MadCtl::Mx | MadCtl::My | MadCtl::Rgb;
+                    St7789::_rotation_value_text = St7789::_rotation_value ^ MadCtl::Mv;
+                    St7789::_x_offset = 0;
+                    St7789::_y_offset = 320 - _Height;
+                    St7789::_x_offset_text = 320 - _Height;
+                    St7789::_y_offset_text = 0;
+                    break;
+                case Rotation::Rot270:
+                    St7789::_rotation_value = MadCtl::My | MadCtl::Mv | MadCtl::Rgb;
+                    St7789::_rotation_value_text = St7789::_rotation_value ^ MadCtl::Mv;
+                    St7789::_x_offset = 320 - _Width;
+                    St7789::_y_offset = 0;
+                    St7789::_x_offset_text = 0;
+                    St7789::_y_offset_text = 320 - _Width;
+                    break;
+            }
         }
     };
 }
