@@ -19,6 +19,10 @@ namespace Zhele::Clock
     const static unsigned PllqBitFieldLength = GetBitFieldLength<(RCC_PLLCFGR_PLLQ_Msk >> RCC_PLLCFGR_PLLQ_Pos)>;
     IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllQ, uint32_t, PllqBitFieldOffset, PllqBitFieldLength);
 
+    const static unsigned PllrBitFieldOffset = RCC_PLLCFGR_PLLR_Pos;
+    const static unsigned PllrBitFieldLength = GetBitFieldLength<(RCC_PLLCFGR_PLLR_Msk >> RCC_PLLCFGR_PLLR_Pos)>;
+    IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllR, uint32_t, PllrBitFieldOffset, PllrBitFieldLength);
+
     ClockFrequenceT PllClock::SetClockFreq(ClockFrequenceT freq)
     {
         return 0;
@@ -73,6 +77,14 @@ namespace Zhele::Clock
     void PllClock::SetUsbOutputDivider(ClockFrequenceT divider)
     {
         PllQ::Set(divider);
+    }
+    ClockFrequenceT PllClock::GetI2SOutputDivider()
+    {
+        return PllR::Get();
+    }
+    void PllClock::SetI2SOutputDivider(ClockFrequenceT divider)
+    {
+        PllR::Set(divider);
     }
 }
 
