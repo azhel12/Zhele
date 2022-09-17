@@ -590,6 +590,11 @@ namespace Zhele::Drivers
             _SsPin::Set();
         }
 
+        /**
+         * @brief Set display rotation
+         *
+         * @tparam __Rotation St77xxRotation enum value
+         */
         template <Rotation __Rotation = Rotation::None>
         static void SetRotation() {
             if constexpr (__Rotation == Rotation::None) {
@@ -706,6 +711,11 @@ namespace Zhele::Drivers
             _SsPin::Set();
         }
 
+        /**
+         * @brief Set display rotation
+         *
+         * @tparam __Rotation St77xxRotation enum value
+         */
         template <Rotation __Rotation = Rotation::None>
         static void SetRotation() {
             if constexpr (__Rotation == Rotation::None) {
