@@ -12,6 +12,8 @@
 
 #include "type_list.h"
 
+#include <cstddef>
+
 namespace Zhele::TemplateUtils
 {
     template<auto... Numbers>
