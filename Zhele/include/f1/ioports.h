@@ -70,7 +70,7 @@ namespace Zhele
             static constexpr unsigned UnpackConfig(unsigned mask, unsigned value, unsigned configuration, unsigned configMask)
             {
                 mask = ConfigurationMask(mask);
-                return (value & ~(mask*configMask)) | mask * configuration;
+                return (value & ~(mask * configMask)) | mask * configuration;
             }
         };
 
@@ -387,13 +387,16 @@ namespace Zhele
                  */
                 static void SetPullMode(DataType mask, PullMode mode)
                 {
+                    Regs()->CRL = NativePortBase::UnpackConfig(mask, Regs()->CRL, mode & 0x08, 0x0f);
+                    Regs()->CRH = NativePortBase::UnpackConfig((mask >> 8), Regs()->CRH, mode & 0x08, 0x0f);
+                    
                     if (mode & 0x10) // pulldown
                     {
-                        Set(mask);
+                        Clear(mask);
                     }
                     else
                     {
-                        Clear(mask);
+                        Set(mask);
                     }
                 }
 
@@ -409,13 +412,16 @@ namespace Zhele
                 template <DataType mask, PullMode mode>
                 static void SetPullMode()
                 {
-                    if constexpr(mode & 0x10) // pulldown
+                    Regs()->CRL = NativePortBase::UnpackConfig(mask, Regs()->CRL, mode & 0x08, 0x0f);
+                    Regs()->CRH = NativePortBase::UnpackConfig((mask >> 8), Regs()->CRH, mode & 0x08, 0x0f);
+                    
+                    if constexpr (mode & 0x10) // pulldown
                     {
-                        Set(mask);
+                        Clear(mask);
                     }
                     else
                     {
-                        Clear(mask);
+                        Set(mask);
                     }
                 }
 
