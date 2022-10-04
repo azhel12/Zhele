@@ -387,8 +387,8 @@ namespace Zhele
                  */
                 static void SetPullMode(DataType mask, PullMode mode)
                 {
-                    Regs()->CRL = NativePortBase::UnpackConfig(mask, Regs()->CRL, mode & 0x08, 0x0f);
-                    Regs()->CRH = NativePortBase::UnpackConfig((mask >> 8), Regs()->CRH, mode & 0x08, 0x0f);
+                    _Regs()->CRL = NativePortBase::UnpackConfig(mask, _Regs()->CRL, mode & 0x08, 0x0f);
+                    _Regs()->CRH = NativePortBase::UnpackConfig((mask >> 8), _Regs()->CRH, mode & 0x08, 0x0f);
                     
                     if (mode & 0x10) // pulldown
                     {
@@ -412,8 +412,8 @@ namespace Zhele
                 template <DataType mask, PullMode mode>
                 static void SetPullMode()
                 {
-                    Regs()->CRL = NativePortBase::UnpackConfig(mask, Regs()->CRL, mode & 0x08, 0x0f);
-                    Regs()->CRH = NativePortBase::UnpackConfig((mask >> 8), Regs()->CRH, mode & 0x08, 0x0f);
+                    _Regs()->CRL = NativePortBase::UnpackConfig(mask, _Regs()->CRL, mode & 0x08, 0x0f);
+                    _Regs()->CRH = NativePortBase::UnpackConfig((mask >> 8), _Regs()->CRH, mode & 0x08, 0x0f);
                     
                     if constexpr (mode & 0x10) // pulldown
                     {
