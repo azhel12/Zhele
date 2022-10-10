@@ -1002,6 +1002,8 @@ namespace Zhele::Usb
                 break;
             case EndpointStatus::Valid:
                 BufferSize = 0;
+                _Regs()->DOEPTSIZ = (1 << USB_OTG_DOEPTSIZ_PKTCNT_Pos)
+                    | (_Base::MaxPacketSize << USB_OTG_DOEPTSIZ_XFRSIZ_Pos);
                 _Regs()->DOEPCTL |= USB_OTG_DOEPCTL_CNAK | USB_OTG_DOEPCTL_EPENA;
                 break;
             }
@@ -1323,6 +1325,7 @@ namespace Zhele::Usb
             In::HandleTx();
             if(_OutReg()->DOEPINT & USB_OTG_DOEPINT_XFRC)
             {
+                _OutReg()->DOEPINT = USB_OTG_DOEPINT_XFRC;
                 HandleRx();
             }
         }
