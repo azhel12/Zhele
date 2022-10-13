@@ -76,7 +76,6 @@ namespace Zhele::Timers
                 CenterAligned1 = TIM_CR1_CMS_0,	///< center aligned, interrupt with counting down
                 CenterAligned2 = TIM_CR1_CMS_1, ///< center aligned, interrupt with counting up
                 CenterAligned3 = TIM_CR1_CMS ///< center aligned, interrupt with both
-
             };
 
             /// Timer master mode
@@ -119,6 +118,16 @@ namespace Zhele::Timers
              *	Nothing
              */
             static void Disable(); 
+
+            /**
+             * @brief Set timer`s counter mode
+             * 
+             * @param [in] counterMode Timer`s counter mode
+             * 
+             * @par Returns
+             *	Nothing
+             */
+            static void SetCounterMode(CounterMode counterMode);
 
             /**
              * @brief Set timer`s counter value
@@ -197,6 +206,22 @@ namespace Zhele::Timers
              */
             static Counter GetPeriod();
            
+            /**
+             * @brief Enable one-pulse mode
+             * 
+             * @par Returns
+             *  Nothing
+             */
+            static void EnableOnePulseMode();
+            
+            /**
+             * @brief Disable one-pulse mode
+             * 
+             * @par Returns
+             *  Nothing
+             */
+            static void DisableOnePulseMode();
+
             /**
              * @brief Stop timer
              * 
@@ -389,35 +414,6 @@ namespace Zhele::Timers
                  * 	Nothing
                  */
                 static void Disable();
-
-                /**
-                 * @brief Select channel pin
-                 * 
-                 * @param [in] pinNumber Pin number
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                static void SelectPins(int pinNumber);
-            
-                /**
-                 * @brief Select channel pin by number (template method)
-                 * 
-                 * @tparam PinNumber Pin number
-                 */
-                template<unsigned PinNumber>
-                static void SelectPins();
-
-                /**
-                 * @brief Select channel pin (template method)
-                 * 
-                 * @tparam Pin Pin class
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                template<typename Pin>
-                static void SelectPins();
             };
 
         public:
@@ -521,6 +517,16 @@ namespace Zhele::Timers
                  *  Nothing
                  */
                 static void SelectTrigger(Trigger trigger);
+
+                /**
+                 * @brief Select prescaler for trigger
+                 * 
+                 * @param prescaler Prescaler value
+                 * 
+                 * @par Returns
+                 *  Nothing
+                 */
+                static void SetTriggerPrescaler(ExternalTriggerPrescaler prescaler);
             };
 
             /**
@@ -533,6 +539,9 @@ namespace Zhele::Timers
             {
                 using Channel = ChannelBase<_ChannelNumber>;
             public:
+                using Pins = Channel::Pins;
+                using PinsAltFuncNumber = Channel::PinsAltFuncNumber;
+
                 /// Capture polarity
                 enum CapturePolarity
                 {
@@ -575,6 +584,35 @@ namespace Zhele::Timers
                  * @return Counter 
                  */
                 static typename Base::Counter GetValue();
+
+                /**
+                 * @brief Select channel pin
+                 * 
+                 * @param [in] pinNumber Pin number
+                 * 
+                 * @par Returns
+                 * 	Nothing
+                 */
+                static void SelectPins(int pinNumber);
+            
+                /**
+                 * @brief Select channel pin by number (template method)
+                 * 
+                 * @tparam PinNumber Pin number
+                 */
+                template<unsigned PinNumber>
+                static void SelectPins();
+
+                /**
+                 * @brief Select channel pin (template method)
+                 * 
+                 * @tparam Pin Pin class
+                 * 
+                 * @par Returns
+                 * 	Nothing
+                 */
+                template<typename Pin>
+                static void SelectPins();
             };
 
             /**
@@ -587,6 +625,9 @@ namespace Zhele::Timers
             {
                 using Channel = ChannelBase<_ChannelNumber>;
             public:
+                using Pins = Channel::Pins;
+                using PinsAltFuncNumber = Channel::PinsAltFuncNumber;
+
                 /// Output polarity
                 enum OutputPolarity
                 {
@@ -606,10 +647,7 @@ namespace Zhele::Timers
                     ForcedActive   = TIM_CCMR1_OC1M_0 | TIM_CCMR1_OC1M_2,
                     ForcedInactive = TIM_CCMR1_OC1M_2
                 };
-                static_assert(_ChannelNumber < 4);
-                using Pins = typename _ChPins<_ChannelNumber>::Pins::Key;
-                using PinsAltFuncNumber = typename _ChPins<_ChannelNumber>::Pins::Value;
-            
+
                 /**
                  * @brief Set OC pulse
                  * 
@@ -619,7 +657,6 @@ namespace Zhele::Timers
                  * 	Nothing
                  */
                 static void SetPulse(typename Base::Counter pulse);
-                
 
                 /**
                  * @brief Returns current pulse value
@@ -637,8 +674,7 @@ namespace Zhele::Timers
                  * 	Nothing
                  */
                 static void SetOutputPolarity(OutputPolarity polarity);
-               
-            
+
                 /**
                  * @brief Set output mode
                  * 
@@ -648,6 +684,35 @@ namespace Zhele::Timers
                  * 	Nothing
                  */
                 static void SetOutputMode(OutputMode mode);
+
+                /**
+                 * @brief Select channel pin
+                 * 
+                 * @param [in] pinNumber Pin number
+                 * 
+                 * @par Returns
+                 * 	Nothing
+                 */
+                static void SelectPins(int pinNumber);
+            
+                /**
+                 * @brief Select channel pin by number (template method)
+                 * 
+                 * @tparam PinNumber Pin number
+                 */
+                template<unsigned PinNumber>
+                static void SelectPins();
+
+                /**
+                 * @brief Select channel pin (template method)
+                 * 
+                 * @tparam Pin Pin class
+                 * 
+                 * @par Returns
+                 * 	Nothing
+                 */
+                template<typename Pin>
+                static void SelectPins();
             };
 
             /**
@@ -677,7 +742,6 @@ namespace Zhele::Timers
                  * 	Nothing
                  */
                 static void SetOutputFastMode(FastMode mode);
-               
 
                 /**
                  * @brief Select channel pin
@@ -688,7 +752,6 @@ namespace Zhele::Timers
                  * 	Nothing
                  */
                 static void SelectPins(int pinNumber);
-               
 
                 /**
                  * @brief Select channel pin (template method by number)
@@ -700,7 +763,6 @@ namespace Zhele::Timers
                  */
                 template<unsigned PinNumber>
                 static void SelectPins();
-              
 
                 /**
                  * @brief Select channel pin (template method)
@@ -729,7 +791,24 @@ namespace Zhele::Timers
         class AdvancedTimer : public GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>
         {
             using Base = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>;
-            // Not implemented yet
+
+        public:
+            /**
+             * @brief Set repetition counter (RCR reister)
+             * 
+             * @param repetitionCounter counter
+             * 
+             * @par Returns
+             *  Nothing
+             */
+            static void SetRepetitionCounter(uint8_t repetitionCounter);
+
+            /**
+             * @brief Get repetition counter (RCR reister)
+             * 
+             * @returns Current RCR register value
+             */
+            static uint8_t GetRepetitionCounter();
         };
     }
 }

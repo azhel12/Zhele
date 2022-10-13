@@ -34,6 +34,12 @@ namespace Zhele::Timers::Private
     }
 
     BASETIMER_TEMPLATE_ARGS
+    void BASETIMER_TEMPLATE_QUALIFIER::SetCounterMode(CounterMode counterMode)
+    {
+        _Regs()->CR1 = (_Regs()->CR1 & ~TIM_CR1_CMS_Msk) | static_cast<uint16_t>(counterMode);
+    }
+
+    BASETIMER_TEMPLATE_ARGS
     void BASETIMER_TEMPLATE_QUALIFIER::SetCounterValue(BASETIMER_TEMPLATE_QUALIFIER::Counter counter)
     {
         _Regs()->CNT = counter;
@@ -82,6 +88,19 @@ namespace Zhele::Timers::Private
         return _Regs()->ARR;
     }
 
+
+    BASETIMER_TEMPLATE_ARGS
+    void BASETIMER_TEMPLATE_QUALIFIER::EnableOnePulseMode()
+    {
+        _Regs()->CR1 |= TIM_CR1_OPM;
+    }    
+
+    BASETIMER_TEMPLATE_ARGS
+    void BASETIMER_TEMPLATE_QUALIFIER::DisableOnePulseMode()
+    {
+        _Regs()->CR1 &= ~TIM_CR1_OPM;
+    }
+
     BASETIMER_TEMPLATE_ARGS
     void BASETIMER_TEMPLATE_QUALIFIER::Stop()
     {
@@ -92,8 +111,8 @@ namespace Zhele::Timers::Private
     BASETIMER_TEMPLATE_ARGS
     void BASETIMER_TEMPLATE_QUALIFIER::Start()
     {
-        _Regs()->EGR |= TIM_EGR_UG;
-        _Regs()->CR1 = (TIM_CR1_CEN | TIM_CR1_URS);
+        _Regs()->EGR = TIM_EGR_UG;
+        _Regs()->CR1 |= (TIM_CR1_CEN | TIM_CR1_URS);
     }
 
     BASETIMER_TEMPLATE_ARGS
@@ -162,6 +181,12 @@ namespace Zhele::Timers::Private
     }
 
     GPTIMER_TEMPLATE_ARGS
+    void GPTIMER_TEMPLATE_QUALIFIER::SlaveMode::SetTriggerPrescaler(ExternalTriggerPrescaler prescaler)
+    {
+        _Regs()->SMCR = (_Regs()->SMCR & ~TIM_SMCR_ETPS_Msk) | static_cast<uint16_t>(prescaler);
+    }
+
+    GPTIMER_TEMPLATE_ARGS
     template<unsigned _ChannelNumber>
     void GPTIMER_TEMPLATE_QUALIFIER::ChannelBase<_ChannelNumber>::EnableInterrupt()
     {
@@ -208,21 +233,21 @@ namespace Zhele::Timers::Private
     template<unsigned _ChannelNumber>
     void GPTIMER_TEMPLATE_QUALIFIER::ChannelBase<_ChannelNumber>::Enable()
     {
-        _Regs()->CCER |= (TIM_CCER_CC1E << _ChannelNumber * 4);
+        _Regs()->CCER |= (TIM_CCER_CC1E << (_ChannelNumber * 4));
     }
 
     GPTIMER_TEMPLATE_ARGS
     template<unsigned _ChannelNumber>
     void GPTIMER_TEMPLATE_QUALIFIER::ChannelBase<_ChannelNumber>::Disable()
     {
-        _Regs()->CCER &= ~(TIM_CCER_CC1E << _ChannelNumber * 4);
+        _Regs()->CCER &= ~(TIM_CCER_CC1E << (_ChannelNumber * 4));
     }
 
     GPTIMER_TEMPLATE_ARGS
     template<unsigned _ChannelNumber>
     void GPTIMER_TEMPLATE_QUALIFIER::InputCapture<_ChannelNumber>::SetCapturePolarity(CapturePolarity polarity)
     {
-        _Regs()->CCER = (_Regs()->CCER & ~((TIM_CCER_CC1E | TIM_CCER_CC1P | TIM_CCER_CC1NP) << _ChannelNumber * 4)) | (polarity << _ChannelNumber * 4);
+        _Regs()->CCER = (_Regs()->CCER & ~((TIM_CCER_CC1E | TIM_CCER_CC1P | TIM_CCER_CC1NP) << (_ChannelNumber * 4))) | (polarity << (_ChannelNumber * 4));
     }
 
     GPTIMER_TEMPLATE_ARGS
@@ -234,7 +259,7 @@ namespace Zhele::Timers::Private
 
     GPTIMER_TEMPLATE_ARGS
     template<unsigned _ChannelNumber>
-    GPTIMER_TEMPLATE_QUALIFIER::Base::Counter GPTIMER_TEMPLATE_QUALIFIER::InputCapture<_ChannelNumber>::GetValue()
+    typename GPTIMER_TEMPLATE_QUALIFIER::Base::Counter GPTIMER_TEMPLATE_QUALIFIER::InputCapture<_ChannelNumber>::GetValue()
     {
         return (&_Regs()->CCR1)[_ChannelNumber];
     }
@@ -257,14 +282,14 @@ namespace Zhele::Timers::Private
     template<unsigned _ChannelNumber>
     void GPTIMER_TEMPLATE_QUALIFIER::OutputCompare<_ChannelNumber>::SetOutputPolarity(OutputPolarity polarity)
     {
-        _Regs()->CCER = (_Regs()->CCER & ~((TIM_CCER_CC1E | TIM_CCER_CC1P | TIM_CCER_CC1NP) << _ChannelNumber * 4)) | (polarity << _ChannelNumber * 4);
+        _Regs()->CCER = (_Regs()->CCER & ~((TIM_CCER_CC1E | TIM_CCER_CC1P | TIM_CCER_CC1NP) << (_ChannelNumber * 4))) | (polarity << (_ChannelNumber * 4));
     }
 
     GPTIMER_TEMPLATE_ARGS
     template<unsigned _ChannelNumber>
     void GPTIMER_TEMPLATE_QUALIFIER::OutputCompare<_ChannelNumber>::SetOutputMode(OutputMode mode)
     {
-        _Regs()->CCER = (_Regs()->CCER & ~(TIM_CCER_CC1NP << _ChannelNumber * 4)) | (TIM_CCER_CC1E << _ChannelNumber * 4);
+        _Regs()->CCER = (_Regs()->CCER & ~(TIM_CCER_CC1NP << (_ChannelNumber * 4))) | (TIM_CCER_CC1E << (_ChannelNumber * 4));
         Channel::ModeBitField::Set(mode);
         _Regs()->BDTR |= TIM_BDTR_MOE;
     }
@@ -311,6 +336,21 @@ namespace Zhele::Timers::Private
         Pin::template SetSpeed<Pin::Speed::Slow>();
         Pin::template SetDriverType<Pins::DriverType::PushPull>();
         Base::template SelectPins<Pin>();
+    }
+
+    #define ADVANCED_TIMER_TEMPLATE_ARGS template<typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>
+    #define ADVANCED_TIMER_TEMPLATE_QUALIFIER AdvancedTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>
+
+    ADVANCED_TIMER_TEMPLATE_ARGS
+    void ADVANCED_TIMER_TEMPLATE_QUALIFIER::SetRepetitionCounter(uint8_t repetitionCounter)
+    {
+        _Regs()->RCR = repetitionCounter;
+    }
+
+    ADVANCED_TIMER_TEMPLATE_ARGS
+    uint8_t ADVANCED_TIMER_TEMPLATE_QUALIFIER::GetRepetitionCounter()
+    {
+        return _Regs()->RCR & 0xff;
     }
 }
 #endif //! ZHELE_TIMER_IMPL_COMMON_H
