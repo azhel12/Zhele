@@ -312,7 +312,7 @@ namespace Zhele::Usb
             IfHandlers::HandleSetupRequest(setupRequest->Index & 0xff);
             return;
         }
-        IO::Pc13Inv::Clear();
+        
         switch (setupRequest->Request) {
         case StandartRequestCode::GetStatus: {
             uint16_t status = 0;
@@ -328,7 +328,7 @@ namespace Zhele::Usb
             switch (static_cast<GetDescriptorParameter>(setupRequest->Value)) {
             case GetDescriptorParameter::DeviceDescriptor: {
                 DeviceDescriptor tempDeviceDescriptor;
-                FillDescriptor(reinterpret_cast<DeviceDescriptor*>(&tempDeviceDescriptor));
+                FillDescriptor(&tempDeviceDescriptor);
                 _Ep0::SendData(&tempDeviceDescriptor, setupRequest->Length < sizeof(DeviceDescriptor) ? setupRequest->Length : sizeof(DeviceDescriptor));
                 break;
             }

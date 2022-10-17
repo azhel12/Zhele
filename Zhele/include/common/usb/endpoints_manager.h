@@ -433,17 +433,18 @@ namespace Zhele::Usb
          */
         static void Init()
         {
-            memset(reinterpret_cast<void*>(BdtBase), 0x00, PmaAlignMultiplier * BdtSize);
-            (InitTxAddressFieldInDescriptor<AllEndpoints>(), ...);
+            (InitTxFieldsInDescriptor<AllEndpoints>(), ...);
             (InitRxAddressFieldInDescriptor<BidirectionalAndBulkDoubleBufferedEndpoints>(), ...);
             (InitRxCountFieldInDescriptor<RxEndpoints>(), ...);
             (InitSecondRxCountFieldInDescriptor<BidirectionalAndBulkDoubleBufferedEndpoints>(), ...);
         }
+
     private:
         template<typename Endpoint>
-        static void InitTxAddressFieldInDescriptor()
+        static void InitTxFieldsInDescriptor()
         {
             *reinterpret_cast<uint16_t*>(BdtBase + PmaAlignMultiplier * BdtCellOffset<Endpoint>) = BufferOffset<Endpoint>;
+            *reinterpret_cast<uint16_t*>(BdtBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 2)) = 0u;
         }
         template<typename Endpoint>
         static void InitRxAddressFieldInDescriptor()
