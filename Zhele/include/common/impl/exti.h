@@ -43,8 +43,10 @@ namespace Zhele
         pin::Port::Enable();
         pin::SetConfiguration(pin::Configuration::In);
         pin::SetPullMode(pullMode);
+#if !defined(STM32F1)
         pin::SetDriverType(driverType);
         pin::SetSpeed(speed);
+#endif
     }
 
     template<uint8_t _Line, IRQn_Type _IRQn>
