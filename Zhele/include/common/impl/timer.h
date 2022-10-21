@@ -116,16 +116,16 @@ namespace Zhele::Timers::Private
     }
 
     BASETIMER_TEMPLATE_ARGS
-    void BASETIMER_TEMPLATE_QUALIFIER::EnableInterrupt()
+    void BASETIMER_TEMPLATE_QUALIFIER::EnableInterrupt(Interrupt interruptMask)
     {
-        _Regs()->DIER |= TIM_DIER_UIE;
+        _Regs()->DIER |= static_cast<uint16_t>(interruptMask);
         NVIC_EnableIRQ(_IRQNumber);
     }
 
     BASETIMER_TEMPLATE_ARGS
-    void BASETIMER_TEMPLATE_QUALIFIER::DisableInterrupt()
+    void BASETIMER_TEMPLATE_QUALIFIER::DisableInterrupt(Interrupt interruptMask)
     {
-        _Regs()->DIER &= ~TIM_DIER_UIE;
+        _Regs()->DIER &= ~(static_cast<uint16_t>(interruptMask));
     }
 
     BASETIMER_TEMPLATE_ARGS

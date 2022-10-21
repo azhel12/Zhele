@@ -251,22 +251,26 @@ namespace Zhele::Timers
             /**
              * @brief Enables update interrupt for timer
              * 
-             * @detailss
+             * @details
              * Method does not have any parameters (such as interrupt type), because
              * it's base timer and it supports only update (overflow) event
+             * 
+             * @param [in] interruptMask Interrupt mask
              * 
              * @par Returns
              *	Nothing
              */
-            static void EnableInterrupt();
+            static void EnableInterrupt(Interrupt interruptMask = Interrupt::Update);
 
             /**
              * @brief Disables update event interrupt
              * 
+             * @param [in] interruptMask Interrupt mask
+             * 
              * @par Returns
              *	Nothing
              */
-            static void DisableInterrupt();
+            static void DisableInterrupt(Interrupt interruptMask = Interrupt::Update);
 
             /**
              * @brief Returns is interrupt was occured.
