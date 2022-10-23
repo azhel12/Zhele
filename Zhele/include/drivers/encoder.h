@@ -2,8 +2,6 @@
  * @file
  * Driver for encoder
  * 
- * Based on http://we.easyelectronics.ru/STM32/ir-usb-hid-ocherednoy-pult-dlya-kompa-chast-1.html
- * 
  * @author Aleksei Zhelonkin
  * @date 2022
  * @license FreeBSD
