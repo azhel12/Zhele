@@ -19,7 +19,7 @@
 namespace Zhele::Drivers
 {
     /**
-     * @brief Class for IR receiver
+     * @brief Class for encoder
      * 
      * @tparam _Timer GP timer instance
      * @tparam _PinA Input pin A (for 1 channel)
