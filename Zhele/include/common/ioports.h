@@ -123,7 +123,7 @@ namespace Zhele
             template<unsigned pin, class Config>
             static void SetPinConfiguration(Config)
             {}
-            template<class Config>
+            template<typename Config>
             static void SetConfiguration(DataT, Config)
             {}
 
@@ -136,7 +136,11 @@ namespace Zhele
             
             static void SetPullMode(DataT, PullMode)
             {}
-            
+
+            template<DataT mask, DriverType>
+            static void SetDriverType()
+            {}
+
             static void SetDriverType(DataT, DriverType)
             {}
             

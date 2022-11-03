@@ -63,11 +63,11 @@
     }
     extern "C" ZHELE_INTERRUPT(DMA2_Stream6_IRQHandler)
     {
-        Dma2Stream5::IrqHandler();
+        Dma2Stream6::IrqHandler();
     }
     extern "C" ZHELE_INTERRUPT(DMA2_Stream7_IRQHandler)
     {
-        Dma2Stream5::IrqHandler();
+        Dma2Stream7::IrqHandler();
     }
 
     void DmaDummy() {}
