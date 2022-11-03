@@ -16,6 +16,8 @@
 #include "ioreg.h"
 #include "pinlist.h"
 
+#include "./template_utils/data_transfer.h"
+
 namespace Zhele
 {
 #if(USART_ISR_PE)
@@ -230,7 +232,6 @@ namespace Zhele
              * @retval false USART is not ready for read
              */
             static bool ReadReady();
-            
 
             /**
              * @brief Synch read data
@@ -238,7 +239,6 @@ namespace Zhele
              * @returns Readed byte
              */
             static uint8_t Read();
-            
 
             /**
              * @brief Enable async read (by DMA)
@@ -271,8 +271,31 @@ namespace Zhele
              * @par Returns
              * 	Nothing
              */
-            static void Write(const void* data, size_t size, bool async = false);
+            [[deprecated("Replaced by Write/WriteAsync methods")]]
+            static void Write(const void* data, size_t size, bool async);
+
+            /**
+             * @brief Write data to USART
+             * 
+             * @param [in] data Data to write
+             * @param [in] size Data size
+             * 
+             * @par Returns
+             * 	Nothing
+             */
+            static void Write(const void* data, size_t size);
             
+            /**
+             * @brief Write data to USART async (via DMA)
+             * 
+             * @param [in] data Data to write
+             * @param [in] size Data size
+             * @param [in] callback Transfer complete callback
+             * 
+             * @par Returns
+             * 	Nothing
+             */
+            static void WriteAsync(const void* data, size_t size, TransferCallback callback = nullptr);
 
             /**
              * @brief Synch write byte
@@ -284,7 +307,6 @@ namespace Zhele
              */
             static void Write(uint8_t data);
            
-
             /**
              * @brief Enables one or more interrupts
              * 

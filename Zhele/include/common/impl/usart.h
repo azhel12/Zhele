@@ -133,33 +133,45 @@ namespace Zhele
         USART_TEMPLATE_ARGS
         void USART_TEMPLATE_QUALIFIER::Write(const void* data, size_t size, bool async)
         {
-            if (async && size > 1)
-            {
-                while (!WriteReady()) ;
-                _DmaTx::ClearTransferComplete();
-                _Regs()->CR3 |= USART_CR3_DMAT;
-            #if defined (USART_TYPE_1)
-                _Regs()->ICR |= TxCompleteInt;
-            #endif
-            #if defined (USART_TYPE_2)
-                _Regs()->SR &= ~TxCompleteInt;
-            #endif
-                _DmaTx::Transfer(_DmaTx::Mem2Periph | _DmaTx::MemIncrement, data, &_Regs()->TRANSMIT_DATA_REG, size);
-            } 
-            else
-            {
-                uint8_t *ptr = static_cast<uint8_t*>(const_cast<void*>(data));
-                while (size--)
-                {
-                    Write(*ptr++);
-                }
+            if (async && size > 1) {
+                WriteAsync(data, size);
+            }  else {
+                Write(data, size);
             }
+        }
+
+        USART_TEMPLATE_ARGS
+        void USART_TEMPLATE_QUALIFIER::Write(const void* data, size_t size)
+        {
+            const uint8_t *ptr = static_cast<const uint8_t*>(data);
+            while (size--) {
+                Write(*ptr++);
+            }
+        }
+
+        USART_TEMPLATE_ARGS
+        void USART_TEMPLATE_QUALIFIER::WriteAsync(const void* data, size_t size, TransferCallback callback)
+        {
+            if (size == 0)
+                return;
+            
+            while (!WriteReady()) ;
+            _DmaTx::ClearTransferComplete();
+            _DmaTx::SetTransferCallback(callback);
+            _Regs()->CR3 |= USART_CR3_DMAT;
+        #if defined (USART_TYPE_1)
+            _Regs()->ICR |= TxCompleteInt;
+        #endif
+        #if defined (USART_TYPE_2)
+            _Regs()->SR &= ~TxCompleteInt;
+        #endif
+            _DmaTx::Transfer(_DmaTx::Mem2Periph | _DmaTx::MemIncrement, data, &_Regs()->TRANSMIT_DATA_REG, size);
         }
 
         USART_TEMPLATE_ARGS
         void USART_TEMPLATE_QUALIFIER::Write(uint8_t data)
         {
-            while (!WriteReady()) ;
+            while (!WriteReady()) continue;
 
             _Regs()->TRANSMIT_DATA_REG = data;  
         }
