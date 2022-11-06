@@ -14,6 +14,7 @@
 #include "endpoints_manager.h"
 #include "hid.h"
 #include "cdc.h"
+#include "msc.h"
 
 #include "../ioreg.h"
 #include "../../common/template_utils/fixed_string.h"

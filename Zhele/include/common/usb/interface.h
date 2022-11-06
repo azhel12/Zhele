@@ -89,8 +89,8 @@ namespace Zhele::Usb
                 .Protocol = _Protocol
             };
             
-            EndpointDescriptor* EndpointsDescriptors = reinterpret_cast<EndpointDescriptor*>(++descriptor);
-            totalLength += (0 + ... + _Endpoints::FillDescriptor(EndpointsDescriptors++));
+            uint8_t* endpointsDescriptors = reinterpret_cast<uint8_t*>(descriptor);
+            ((totalLength += _Endpoints::FillDescriptor(reinterpret_cast<EndpointDescriptor*>(&endpointsDescriptors[totalLength]))), ...);
 
             return totalLength;
         }
