@@ -1235,12 +1235,8 @@ namespace Zhele::Usb
             if (_Regs()->DIEPINT & USB_OTG_DIEPINT_XFRC) {
                 _Regs()->DIEPINT = USB_OTG_DIEPINT_XFRC;
 
-                if (_bytesRemain > 0) {
+                if (_bytesRemain >= 0) {
                     SendPacket();
-                    return;
-                }
-                if (_bytesRemain == 0) {
-                    SendZLP(_txCompleteCallback);
                     return;
                 }
 
@@ -1269,8 +1265,9 @@ namespace Zhele::Usb
             for(int i = 0; i < (transferSize + 3) / 4; ++i)
             {
                 *reinterpret_cast<uint32_t*>(_FifoAddress) = *(_dataToTransmit++);
-                _bytesRemain -= 4;
             }
+
+            _bytesRemain -= _Base::MaxPacketSize;
         }
 
     private:
