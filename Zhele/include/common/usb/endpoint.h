@@ -119,6 +119,13 @@ namespace Zhele::Usb
     };
 
     template<uint8_t _Number, EndpointType _Type, uint16_t _MaxPacketSize, uint8_t _Interval>
+    class InEndpointWithoutZlpBase : public UniDirectionalEndpointBase<_Number, EndpointDirection::In, _Type, _MaxPacketSize, _Interval>
+    {
+    public:
+        const static bool DisableZlp;
+    };
+
+    template<uint8_t _Number, EndpointType _Type, uint16_t _MaxPacketSize, uint8_t _Interval>
     class BidirectionalEndpointBase : public EndpointBase<_Number, EndpointDirection::Bidirectional, _Type, _MaxPacketSize, _Interval>
     {
     };
@@ -1108,6 +1115,7 @@ namespace Zhele::Usb
     class InEndpoint : public Endpoint<_Base>
     {
         using Base = Endpoint<_Base>;
+        static const bool SendZlp = !(requires {_Base::DisableZlp;}); 
     public:
 
         /**
@@ -1235,12 +1243,8 @@ namespace Zhele::Usb
             if (_Regs()->DIEPINT & USB_OTG_DIEPINT_XFRC) {
                 _Regs()->DIEPINT = USB_OTG_DIEPINT_XFRC;
 
-                if (_bytesRemain > 0) {
+                if (_bytesRemain > (SendZlp ? -1 : 0)) {
                     SendPacket();
-                    return;
-                }
-                if (_bytesRemain == 0) {
-                    SendZLP(_txCompleteCallback);
                     return;
                 }
 
@@ -1259,18 +1263,19 @@ namespace Zhele::Usb
          */
         inline static void SendPacket()
         {
-            uint16_t transferSize = _bytesRemain  < _Base::MaxPacketSize
+            uint16_t transferSize = _bytesRemain < _Base::MaxPacketSize
                 ? _bytesRemain
                 : _Base::MaxPacketSize;
-            
+
             _Regs()->DIEPTSIZ = (1 << USB_OTG_DIEPTSIZ_PKTCNT_Pos) | (transferSize << USB_OTG_DIEPTSIZ_XFRSIZ_Pos);
             SetTxStatus(EndpointStatus::Valid);
 
             for(int i = 0; i < (transferSize + 3) / 4; ++i)
             {
                 *reinterpret_cast<uint32_t*>(_FifoAddress) = *(_dataToTransmit++);
-                _bytesRemain -= 4;
             }
+
+            _bytesRemain -= _Base::MaxPacketSize;
         }
 
     private:

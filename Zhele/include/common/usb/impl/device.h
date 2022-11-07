@@ -189,7 +189,7 @@ namespace Zhele::Usb
         _Ep0::Reset();
         (_Configurations::Reset(), ...);
 
-        _DeviceRegs()->DAINTMSK = 0x70007U; // TODO:: Calculate used endpoints numbers
+        _DeviceRegs()->DAINTMSK = DaintMskCalculator<Append_t<_Ep0, Endpoints>>::value;
         _DeviceRegs()->DOEPMSK = USB_OTG_DOEPMSK_STUPM // Enable setup-done irq
                                 | USB_OTG_DOEPMSK_XFRCM;  // Enable tx-done irq
 
