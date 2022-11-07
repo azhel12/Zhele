@@ -199,6 +199,28 @@ namespace Zhele::Usb
          *  Nothing
          */
         static void SetAddress(uint16_t address);
+
+        /**
+         * @brief Calculate DAINTMSK value for OTG
+         * 
+         * @tparam Endpoints Endpoints
+         */
+        template<typename EndpointsList>
+        struct DaintMskCalculator;
+
+        template<typename... Endpoints>
+        struct DaintMskCalculator<TypeList<Endpoints...>>
+        {
+            static const uint32_t value = (0 | ... |
+                (Endpoints::Direction == EndpointDirection::In
+                    ? (1 << Endpoints::Number)
+                    : (Endpoints::Direction == EndpointDirection::Out
+                        ? ((1 << Endpoints::Number) << 16)
+                        : ((1 << Endpoints::Number) | ((1 << Endpoints::Number) << 16))
+                    )
+                )
+            );
+        };
     };
 }
 

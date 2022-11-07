@@ -563,14 +563,14 @@ namespace Zhele::Usb
             typename Select<Endpoint::Direction == EndpointDirection::Out,
             OutEndpoint<
                 Endpoint,
-                EndpointOutReg<TypeIndex<Endpoint, OutEndpointsList>::value>, // OUT register
-                FifoBaseAddress + TypeIndex<Endpoint, OutEndpointsList>::value * EpFifoSize>, // Fifo address = Fifo base + i * USB_OTG_FIFO_SIZE
+                EndpointOutReg<Endpoint::Number>, // OUT register
+                FifoBaseAddress + Endpoint::Number * EpFifoSize>, // Fifo address = Fifo base + i * USB_OTG_FIFO_SIZE
             typename Select<Endpoint::Direction == EndpointDirection::In,
             InEndpoint<
                 Endpoint,
-                EndpointInReg<TypeIndex<Endpoint, InEndpointsList>::value>, // IN register
-                static_cast<uint8_t>(TypeIndex<Endpoint, InEndpointsList>::value), // Fifo number
-                FifoBaseAddress + TypeIndex<Endpoint, InEndpointsList>::value * EpFifoSize>, // Fifo address = Fifo base + i * USB_OTG_FIFO_SIZE
+                EndpointInReg<Endpoint::Number>, // IN register
+                Endpoint::Number, // Fifo number
+                FifoBaseAddress + Endpoint::Number * EpFifoSize>, // Fifo address = Fifo base + i * USB_OTG_FIFO_SIZE
         void>::value>::value>::value; // RxFifo (same for all endpoints)
 
         /**
@@ -599,13 +599,13 @@ namespace Zhele::Usb
         {
             if constexpr (Endpoint::Number == 0)
             {
-                OtgFsGlobal()->DIEPTXF0_HNPTXFSIZ = CalculateTxFifoDepth(Endpoint::MaxPacketSize) << 16 | RxFifoSize;
+                OtgFsGlobal()->DIEPTXF0_HNPTXFSIZ = (CalculateTxFifoDepth(Endpoint::MaxPacketSize) << 16) | RxFifoSize;
             }
             else
             {
                 using InEndpointsBefore = Slice<0, TypeIndex<Endpoint, InEndpointsList>::value, InEndpointsList>::type;
                 static const uint16_t FifoOffset = RxFifoSize + SumOfFifoSize<InEndpointsBefore>::value;
-                OtgFsGlobal()->DIEPTXF[TypeIndex<Endpoint, InEndpointWithoutZeroEndpoint>::value] = CalculateTxFifoDepth(Endpoint::MaxPacketSize) << 16 | FifoOffset;
+                OtgFsGlobal()->DIEPTXF[Endpoint::Number - 1] = (CalculateTxFifoDepth(Endpoint::MaxPacketSize) << 16) | FifoOffset;
             }
         }
 
