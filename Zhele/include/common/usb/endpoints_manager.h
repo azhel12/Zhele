@@ -599,13 +599,13 @@ namespace Zhele::Usb
         {
             if constexpr (Endpoint::Number == 0)
             {
-                OtgFsGlobal()->DIEPTXF0_HNPTXFSIZ = (CalculateTxFifoDepth(Endpoint::MaxPacketSize) << 16) | RxFifoSize;
+                OtgFsGlobal()->DIEPTXF0_HNPTXFSIZ = CalculateTxFifoDepth(Endpoint::MaxPacketSize) << 16 | RxFifoSize;
             }
             else
             {
                 using InEndpointsBefore = Slice<0, TypeIndex<Endpoint, InEndpointsList>::value, InEndpointsList>::type;
                 static const uint16_t FifoOffset = RxFifoSize + SumOfFifoSize<InEndpointsBefore>::value;
-                OtgFsGlobal()->DIEPTXF[TypeIndex<Endpoint, InEndpointWithoutZeroEndpoint>::value] = (CalculateTxFifoDepth(Endpoint::MaxPacketSize) << 16) | FifoOffset;
+                OtgFsGlobal()->DIEPTXF[TypeIndex<Endpoint, InEndpointWithoutZeroEndpoint>::value] = CalculateTxFifoDepth(Endpoint::MaxPacketSize) << 16 | FifoOffset;
             }
         }
 

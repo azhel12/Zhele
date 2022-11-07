@@ -134,7 +134,7 @@ namespace Zhele::Usb
         0x00	// Byte 17: SenseKeySpecific[0] = 0
     };
 
-    static const uint8_t inquiry_response[36] = {
+    static const uint8_t inquiry_response[] = {
         0x00,	// Byte 0: Peripheral Qualifier = 0, Peripheral Device Type = 0
         0x80,	// Byte 1: RMB = 1, Reserved = 0
         0x04,	// Byte 2: Version = 0
@@ -146,7 +146,7 @@ namespace Zhele::Usb
         'V', 'E', 'N', 'D', 'O', 'R', ' ', ' ', //Vendor (8 bytes)
         'P', 'R', 'O', 'D', 'U', 'C', 'T', ' ', //Product (16 bytes)
         ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-        '0', '.', '0', ' ' //Version (4 bytes)
+        '0', '.', '0', '1' //Version (4 bytes)
     };
 
     /**
@@ -209,7 +209,7 @@ namespace Zhele::Usb
                 if(cbw.CommandBlock[1] & 0x01) {
                     _InEp::SendData(inquiry_page00_data, cbw.DataLength < sizeof(inquiry_page00_data) ? cbw.DataLength : sizeof(inquiry_page00_data), callback);
                 } else {
-                    _InEp::SendData(inquiry_response, cbw.DataLength < sizeof(inquiry_response) ? cbw.DataLength : sizeof(inquiry_page00_data), callback);
+                    _InEp::SendData(inquiry_response, cbw.DataLength < sizeof(inquiry_response) ? cbw.DataLength : sizeof(inquiry_response), callback);
                 }
                 break;
             case ScsiCommand::MmcReadFormatCapacity: {
