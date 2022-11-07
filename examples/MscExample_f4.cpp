@@ -32,14 +32,11 @@ using MyDevice = Device<0x0200, DeviceAndInterfaceClass::Storage, 0, 0, 0x0483, 
 
 void ConfigureClock();
 void ConfigureUsbPins();
-void ConfigureUsart();
 
 int main()
 {
     ConfigureClock();
     ConfigureUsbPins();
-    ConfigureLed();
-    ConfigureUsart();
 
     MyDevice::Enable();
 
