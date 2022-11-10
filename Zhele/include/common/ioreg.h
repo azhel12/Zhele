@@ -185,6 +185,23 @@ namespace Zhele
     };
 
     /**
+     * @brief I/O register bit wrapper
+     * 
+     * @tparam _RegAddr Register address
+     * @tparam _DataType Register data type
+     * @tparam _BitfieldOffset Bitfield offset in register
+     */
+    template<unsigned _RegAddr, typename _DataType, unsigned _BitfieldOffset>
+    class IoBit
+    {
+    public:
+        static volatile _DataType& Value(){ return *reinterpret_cast<_DataType*>(_RegAddr);}
+        static bool IsSet(){ return ((Value() >> _BitfieldOffset) & 0x01) != 0; }
+        static void Set(){ Value() |= 1 << _BitfieldOffset; }
+        static void Clear(){ Value() &= ~(1 << _BitfieldOffset); }
+    };
+
+    /**
      * @brief Calculate bitfield length (if bitfield is continuous) in compile-time
      * 
      * @tparam _Mask Bitfield mask

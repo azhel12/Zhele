@@ -1116,6 +1116,9 @@ namespace Zhele::Usb
     {
         using Base = Endpoint<_Base>;
         static const bool SendZlp = !(requires {_Base::DisableZlp;}); 
+        
+        static const uint32_t DiepEmpMskAddress = USB_OTG_FS_PERIPH_BASE + USB_OTG_DEVICE_BASE + offsetof(USB_OTG_DeviceTypeDef, DIEPEMPMSK);
+        using TxFifoEmptyInterruptMask = IoBit<DiepEmpMskAddress, uint32_t, Base::Number>;
     public:
 
         /**
@@ -1143,11 +1146,34 @@ namespace Zhele::Usb
         }
         
         /**
-         * @brief CTR Handler
+         * @brief Endpoint event handled (TX fifo empty or transfer complete)
+         * 
+         * @par Returns
+         *  Nothing
          */
-        static void Handler()
+        static inline void Handler()
         {
             HandleTx();
+        }
+
+        /**
+         * @brief IN endpoint Handler
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        static void HandleTx()
+        {
+            if (_Regs()->DIEPINT & USB_OTG_DIEPINT_XFRC) {
+                _Regs()->DIEPINT = USB_OTG_DIEPINT_XFRC;
+                HandleTxComplete();
+                return;
+            }
+
+            if (_Regs()->DIEPINT & USB_OTG_DIEPINT_TXFE) {
+                HandleFifoEmpty();
+                return;
+            }
         }
 
         /**
@@ -1197,7 +1223,7 @@ namespace Zhele::Usb
          */
         static void SendZLP(InTransferCallback callback = nullptr)
         {
-            _bytesRemain = -1;
+            _needZlpSend = false;
             _txCompleteCallback = callback;
             _Regs()->DIEPTSIZ = (1 << USB_OTG_DIEPTSIZ_PKTCNT_Pos)
                 | (0 << USB_OTG_DIEPTSIZ_XFRSIZ_Pos);
@@ -1214,10 +1240,16 @@ namespace Zhele::Usb
         static void SendData(const void* data, uint32_t size, InTransferCallback callback = nullptr)
         {
             _dataToTransmit = reinterpret_cast<const uint32_t*>(data);
-            _bytesRemain = size;
+            _needZlpSend = size % _Base::MaxPacketSize == 0;
             _txCompleteCallback = callback;
 
-            SendPacket();
+            uint32_t packetsCount = (size + _Base::MaxPacketSize - 1) / _Base::MaxPacketSize;
+
+            _Regs()->DIEPTSIZ = (packetsCount << USB_OTG_DIEPTSIZ_PKTCNT_Pos) | (size << USB_OTG_DIEPTSIZ_XFRSIZ_Pos);
+
+            TxFifoEmptyInterruptMask::Set();
+
+            SetTxStatus(EndpointStatus::Valid);
         }
     protected:
         /**
@@ -1228,6 +1260,15 @@ namespace Zhele::Usb
          */
         static void HandleTxComplete()
         {
+            TxFifoEmptyInterruptMask::Clear();
+
+            if constexpr (SendZlp) {
+                if (_needZlpSend) {
+                    SendZLP(_txCompleteCallback);
+                    return;
+                }
+            }
+
             if(_txCompleteCallback)
                 _txCompleteCallback();
         }
@@ -1238,19 +1279,9 @@ namespace Zhele::Usb
          * @par Returns
          *  Nothing
          */
-        static void HandleTx()
+        static void HandleFifoEmpty()
         {
-            if (_Regs()->DIEPINT & USB_OTG_DIEPINT_XFRC) {
-                _Regs()->DIEPINT = USB_OTG_DIEPINT_XFRC;
-
-                if (_bytesRemain > (SendZlp ? -1 : 0)) {
-                    SendPacket();
-                    return;
-                }
-
-                if (_txCompleteCallback)
-                   _txCompleteCallback();
-            }
+            SendPacket();
         }
 
         /**
@@ -1263,24 +1294,22 @@ namespace Zhele::Usb
          */
         inline static void SendPacket()
         {
-            uint16_t transferSize = _bytesRemain < _Base::MaxPacketSize
-                ? _bytesRemain
-                : _Base::MaxPacketSize;
+            int32_t bytesRemain = _Regs()->DIEPTSIZ & USB_OTG_DIEPTSIZ_XFRSIZ;
 
-            _Regs()->DIEPTSIZ = (1 << USB_OTG_DIEPTSIZ_PKTCNT_Pos) | (transferSize << USB_OTG_DIEPTSIZ_XFRSIZ_Pos);
-            SetTxStatus(EndpointStatus::Valid);
+            int32_t doubleWordsToWrite = (
+                (bytesRemain < _Base::MaxPacketSize
+                    ? bytesRemain
+                    : _Base::MaxPacketSize)
+                + sizeof(uint32_t) - 1) / sizeof(uint32_t);
 
-            for(int i = 0; i < (transferSize + 3) / 4; ++i)
-            {
+            for(int i = 0; i < doubleWordsToWrite; ++i) {
                 *reinterpret_cast<uint32_t*>(_FifoAddress) = *(_dataToTransmit++);
             }
-
-            _bytesRemain -= _Base::MaxPacketSize;
         }
 
     private:
         static const uint32_t* _dataToTransmit;
-        static volatile int32_t _bytesRemain;
+        static bool _needZlpSend;
         static InTransferCallback _txCompleteCallback;
     };
     
@@ -1288,7 +1317,7 @@ namespace Zhele::Usb
     const uint32_t* InEndpoint<_Base, _Regs, _FifoNumber, _FifoAddress>::_dataToTransmit = nullptr;
 
     template<typename _Base, typename _Regs, uint8_t _FifoNumber, uint32_t _FifoAddress>
-    volatile int32_t InEndpoint<_Base, _Regs, _FifoNumber, _FifoAddress>::_bytesRemain = -1;
+    bool InEndpoint<_Base, _Regs, _FifoNumber, _FifoAddress>::_needZlpSend = false;
 
     template<typename _Base, typename _Regs, uint8_t _FifoNumber, uint32_t _FifoAddress>
     InTransferCallback InEndpoint<_Base, _Regs, _FifoNumber, _FifoAddress>::_txCompleteCallback = nullptr;

@@ -237,8 +237,9 @@ namespace Zhele::Usb
             }
         }
 
-        if(_Regs()->GINTSTS & USB_OTG_GINTSTS_IEPINT) {
+        if(_Regs()->GINTSTS & (USB_OTG_GINTSTS_IEPINT | USB_OTG_GINTSTS_NPTXFE)) {
             uint32_t endpoints = _DeviceRegs()->DAINT & _DeviceRegs()->DAINTMSK;
+
             if (endpoints & (1 << 0)) {
                 EpHandlers::Handle(0, EndpointDirection::In);
             }
