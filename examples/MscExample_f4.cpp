@@ -23,7 +23,7 @@ using Ep0 = EpInitializer::ExtendEndpoint<DefaultEp0>;
 using MscOutEp = EpInitializer::ExtendEndpoint<MscOutEpBase>;
 using MscInEp = EpInitializer::ExtendEndpoint<MscInEpBase>;
 
-using Lun0 = ScsiLun<0, 512, 120>;
+using Lun0 = DefaultScsiLun<512, 120>;
 
 using Scsi = ScsiBulkInterface<0, 0, Ep0, MscOutEp, MscInEp, Lun0>;
 
