@@ -149,40 +149,43 @@ namespace Zhele::Usb
         '0', '.', '0', '1' //Version (4 bytes)
     };
 
+    class ScsiLunBase
+    {
+    public:
+        /**
+         * @brief Converter between Little-endian and Big-endian
+         * 
+         * @tparam T Type
+         * 
+         * @param value Value
+         * 
+         * @returns Converted value
+         */
+        template<typename T>
+        inline constexpr static T ConvertLeBe(T value)
+        {
+            if constexpr (sizeof(value) == 1)
+                return value;
+            
+            if constexpr (sizeof(value) == 2)
+                return ((value & 0xff) << 8) | ((value >> 8) & 0xff);
+
+            if constexpr (sizeof(value) == 4)
+                return ((value & 0xff) << 24) | ((value & 0xff00) << 8) | ((value & 0xff0000) >> 8) | ((value >> 24) & 0xff);
+        }
+    };
+
     /**
      * @brief Class for SCSI LUN
      * 
      * @tparam _LunNumber Number
-     * @tparam _LbaSize Lba size
-     * @tparam _LbaCount Lba count
+     * @tparam _LunSpecialization LUN specialization (with LBA size/count method, Read/Write handlers)
      */
-    template<uint8_t _LunNumber, uint32_t _LbaSize, uint32_t _LbaCount>
-    class ScsiLun
+    template<typename _LunSpecialization>
+    class ScsiLun : public ScsiLunBase
     {
-        static uint32_t _rxAddress;
-        static int32_t _rxBytesRemain;
-        static uint8_t Buffer[_LbaCount * _LbaSize];
     public:
-        static const uint8_t Number = _LunNumber;
-
-        /**
-         * @brief LUN rx handler
-         * 
-         * @param data Data
-         * @param size Data size
-         * 
-         * @return true Waiting for next packet (transfer does not complete)
-         * @return false Transfer complete
-         */
-        static bool RxHandler(void* data, uint16_t size)
-        {
-            CopyFromUsbPma(&Buffer[_rxAddress], data, size);
-
-            _rxAddress += size;
-            _rxBytesRemain -= size;
-
-            return _rxBytesRemain > 0;
-        }
+        static const uint8_t Number = _LunSpecialization::LunNumber;
 
         /**
          * @brief LUN command handler
@@ -213,22 +216,22 @@ namespace Zhele::Usb
                 }
                 break;
             case ScsiCommand::MmcReadFormatCapacity: {
-                const uint8_t buffer[] = { 0, 0, 0, 8,
-                    (_LbaCount >> 24) & 0xff,
-                    (_LbaCount >> 16) & 0xff,
-                    (_LbaCount >> 8) & 0xff,
-                    (_LbaCount >> 0) & 0xff,
+                constexpr uint8_t buffer[] = { 0, 0, 0, 8,
+                    (_LunSpecialization::GetLbaCount() >> 24) & 0xff,
+                    (_LunSpecialization::GetLbaCount() >> 16) & 0xff,
+                    (_LunSpecialization::GetLbaCount() >> 8) & 0xff,
+                    (_LunSpecialization::GetLbaCount() >> 0) & 0xff,
 
                     0b10, // formatted media
-                    (_LbaSize >> 16) & 0xff,
-                    (_LbaSize >> 8) & 0xff,
-                    (_LbaSize >> 0) & 0xff,
+                    (_LunSpecialization::GetLbaSize() >> 16) & 0xff,
+                    (_LunSpecialization::GetLbaSize() >> 8) & 0xff,
+                    (_LunSpecialization::GetLbaSize() >> 0) & 0xff,
                 };
                 _InEp::SendData(buffer, sizeof(buffer), callback);
                 break;
             }
             case ScsiCommand::ReadCapacity: {
-                const uint32_t buffer[] = { ConvertLeBe(_LbaCount - 1), ConvertLeBe(_LbaSize) };
+                uint32_t buffer[] = { ConvertLeBe(_LunSpecialization::GetLbaCount() - 1), ConvertLeBe(_LunSpecialization::GetLbaSize()) };
 
                 _InEp::SendData(buffer, sizeof(buffer), callback);
                 break;
@@ -248,14 +251,14 @@ namespace Zhele::Usb
                 uint32_t startLba = ConvertLeBe(reinterpret_cast<const ScsiReadWrite10Request*>(&cbw.CommandBlock[0])->BlockAddress);
                 uint32_t lbaCount = ConvertLeBe(reinterpret_cast<const ScsiReadWrite10Request*>(&cbw.CommandBlock[0])->Length);
 
-                _InEp::SendData(&Buffer[startLba * _LbaSize], lbaCount * _LbaSize, callback);
+                _LunSpecialization::template Read10Handler<_InEp>(startLba, lbaCount, callback);
                 break;
             }
             case ScsiCommand::Write10: {
-                _rxAddress = ConvertLeBe(reinterpret_cast<const ScsiReadWrite10Request*>(&cbw.CommandBlock[0])->BlockAddress) * _LbaSize;
-                _rxBytesRemain = ConvertLeBe(reinterpret_cast<const ScsiReadWrite10Request*>(&cbw.CommandBlock[0])->Length) * _LbaSize;
-                return true;
-                break;
+                uint32_t startLba = ConvertLeBe(reinterpret_cast<const ScsiReadWrite10Request*>(&cbw.CommandBlock[0])->BlockAddress);
+                uint32_t lbaCount = ConvertLeBe(reinterpret_cast<const ScsiReadWrite10Request*>(&cbw.CommandBlock[0])->Length);
+
+                return _LunSpecialization::Write10Handler(startLba, lbaCount);
             }
             case ScsiCommand::MmcStartStopUnit:
             case ScsiCommand::MmcPreventAllowRemoval:
@@ -266,29 +269,153 @@ namespace Zhele::Usb
 
             return false;
         }
-    private:
-        template<typename T>
-        inline constexpr static T ConvertLeBe(T value)
-        {
-            if constexpr (sizeof(value) == 1)
-                return value;
-            
-            if constexpr (sizeof(value) == 2)
-                return ((value & 0xff) << 8) | ((value >> 8) & 0xff);
-
-            if constexpr (sizeof(value) == 4)
-                return ((value & 0xff) << 24) | ((value & 0xff00) << 8) | ((value & 0xff0000) >> 8) | ((value >> 24) & 0xff);
-        }
     };
 
-    template<uint8_t _LunNumber, uint32_t _LbaSize, uint32_t _LbaCount>
-    uint8_t ScsiLun<_LunNumber, _LbaSize, _LbaCount>::Buffer[_LbaCount * _LbaSize];
+    /**
+     * @brief Class for SCSI LUN
+     * 
+     * @tparam _LunNumber Number
+     * @tparam _LbaSize Lba size
+     * @tparam _LbaCount Lba count
+     */
+    template<uint32_t _LbaSize, uint32_t _LbaCount>
+    class ScsiLunWithConstSize : public ScsiLunBase
+    {
+    public:
+        /**
+         * @brief Returns LBA size
+         * 
+         * @returns LBA size (in bytes)
+         */
+        static inline constexpr uint32_t GetLbaSize()
+        {
+            return _LbaSize;
+        }
 
-    template<uint8_t _LunNumber, uint32_t _LbaSize, uint32_t _LbaCount>
-    uint32_t ScsiLun<_LunNumber, _LbaSize, _LbaCount>::_rxAddress;
+        /**
+         * @brief Returns LBA count
+         * 
+         * @returns LBA count
+         */
+        static inline constexpr uint32_t GetLbaCount()
+        {
+            return _LbaCount;
+        }
 
-    template<uint8_t _LunNumber, uint32_t _LbaSize, uint32_t _LbaCount>
-    int32_t ScsiLun<_LunNumber, _LbaSize, _LbaCount>::_rxBytesRemain;
+        /**
+         * @brief Read (10) command handler
+         * 
+         * @tparam _InEp IN endpoint
+         * 
+         * @param startLba Start LBA
+         * @param lbaCount LBA count
+         * @param callback Transfer complete callback for call
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        template<typename _InEp>
+        static void Read10Handler(uint32_t startLba, uint32_t lbaCount, InTransferCallback callback);
+
+        /**
+         * @brief Write (10) command handler
+         * 
+         * @param startLba Start LBA
+         * @param lbaCount LBA count
+         * 
+         * @retval true Wait for next packet
+         * @retval false OUT transfer complete
+         */
+        static bool Write10Handler(uint32_t startLba, uint32_t lbaCount);
+
+        /**
+         * @brief LUN rx handler
+         * 
+         * @param data Data
+         * @param size Data size
+         * 
+         * @return true Waiting for next packet (transfer does not complete)
+         * @return false Transfer complete
+         */
+        static bool RxHandler(void* data, uint16_t size);
+    };
+
+    /**
+     * @brief Default SCSI logical unit (static size + static )
+     * 
+     * @tparam _LunNumber Number
+     * @tparam _LbaSize Lba size
+     * @tparam _LbaCount Lba count
+     */
+    template<uint32_t _LbaSize, uint32_t _LbaCount>
+    class DefaultScsiLun : public ScsiLunWithConstSize<_LbaSize, _LbaCount>
+    {
+    public:
+        /**
+         * @brief Read (10) command handler
+         * 
+         * @tparam _InEp IN endpoint
+         * 
+         * @param startLba Start LBA
+         * @param lbaCount LBA count
+         * @param callback Transfer complete callback for call
+         * 
+         * @par Returns
+         *  Nothing
+         */
+        template<typename _InEp>
+        static void Read10Handler(uint32_t startLba, uint32_t lbaCount, InTransferCallback callback)
+        {
+            _InEp::SendData(&_buffer[startLba * _LbaSize], lbaCount * _LbaSize, callback);
+        }
+
+        /**
+         * @brief Write (10) command handler
+         * 
+         * @param startLba Start LBA
+         * @param lbaCount LBA count
+         * 
+         * @retval true Wait for next packet
+         * @retval false OUT transfer complete
+         */
+        static bool Write10Handler(uint32_t startLba, uint32_t lbaCount)
+        {
+            _rxAddress = startLba * _LbaSize;
+            _rxBytesRemain = lbaCount * _LbaSize;
+            
+            return lbaCount > 0;
+        }
+
+        /**
+         * @brief LUN rx handler
+         * 
+         * @param data Data
+         * @param size Data size
+         * 
+         * @return true Waiting for next packet (transfer does not complete)
+         * @return false Transfer complete
+         */
+        static bool RxHandler(void* data, uint16_t size)
+        {
+            CopyFromUsbPma(&_buffer[_rxAddress], data, size);
+
+            _rxAddress += size;
+            _rxBytesRemain -= size;
+
+            return _rxBytesRemain > 0;
+        }
+    private:
+        static uint32_t _rxAddress;
+        static int32_t _rxBytesRemain;
+        static uint8_t _buffer[_LbaCount * _LbaSize];
+    };
+
+    template<uint32_t _LbaSize, uint32_t _LbaCount>
+    uint32_t DefaultScsiLun<_LbaSize, _LbaCount>::_rxAddress;
+    template<uint32_t _LbaSize, uint32_t _LbaCount>
+    int32_t DefaultScsiLun<_LbaSize, _LbaCount>::_rxBytesRemain;
+    template<uint32_t _LbaSize, uint32_t _LbaCount>
+    uint8_t DefaultScsiLun<_LbaSize, _LbaCount>::_buffer[_LbaCount * _LbaSize];;
 
 
     /**
@@ -308,7 +435,7 @@ namespace Zhele::Usb
         using Base = Interface<_Number, _AlternateSetting, InterfaceClass::Storage, static_cast<uint8_t>(MscSubclass::Scsi), static_cast<uint8_t>(MscProtocol::Bbb), _Ep0, _OutEp, _InEp>;
 
         static constexpr std::add_pointer_t<bool(void* buffer, uint16_t size)> _lunRxHandlers[] = {_Luns::RxHandler...};
-        static constexpr std::add_pointer_t<bool(const BulkOnlyCBW& cbw, BulkOnlyCSW& csw, InTransferCallback callback)> _lunCommandHandlers[] = {(_Luns::template CommandHandler<_InEp>)...};
+        static constexpr std::add_pointer_t<bool(const BulkOnlyCBW& cbw, BulkOnlyCSW& csw, InTransferCallback callback)> _lunCommandHandlers[] = {(ScsiLun<_Luns>::template CommandHandler<_InEp>)...};
     public:
         using Endpoints = Base::Endpoints;
 
