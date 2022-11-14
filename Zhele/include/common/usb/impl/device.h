@@ -260,7 +260,7 @@ namespace Zhele::Usb
     {
         if (_Ep0::GetOutInterrupts() & USB_OTG_DOEPINT_STUP) {
             HandleSetupRequest(reinterpret_cast<SetupPacket*>(_Ep0::RxBuffer));
-#if defined(USB_OTG_FS)
+#if defined(USB_OTG)
         _Ep0::SetRxStatus(EndpointStatus::Valid);
 #endif
         }

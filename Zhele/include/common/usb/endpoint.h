@@ -1117,7 +1117,7 @@ namespace Zhele::Usb
         using Base = Endpoint<_Base>;
         static const bool SendZlp = !(requires {_Base::DisableZlp;}); 
         
-        static const uint32_t DiepEmpMskAddress = USB_OTG_FS_PERIPH_BASE + USB_OTG_DEVICE_BASE + offsetof(USB_OTG_DeviceTypeDef, DIEPEMPMSK);
+        static const uint32_t DiepEmpMskAddress = USB_OTG + USB_OTG_DEVICE_BASE + offsetof(USB_OTG_DeviceTypeDef, DIEPEMPMSK);
         using TxFifoEmptyInterruptMask = IoBit<DiepEmpMskAddress, uint32_t, Base::Number>;
     public:
 
