@@ -13,6 +13,7 @@
 #include "../template_utils/static_array.h"
 #include "../template_utils/type_list.h"
 
+#include "common.h"
 #include "endpoint.h"
 
 #include <type_traits>
@@ -205,7 +206,7 @@ namespace Zhele::Usb
         std::true_type,
         std::false_type>
     {};
-#elif defined (USB_OTG_FS)
+#elif defined (USB_OTG)
     /**
      * @brief Comparator for endpoints sort (compare Number numbers only, because its different registers for IN/OUT endpoints) for OTG
      * 
@@ -483,9 +484,9 @@ namespace Zhele::Usb
         Sample_t<IsOutEndpoint, SortedUniqueEndpoints<Endpoints>>
     >;
 
-#elif defined (USB_OTG_FS)
-    #define USB_INEP(i)  (USB_OTG_FS_PERIPH_BASE + USB_OTG_IN_ENDPOINT_BASE + (i) * USB_OTG_EP_REG_SIZE)
-    #define USB_OUTEP(i) (USB_OTG_FS_PERIPH_BASE + USB_OTG_OUT_ENDPOINT_BASE + (i) * USB_OTG_EP_REG_SIZE)
+#elif defined (USB_OTG)
+    #define USB_INEP(i)  (USB_OTG + USB_OTG_IN_ENDPOINT_BASE + (i) * USB_OTG_EP_REG_SIZE)
+    #define USB_OUTEP(i) (USB_OTG + USB_OTG_OUT_ENDPOINT_BASE + (i) * USB_OTG_EP_REG_SIZE)
 
     IO_STRUCT_WRAPPER(USB_INEP(0), InEp0Reg, USB_OTG_INEndpointTypeDef);
     IO_STRUCT_WRAPPER(USB_INEP(1), InEp1Reg, USB_OTG_INEndpointTypeDef);
@@ -511,7 +512,7 @@ namespace Zhele::Usb
     template<typename... AllEndpoints, typename... InEndpoints, typename... OutEndpoints>
     class EndpointsManagerBase<TypeList<AllEndpoints...>, TypeList<InEndpoints...>, TypeList<OutEndpoints...>>
     {
-        IO_STRUCT_WRAPPER(USB_OTG_FS, OtgFsGlobal, USB_OTG_GlobalTypeDef);
+        IO_STRUCT_WRAPPER(USB_OTG, OtgFsGlobal, USB_OTG_GlobalTypeDef);
 
         /// Buffer offset for endpoint
         template<typename Endpoint>
@@ -539,7 +540,7 @@ namespace Zhele::Usb
             ? 11 + 2 * ((3 + MaximumOfOutEnpointsMaxPacketSize) / 4)
             : 16;
 
-        static const uint32_t FifoBaseAddress = USB_OTG_FS_PERIPH_BASE + USB_OTG_FIFO_BASE;
+        static const uint32_t FifoBaseAddress = USB_OTG + USB_OTG_FIFO_BASE;
         static const uint32_t EpFifoSize = USB_OTG_FIFO_SIZE;
 
         using InEndpointsList = TypeList<InEndpoints...>;
@@ -681,7 +682,7 @@ namespace Zhele::Usb
             _handlers[_handlersIndexes[2 * number + (direction == EndpointDirection::Out ? 1 : 0)]]();
         }
     };
-#if defined (USB_OTG_FS)
+#if defined (USB_OTG)
     /**
      * @brief Implements endpoint`s handlers management.
      * 
@@ -741,7 +742,7 @@ namespace Zhele::Usb
     using EndpointHandlers = EndpointHandlersBase<SortedUniqueEndpoints<Endpoints>,
         typename EndpointHandlersIndexes<MaxEndpointNumber<Endpoints> * 2 + 1, SortedUniqueEndpoints<Endpoints>>::type>;
 
-#if defined (USB_OTG_FS)
+#if defined (USB_OTG)
     /**
      * @brief Endpoint`s RXFLVLM handlers.
      */

@@ -21,7 +21,6 @@ namespace Zhele::Usb
     /**
      * @brief Interface descriptor
      */
-#pragma pack(push, 1)
     struct InterfaceDescriptor
     {
         uint8_t Length = 9; ///< Length (always 9)
@@ -33,8 +32,7 @@ namespace Zhele::Usb
         uint8_t SubClass = 0; ///< Interface subclass
         uint8_t Protocol = 0; ///< Interface protocol
         uint8_t StringIndex = 0; ///< Interface string ID
-    };
-#pragma pack(pop)
+    } __packed;
 
     /**
      * @brief Implements interface

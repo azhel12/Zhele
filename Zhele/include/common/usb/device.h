@@ -26,7 +26,6 @@ namespace Zhele::Usb
     /**
      * @brief Device descriptor.
      */
-#pragma pack(push, 1)
     struct DeviceDescriptor
     {
         uint8_t Length = 18; ///< Length (always 18)
@@ -43,20 +42,17 @@ namespace Zhele::Usb
         uint8_t ProductStringIndex = 0; ///< Product string ID
         uint8_t SerialNumberStringIndex = 0; ///< Serial number string ID
         uint8_t ConfigurationsCount; ///< Configurations count
-    };
-#pragma pack(pop)
+    } __packed;
     
-        /**
+    /**
      * @brief String descriptor
      */
-#pragma pack(push, 1)    
     struct LangIdDescriptor
     {
         uint8_t Length = sizeof(LangIdDescriptor);
         uint8_t DescriptorType = static_cast<uint8_t>(DescriptorType::String);
         uint16_t USLang = 0x0409;
-    };
-#pragma pack(pop)
+    } __packed;
 
     /**
      * @brief Implements USB device.
@@ -76,7 +72,7 @@ namespace Zhele::Usb
      */
     template<
         typename _Regs,
-#if defined (USB_OTG_FS)
+#if defined (USB_OTG)
         typename _DeviceRegs,
 #endif
         IRQn_Type _IRQNumber,
@@ -98,7 +94,7 @@ namespace Zhele::Usb
     public:
 #if defined (USB)
         using This = DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
-#elif defined (USB_OTG_FS)
+#elif defined (USB_OTG)
         using This = DeviceBase<_Regs, _DeviceRegs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
 #endif
         using Configurations = TypeList<_Configurations...>;
@@ -108,7 +104,7 @@ namespace Zhele::Usb
         using EpBufferManager = EndpointsManager<Append_t<_Ep0, Endpoints>>;
         // Replace Ep0 with this for correct handler register.
         using EpHandlers = EndpointHandlers<Append_t<This, Endpoints>>;
-#if defined (USB_OTG_FS)
+#if defined (USB_OTG)
         using EpFifoNotEmptyHandlers = EndpointFifoNotEmptyHandlers<Append_t<This, Endpoints>>;
 #endif
         using IfHandlers = InterfaceHandlers<Interfaces>;
@@ -199,7 +195,7 @@ namespace Zhele::Usb
          *  Nothing
          */
         static void SetAddress(uint16_t address);
-
+#if defined (USB_OTG)
         /**
          * @brief Calculate DAINTMSK value for OTG
          * 
@@ -221,6 +217,7 @@ namespace Zhele::Usb
                 )
             );
         };
+#endif
     };
 }
 

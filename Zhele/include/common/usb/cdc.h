@@ -28,7 +28,6 @@ namespace Zhele::Usb
         SetControlLineState = 0x22, ///< Set control line state
     };
 
-#pragma pack(push, 1)
     /**
      * @brief Line coding
      */
@@ -38,8 +37,7 @@ namespace Zhele::Usb
         uint8_t CharFormat; ///< Char format
         uint8_t ParityType; ///< Parity 
         uint8_t DataBits; ///< Data bits
-    };
-#pragma pack(pop)
+    } __packed;
 
     /**
      * @brief Implements CDC communication interface

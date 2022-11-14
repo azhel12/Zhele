@@ -25,7 +25,6 @@ namespace Zhele::Usb
         uint8_t Reserved2 : 1; ///< Reserved
     };
 
-#pragma pack(push, 1)
     /**
      * @brief Configuration descriptor
      */
@@ -39,8 +38,7 @@ namespace Zhele::Usb
         uint8_t StringIndex = 0; ///< Configuration string index
         ConfigurationAttributes Attributes; ///< Configuration attributes
         uint8_t MaxPower; ///< Max power (in 2mA units)
-    };
-#pragma pack(pop)
+    } __packed;
 
     /**
      * @brief Implements configuration

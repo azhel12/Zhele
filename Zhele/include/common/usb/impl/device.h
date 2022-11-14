@@ -30,7 +30,7 @@ namespace Zhele::Usb
         typename _Ep0, \
         typename... _Configurations>
     #define USB_DEVICE_TEMPLATE_QUALIFIER DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>
-#elif defined (USB_OTG_FS)
+#elif defined (USB_OTG)
     #define USB_DEVICE_TEMPLATE_ARGS template< \
         typename _Regs, \
         typename _DeviceRegs, \
@@ -128,7 +128,7 @@ namespace Zhele::Usb
             _Ep0::SetRxStatus(EndpointStatus::Valid);
         });
     }
-#elif defined (USB_OTG_FS)
+#elif defined (USB_OTG)
     USB_DEVICE_TEMPLATE_ARGS
     void USB_DEVICE_TEMPLATE_QUALIFIER::Enable()
     {
@@ -407,23 +407,23 @@ namespace Zhele::Usb
 
 #if defined (USB)
     IO_STRUCT_WRAPPER(USB, UsbRegs, USB_TypeDef);
-#elif defined (USB_OTG_FS)
-    IO_STRUCT_WRAPPER(USB_OTG_FS, UsbRegs, USB_OTG_GlobalTypeDef);
-    IO_STRUCT_WRAPPER(USB_OTG_FS_PERIPH_BASE + USB_OTG_DEVICE_BASE, UsbDeviceRegs, USB_OTG_DeviceTypeDef);
+#elif defined (USB_OTG)
+    IO_STRUCT_WRAPPER(USB_OTG, UsbRegs, USB_OTG_GlobalTypeDef);
+    IO_STRUCT_WRAPPER(USB_OTG + USB_OTG_DEVICE_BASE, UsbDeviceRegs, USB_OTG_DeviceTypeDef);
 #endif
 
 #if defined (USB_LP_IRQn)
     #define USB_IRQ USB_LP_IRQn
 #elif defined (USB)
     // #define USB_IRQ USB_IRQ
-#elif defined (USB_OTG_FS)
-    #define USB_IRQ OTG_FS_IRQn
+#elif defined (USB_OTG)
+    #define USB_IRQ USB_OTG_IRQ
 #endif
 
 #if defined (USB)
     using UsbClock = Zhele::Clock::UsbClock;
-#elif defined (USB_OTG_FS)
-    using UsbClock = Zhele::Clock::OtgFsClock;
+#elif defined (USB_OTG)
+    using UsbClock = USB_OTG_CLOCK
 #endif
     template<
         uint16_t _UsbVersion,
@@ -440,7 +440,7 @@ namespace Zhele::Usb
         typename... _Configurations>
 #if defined (USB)
     using DeviceWithStrings = DeviceBase<UsbRegs, USB_IRQ, UsbClock, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
-#elif defined (USB_OTG_FS)
+#elif defined (USB_OTG)
     using DeviceWithStrings = DeviceBase<UsbRegs, UsbDeviceRegs, USB_IRQ, UsbClock, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
 #endif
     template<
@@ -455,7 +455,7 @@ namespace Zhele::Usb
         typename... _Configurations>
 #if defined (USB)
     using Device = DeviceBase<UsbRegs, USB_IRQ, UsbClock, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, EmptyFixedString16, EmptyFixedString16, EmptyFixedString16, _Ep0, _Configurations...>;
-#elif defined (USB_OTG_FS)
+#elif defined (USB_OTG)
     using Device = DeviceBase<UsbRegs, UsbDeviceRegs, USB_IRQ, UsbClock, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, EmptyFixedString16, EmptyFixedString16, EmptyFixedString16, _Ep0, _Configurations...>;
 #endif
 #if defined (USB)

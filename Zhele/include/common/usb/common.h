@@ -24,6 +24,18 @@ namespace Zhele::Usb
     const unsigned PmaAlignMultiplier = 1;
 #endif
 
+#if defined (USB_OTG_FS) || defined (USB_OTG_HS)
+    #if defined (USB_OTG_HS) && !defined (USE_USB_OTG_FS_FORCE)
+        #define USB_OTG USB_OTG_HS_PERIPH_BASE
+        #define USB_OTG_IRQ OTG_HS_IRQn
+        #define USB_OTG_CLOCK Zhele::Clock::OtgHsClock;
+    #else 
+        #define USB_OTG USB_OTG_FS_PERIPH_BASE
+        #define USB_OTG_IRQ OTG_FS_IRQn
+        #define USB_OTG_CLOCK Zhele::Clock::OtgFsClock;
+    #endif
+#endif
+
     inline void CopyFromUsbPma(void* destination, const void* source, unsigned size)
     {
         if constexpr(PmaAlignMultiplier != 1) {
@@ -124,31 +136,26 @@ namespace Zhele::Usb
     /**
      * @brief String descriptor
      */
-#pragma pack(push, 1)    
     struct StringDescriptor
     {
         uint8_t Length = 0;
         uint8_t DescriptorType = static_cast<uint8_t>(DescriptorType::String);
         uint8_t String[];
-    };
-#pragma pack(pop)
+    } __packed;
 
     /**
      * @brief Setup packet request type
      */
-#pragma pack(push, 1)
     struct SetupRequestType
     {
         uint8_t Recipient : 5; ///< Recipient (0 - device, 1 - interface, 2 - endpoint, 3 - other, 4..31 - reserved)
         uint8_t Type : 2; ///< Type (0 - standart, 1 - class, 2 - vendor, 3 - reserved)
         uint8_t Dir : 1; ///< Direction (0 - out, 1 - in)
-    };
-#pragma pack(pop)
+    } __packed;
 
     /**
      * @brief Setup packet.
      */
-#pragma pack(push, 1)
 #if PMA_ALIGN_MULTIPLIER == 2
     struct SetupPacket
     {
@@ -160,7 +167,7 @@ namespace Zhele::Usb
         uint16_t Index; ///< Index
         uint16_t Dummy3; ///< Alignmentn
         uint16_t Length; ///< Length
-    };
+    } __packed;
 #else
     struct SetupPacket
     {
@@ -169,8 +176,7 @@ namespace Zhele::Usb
         uint16_t Value; ///< Value
         uint16_t Index; ///< Index
         uint16_t Length; ///< Length
-    };
+    } __packed;
 #endif
-#pragma pack(pop)
 }
 #endif // ZHELE_USB_COMMON_H

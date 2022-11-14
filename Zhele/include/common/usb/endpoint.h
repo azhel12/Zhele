@@ -851,7 +851,7 @@ namespace Zhele::Usb
         OutBulkDoubleBufferedEndpoint<_Base, _Reg, _Buffer0Address, _Count0RegAddress, _Buffer1Address, _Count1RegAddress>,
         InBulkDoubleBufferedEndpoint<_Base, _Reg, _Buffer0Address, _Count0RegAddress, _Buffer1Address, _Count1RegAddress>
         >;
-#elif defined (USB_OTG_FS)
+#elif defined (USB_OTG)
     /**
      * @brief Implements endpoint
      * 
