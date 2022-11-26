@@ -153,6 +153,12 @@ namespace Zhele::Timers
 #if defined (TIM4)
         IO_STRUCT_WRAPPER(TIM4, Tim4Regs, TIM_TypeDef);
 #endif
+#if defined (TIM6)
+        IO_STRUCT_WRAPPER(TIM6, Tim6Regs, TIM_TypeDef);
+#endif
+#if defined (TIM7)        
+        IO_STRUCT_WRAPPER(TIM7, Tim7Regs, TIM_TypeDef);
+#endif
     }
 
     using Timer1 = Private::AdvancedTimer<Private::Tim1Regs, Clock::Tim1Clock, TIM1_UP_IRQn, Private::Tim1ChPins>;
@@ -160,6 +166,12 @@ namespace Zhele::Timers
     using Timer3 = Private::GPTimer<Private::Tim3Regs, Clock::Tim3Clock, TIM3_IRQn, Private::Tim3ChPins>;
 #if defined (TIM4)
     using Timer4 = Private::GPTimer<Private::Tim4Regs, Clock::Tim4Clock, TIM4_IRQn, Private::Tim4ChPins>;
+#endif
+#if defined (TIM6)
+    using Timer6 = Private::BaseTimer<Private::Tim6Regs, Clock::Tim6Clock, TIM6_IRQn>;
+#endif
+#if defined (TIM7)
+    using Timer7 = Private::BaseTimer<Private::Tim7Regs, Clock::Tim7Clock, TIM7_IRQn>;
 #endif
 }
 
