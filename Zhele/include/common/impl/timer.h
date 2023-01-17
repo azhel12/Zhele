@@ -212,7 +212,7 @@ namespace Zhele::Timers::Private
     template<unsigned _ChannelNumber>
     void GPTIMER_TEMPLATE_QUALIFIER::ChannelBase<_ChannelNumber>::ClearInterruptFlag()
     {
-        _Regs()->SR &= ~(TIM_SR_CC1IF << _ChannelNumber);
+        _Regs()->SR = ~(TIM_SR_CC1IF << _ChannelNumber);
     }
 
     GPTIMER_TEMPLATE_ARGS

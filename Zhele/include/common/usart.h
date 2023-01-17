@@ -81,12 +81,6 @@ namespace Zhele
                 #endif
             } CR3;
 
-            UsartMode(_CR1 cr1) : CR1(cr1){}
-            UsartMode(_CR2 cr2) : CR2(cr2){}
-            UsartMode(_CR3 cr3) : CR3(cr3){}
-
-            UsartMode(_CR1 cr1, _CR2 cr2, _CR3 cr3) : CR1(cr1), CR2(cr2), CR3(cr3) {}
-
             UsartMode operator | (UsartMode::_CR1 flag)
             {
                 return UsartMode{static_cast<UsartMode::_CR1>(CR1 | flag), CR2, CR3};
