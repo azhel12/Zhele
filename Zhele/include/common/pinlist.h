@@ -25,27 +25,10 @@ namespace Zhele
         namespace Private
         {
             /**
-             * @brief Predicate for get pins of given port
-             * @details
-             * Template utils allows to make type list from other
-             * by some predicate. This predicate is used for get all pins from
-             * pin list with one port.
-             */
-            template<typename _ExpectedPort>
-            class IsSamePort
-            {
-            public:
-                template<typename _Pin>
-                class type : public std::is_same<_ExpectedPort, typename _Pin::Port>
-                {
-                };
-            };
-
-            /**
              * @brief Pins from pin list for given port
              */
             template<typename _Port, typename _PinList>
-            using PinsForPort = typename Sample<IsSamePort<_Port>::template type, _PinList>::type;
+            using PinsForPort = decltype(_PinList::filter([](auto pin) { return std::is_same_v<typename TypeUnbox<pin>::Port, _Port>; }));
 
             /**
              * @brief Mask for port pins
@@ -278,7 +261,7 @@ namespace Zhele
         {
             using Config = PinListProperties<_Pins...>;
             // Used ports (unique list)
-            using UsedPorts = typename Unique<TypeList<typename _Pins::Port...>>::type;
+            using UsedPorts = decltype(TypeList<typename _Pins::Port...>::remove_duplicates());
             // Auxiliary class for operate on used ports
             using PortWriter = Private::PortsWriter<TypeList<_Pins...>, UsedPorts>;
         public :
@@ -286,7 +269,7 @@ namespace Zhele
             // Data type fort pin list
             using DataType = typename SuitableUnsignedType<sizeof...(_Pins)>::type;
             const static unsigned int Length = sizeof...(_Pins);
-            
+
             /**
              * @brief Enables all used ports
              * 
@@ -536,7 +519,7 @@ namespace Zhele
              * @tparam Pin Pin
              */
             template<typename Pin>
-            const static int IndexOf = TypeIndex<Pin, PinsAsTypeList>::value;
+            const static int IndexOf = PinsAsTypeList::template search<Pin>();
             
             /**
              * @brief Returns pin by index
@@ -544,7 +527,7 @@ namespace Zhele
              * @tparam Index Index
              */
             template<int Index>
-            using Pin = typename GetType<Index, PinsAsTypeList>::type;
+            using Pin = TypeUnbox<PinsAsTypeList::template get<Index>()>;
         };
     }
 }

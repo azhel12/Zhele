@@ -28,7 +28,7 @@ namespace Zhele::TemplateUtils
     {
         using unsignedTypes = TypeList<uint_fast8_t, uint_fast16_t, uint_fast32_t, uint_fast16_t>;
     public:
-        using type = typename GetType<(Length - 1) / 8, unsignedTypes>::type;
+        using type = TypeUnbox<unsignedTypes::head()>;
     };
 
     /**

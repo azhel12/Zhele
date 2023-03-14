@@ -18,14 +18,14 @@ namespace Zhele::IO
         template<typename _PinList, typename _DataType>
         NativePortBase::DataType PinListExpander<TypeList<_PortPins...>>::ExpandPinlistValue(_DataType value)
         {
-            return (((value & (1 << TypeIndex<_PortPins, _PinList>::value)) > 0 ? 1 << _PortPins::Number : 0) | ...);
+            return (((value & (1 << _PinList::template search<_PortPins>())) > 0 ? 1 << _PortPins::Number : 0) | ...);
         }
 
         template<typename... _PortPins>
         template<typename _PinList, typename _DataType>
         _DataType PinListExpander<TypeList<_PortPins...>>::ExtractPinlistValueFromPort(NativePortBase::DataType value)
         {
-            return (((value & (1 << _PortPins::Number)) > 0 ? (1 << TypeIndex<_PortPins, _PinList>::value) : 0) | ...);
+            return (((value & (1 << _PortPins::Number)) > 0 ? (1 << _PinList::template search<_PortPins>()) : 0) | ...);
         }
 
         template<typename _Port, typename _PinList, typename _DataType>
@@ -44,7 +44,7 @@ namespace Zhele::IO
         template<typename _Port, typename _DataType>
         void PortsWriter<_PinList, TypeList<_Ports...>>::WriteToOnePort(_DataType value)
         {
-            if constexpr (Length<PinsForPort<_Port, _PinList>>::value == 16)
+            if constexpr (PinsForPort<_Port, _PinList>::size() == 16)
             {
                 _Port::Send(Private::GetPinlistValueForPort<_Port, _PinList>(value));
             }
