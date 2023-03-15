@@ -132,7 +132,17 @@ namespace Zhele::TemplateUtils
          * @returns Type index or -1 if type does not present in typelist
         */
         template<typename T>
-        static consteval int search();
+        static consteval int search()
+        {
+            if constexpr (is_empty())
+                return -1;
+            else if constexpr (std::is_same_v<TypeUnbox<head()>, T>)
+                return 0;
+            else
+                return tail().template search<T>() == -1
+                    ? -1
+                    : tail().template search<T>() + 1;
+        }
 
         /**
          * @brief Method \ref search with boxed parameter
@@ -218,8 +228,14 @@ namespace Zhele::TemplateUtils
         
         static consteval auto remove_duplicates()
         {
-            //return std::conditional_t<tail().contains(head()), TypeList<>, TypeList<TypeUnbox<head()>>>{} + tail().remove_duplicates();
-            return TypeList<Ts...>{};
+            if constexpr (is_empty())
+                return TypeList<>{};
+            else if constexpr (size() == 1)
+                return TypeList<Ts...>{};
+            else if constexpr (tail().contains(head()))
+                return TypeList<>{} + tail().remove_duplicates();
+            else
+                return TypeList<TypeUnbox<head()>>{} + tail().remove_duplicates();
         }
 
         /**
@@ -327,25 +343,6 @@ namespace Zhele::TemplateUtils
             return !(func(TypeBox<T>{}, TypeBox<Us>{}) || ...) && is_unique_<Us...>(func);
         }
     };
-
-    template<typename... Ts>
-    template<typename T>
-    consteval int TypeList<Ts...>::search()
-    {        
-        return std::is_same_v<TypeUnbox<head()>, T>
-            ? 0
-            : (tail().template search<T>() == -1
-                ? -1
-                : tail().template search<T>() + 1
-            );
-    }
-
-    template<>
-    template<typename T>
-    consteval int TypeList<>::search()
-    {        
-        return -1;
-    }
 
     template<typename... Ts, typename... Us>
     consteval bool operator == (TypeList<Ts...>, TypeList<Us...>) { return false; }
