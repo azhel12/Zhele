@@ -22,6 +22,11 @@ namespace Zhele::TemplateUtils
     template<typename T>
     using TypeBox = std::type_identity<T>;
 
+    template<typename T>
+    bool operator == (TypeBox<T>, TypeBox<T>) { return true; }
+    template<typename T, typename U>
+    bool operator == (TypeBox<T>, TypeBox<U>) { return false; }
+
     /**
      * @brief Type unbox
      * 
@@ -89,7 +94,7 @@ namespace Zhele::TemplateUtils
         */
         static consteval auto head()
         {
-            return []<typename T, typename... Us>(TypeList<T, Us...>){
+            return [] <typename T, typename... Us> (TypeList<T, Us...>) {
                 return TypeBox<T>{};
             } (TypeList<Ts...>{});
         }
@@ -154,7 +159,9 @@ namespace Zhele::TemplateUtils
         }
 
         /**
-         * ??
+         * @brief Returns last type in typelist
+         * 
+         * @returns Boxed last type
         */
         static consteval auto back() { return (TypeBox<Ts>{}, ...); }
 
@@ -225,7 +232,12 @@ namespace Zhele::TemplateUtils
         {
             return is_unique([](auto v1, auto v2) { return std::is_same_v<TypeUnbox<v1>, TypeUnbox<v2>>; });
         }
-        
+
+        /**
+         * @brief Returns typelist without duplicates
+         * 
+         * @returns Typelist without duplicates
+        */
         static consteval auto remove_duplicates()
         {
             if constexpr (is_empty())
@@ -236,6 +248,16 @@ namespace Zhele::TemplateUtils
                 return TypeList<>{} + tail().remove_duplicates();
             else
                 return TypeList<TypeUnbox<head()>>{} + tail().remove_duplicates();
+        }
+
+        /**
+         * @brief Sort typelist by given predicate
+         * 
+         * @returns Sorted typelist
+        */
+        static consteval auto sort(auto pred)
+        {
+            return insertion_sort<0, 1>(pred);
         }
 
         /**
@@ -258,20 +280,9 @@ namespace Zhele::TemplateUtils
          * @par Returns
          *  Nothing
         */
-        static inline void foreach(auto func)
+        static constexpr void foreach(auto func)
         {
             (func(TypeBox<Ts> {}), ...);
-        }
-
-        /**
-         * ??
-        */
-        template<auto I, typename T>
-        static consteval auto generate()
-        {
-            return []<auto... Is>(std::index_sequence<Is...>) {
-                return TypeList <TypeUnbox<(Is, TypeBox<T>{})>...> {};
-            } (std::make_index_sequence<I>());
         }
 
         /**
@@ -303,7 +314,7 @@ namespace Zhele::TemplateUtils
         */
         template<typename T>
         static consteval auto filter(TypeBox<T> box, auto pred) { return filter<T>(pred); }
-        
+
         /**
          * @brief Filter types by given unary predicate
          * 
@@ -316,6 +327,8 @@ namespace Zhele::TemplateUtils
             return (TypeList<>{} + ... + std::conditional_t<pred(TypeBox<Ts>{}), TypeList<Ts>, TypeList<>>{});
         }
 
+        template<typename... Us>
+        friend class TypeList;
     private:
         /**
          * @brief Dummy is_unique_ for empty list
@@ -342,6 +355,28 @@ namespace Zhele::TemplateUtils
         {
             return !(func(TypeBox<T>{}, TypeBox<Us>{}) || ...) && is_unique_<Us...>(func);
         }
+
+        template<auto i, auto j>
+        static consteval auto insertion_sort(auto pred)
+        {
+            if constexpr (i == size()) {
+                return TypeList<Ts...>{};
+            } else if constexpr (j == size()) {
+                return insertion_sort<i + 1, i + 2>(pred);
+            } else if constexpr (pred(get<i>(), get<j>())) {
+                return swap<i, j>().template insertion_sort<i, j + 1>(pred);
+            } else {
+                return insertion_sort<i, j + 1>(pred);
+            }
+        }
+
+        template<auto i, auto j>
+        static consteval auto swap()
+        {
+            return []<typename... Us, unsigned... Indexes>(TypeList<Ts...>, std::index_sequence<Indexes...>){
+                return TypeList<TypeUnbox<get<Indexes != i && Indexes != j ? Indexes : Indexes == i ? j : i>()> ...>{};
+            }(TypeList<Ts...>{}, std::make_index_sequence<size()>());
+        }
     };
 
     template<typename... Ts, typename... Us>
@@ -358,6 +393,12 @@ namespace Zhele::TemplateUtils
 
     template<typename... Ts, typename... Us>
     consteval auto operator + (TypeList<Ts...>, TypeList<Us...>) { return TypeList<Ts..., Us...> {}; }
+
+    template<typename... Ts, typename... Us>
+    consteval auto operator - (TypeList<Ts...> first, TypeList<Us...> second)
+    {
+        return first.filter([second](auto type) { return !second.contains(type); });
+    }
 }
 
 #endif //! ZHELE_TYPELIST_H

@@ -15,522 +15,284 @@
 #include "template_utils/data_type_selector.h"
 
 #include <type_traits>
-
+#include <numeric>
 using namespace Zhele::TemplateUtils;
 
-namespace Zhele
+namespace Zhele::IO
 {
-    namespace IO
+    /**
+     * @brief Implements pin set and methods for manipulation with it.
+     * 
+     * @details
+     * Pins from list are grouped by their port and group read/write operation is
+     * performed on each port.
+     */
+    template<typename... _Pins>
+    class PinList : public IO::NativePortBase
     {
-        namespace Private
-        {
-            /**
-             * @brief Pins from pin list for given port
-             */
-            template<typename _Port, typename _PinList>
-            using PinsForPort = decltype(_PinList::filter([](auto pin) { return std::is_same_v<typename TypeUnbox<pin>::Port, _Port>; }));
+        static constexpr auto _pins = TypeList<_Pins...>{};
+        static constexpr auto _ports = TypeList<typename _Pins::Port ...>::remove_duplicates();
 
-            /**
-             * @brief Mask for port pins
-             */
-            template<typename...>
-            class PortMask {};
+        // static checks
+        static_assert(!_pins.is_empty(), "Pinlist cannot be empty");
+        static_assert(_ports.is_unique(), "Fail to remove port duplicates!");
 
-            template<typename... _Pins>
-            class PortMask<TypeList<_Pins...>>
-            {
-            public:
-                static const unsigned int value = ((1 << _Pins::Number) | ...);
-            };
-
-            /**
-             * @brief Class for convert values from value for pinlist to values for each port
-             */
-            template<typename...>
-            class PinListExpander {};
-            template<typename... _PortPins>
-            class PinListExpander<TypeList<_PortPins...>>
-            {
-            public:
-                /**
-                 * @brief Expand pinlist value to one port's value (ODR)
-                 * 
-                 * @tparam _PinList Pinlist
-                 * @tparam _DataType Data type
-                 * 
-                 * @param value Pinlist value
-                 * 
-                 * @return NativePortBase::DataType value for specific port
-                 */
-                template<typename _PinList, typename _DataType>
-                static NativePortBase::DataType ExpandPinlistValue(_DataType value);
-
-                /**
-                 * @brief Extact pinlist value part from one port's value (IDR)
-                 * 
-                 * @tparam _PinList Pinlist
-                 * @tparam _DataType Data type
-                 * 
-                 * @param value Port value
-                 * 
-                 * @return _DataType Pinlist part value (for next OR operation)
-                 */
-                template<typename _PinList, typename _DataType>
-                static _DataType ExtractPinlistValueFromPort(NativePortBase::DataType value);
-            };
-
-            /**
-             * @brief Get target port`s part of pinlist value
-             */
-            template<typename _Port, typename _PinList, typename _DataType>
-            typename _Port::DataType GetPinlistValueForPort(_DataType value);
-
-            /**
-             * @brief Get pinlist's part from port value
-             */
-            template<typename _Port, typename _PinList, typename _DataType>
-            _DataType GetPinlistValuePartFromPort();
-
-            /**
-             * @brief Writer to ports
-             * @details
-             * In pinlist class fold Pins::Port gives ports with duplicates, but
-             * it is needlessly to make actions with one port more than one times;
-             * So, this class has a partial specialization for TypeList<UsedPorts...>
-             * It is allows to makes actions with Unique<Pins::UsedPorts...>
-             * 
-             */
-            template<typename...>
-            class PortsWriter {};
-
-            template<typename _PinList, typename... _Ports>
-            class PortsWriter<_PinList, TypeList<_Ports...>>
-            {
-
-                /**
-                 * @brief Writes value to port
-                 * 
-                 * @tparam [in] _Port Port
-                 * @tparam [in] _DataType Pinlist data type
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                template<typename _Port, typename _DataType>
-                static void WriteToOnePort(_DataType value);
-                
-            public:
-                /**
-                 * @brief Enable all ports
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                static void Enable();
-                
-
-                /**
-                 * @brief Write value to pinlist
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                template<typename _DataType>
-                static void Write(_DataType value);
-                
-
-                /**
-                 * @brief Read value from pinlist
-                 * 
-                 * @todo Implement this method!
-                 * 
-                 * @returns Pinlist input value
-                 */
-                template<typename _DataType>
-                static _DataType Read();
-                
-
-                /**
-                 * @brief Set value with mask
-                 * 
-                 * @param [in] value Set mask
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                template<typename _DataType>
-                static void Set(_DataType value);
-                
-
-                /**
-                 * @brief Clear pinlist with mask
-                 * 
-                 * @param [in] value Clear mask
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                template<typename _DataType>
-                static void Clear(_DataType value);
-                
-
-                /**
-                 * @brief Set configuration with mask
-                 * 
-                 * @param [in] mask Mask
-                 * @param [in] config Configuration
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                template<typename _DataType, typename Configuration>
-                static void SetConfiguration(_DataType mask, Configuration config);
-                
-
-                /**
-                 * @brief Set speed with mask
-                 * 
-                 * @param [in] mask Mask
-                 * @param [in] speed Speed
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                template<typename _DataType, typename Speed>
-                static void SetSpeed(_DataType mask, Speed speed);
-                
-
-                /**
-                 * @brief Set pull mode with mask
-                 * 
-                 * @param [in] mask Mask
-                 * @param [in] speed Speed
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                template<typename _DataType, typename PullMode>
-                static void SetPullMode(_DataType mask, PullMode mode);
-                
-
-                /**
-                 * @brief Set driver type with mask
-                 * 
-                 * @param [in] mask Mask
-                 * @param [in] speed Speed
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                template<typename _DataType, typename DriverType>
-                static void SetDriverType(_DataType mask, DriverType driver);
-            
-
-                /**
-                 * @brief Set alternative function number with mask
-                 * 
-                 * @param [in] mask Mask
-                 * @param [in] speed Speed
-                 * 
-                 * @par Returns
-                 * 	Nothing
-                 */
-                template<typename _DataType>
-                static void AltFuncNumber(_DataType mask, uint8_t number);
-                
-            };
-        }
+    public:
         /**
-         * @brief Class represent properties for pin list
-         */
-        template<typename... _Pins>
-        class PinListProperties
-        {	
-            static const unsigned Length = sizeof...(_Pins);
-        };
-
-        /**
-         * @brief Implements pin set and methods for manipulation with it.
+         * @brief Enables all used ports
          * 
-         * @details
-         * Pins from list are grouped by their port and group read/write operation is
-         * performed on each port.
+         * @par Returns
+         *	Nothing
+            */
+        static void Enable();
+
+        /**
+         * @brief Write value to pinlist
+         * 
+         * @param [in] value Value
+         * 
+         * @par Returns
+         *	Nothing
+            */
+        static void Write(DataType value);
+
+        /**
+         * @brief Template version of Write method
+         * 
+         * @tparam value Value
+         * 
+         * @par Returns
+         * 	Nothing
          */
-        template<typename... _Pins>
-        class PinList : public PinListProperties<_Pins...>, public IO::NativePortBase
-        {
-            using Config = PinListProperties<_Pins...>;
-            // Used ports (unique list)
-            using UsedPorts = decltype(TypeList<typename _Pins::Port...>::remove_duplicates());
-            // Auxiliary class for operate on used ports
-            using PortWriter = Private::PortsWriter<TypeList<_Pins...>, UsedPorts>;
-        public :
-            using PinsAsTypeList = TypeList<_Pins...>;
-            // Data type fort pin list
-            using DataType = typename SuitableUnsignedType<sizeof...(_Pins)>::type;
-            const static unsigned int Length = sizeof...(_Pins);
+        template<DataType value>
+        static void Write();
 
-            /**
-             * @brief Enables all used ports
-             * 
-             * @par Returns
-             *	Nothing
-             */
-            static void Enable();
-            
-            /**
-             * @brief Write value to pinlist
-             * 
-             * @param [in] value Value
-             * 
-             * @par Returns
-             *	Nothing
-             */
-            static void Write(DataType value);
-            
+        /**
+         * @brief Read pinlist value
+         * 
+         * @todo Implement this method
+         * 
+         * @returns Pinlist input value
+         */
+        static DataType Read();
 
-            /**
-             * @brief Template version of Write method
-             * 
-             * @tparam value Value
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            template<DataType value>
-            static void Write();
-            
+        /**
+         * @brief Set pinlist with mask
+         * 
+         * @param [in] value Set mask
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        static void Set(DataType value);
 
-            /**
-             * @brief Read pinlist value
-             * 
-             * @todo Implement this method
-             * 
-             * @returns Pinlist input value
-             */
-            static DataType Read();
-            
+        /**
+         * @brief Clear pinlist with mask
+         * 
+         * @param [in] value Clear mask
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        static void Clear(DataType value);
 
+        /**
+         * @brief Set configuration with mask
+         * 
+         * @param [in] mask Mask
+         * @param [in] config Configuration
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        static void SetConfiguration(DataType mask, Configuration config);
 
-            /**
-             * @brief Set pinlist with mask
-             * 
-             * @param [in] value Set mask
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            static void Set(DataType value);
-            
+        /**
+         * @brief Set configuration with mask (template method)
+         * 
+         * @tparam [in] mask Mask
+         * @tparam [in] config Configuration
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        template<DataType mask, Configuration config>
+        static void SetConfiguration();
 
-            /**
-             * @brief Clear pinlist with mask
-             * 
-             * @param [in] value Clear mask
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            static void Clear(DataType value);
-            
+        /**
+         * @brief Set configuration
+         * 
+         * @tparam config Configuration
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        template<Configuration config>
+        static void SetConfiguration();
 
-            /**
-             * @brief Set configuration with mask
-             * 
-             * @param [in] mask Mask
-             * @param [in] config Configuration
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            static void SetConfiguration(DataType mask, Configuration config);
-            
+        /**
+         * @brief Set speed with mask
+         * 
+         * @param [in] mask Mask
+         * @param [in] speed Speed
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        static void SetSpeed(DataType mask, Speed speed);
 
-            /**
-             * @brief Set configuration with mask (template method)
-             * 
-             * @tparam [in] mask Mask
-             * @tparam [in] config Configuration
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            template<DataType mask, Configuration config>
-            static void SetConfiguration();
-            
+        /**
+         * @brief Set speed with mask (template method)
+         * 
+         * @tparam mask Mask
+         * @tparam speed Speed
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        template<DataType mask, Speed speed>
+        static void SetSpeed();
 
-            /**
-             * @brief Set configuration
-             * 
-             * @tparam config Configuration
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            template<Configuration config>
-            static void SetConfiguration();
-            
+        /**
+         * @brief Set speed
+         * 
+         * @tparam speed Speed
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        template<Speed speed>
+        static void SetSpeed();
 
-            /**
-             * @brief Set speed with mask
-             * 
-             * @param [in] mask Mask
-             * @param [in] speed Speed
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            static void SetSpeed(DataType mask, Speed speed);
-        
-            /**
-             * @brief Set speed with mask (template method)
-             * 
-             * @tparam mask Mask
-             * @tparam speed Speed
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            template<DataType mask, Speed speed>
-            static void SetSpeed();
-            
+        /**
+         * @brief Set pull mode with mask
+         * 
+         * @param [in] mask Mask
+         * @param [in] pull Pull mode
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        static void SetPullMode(DataType mask, PullMode pullMode);
 
-            /**
-             * @brief Set speed
-             * 
-             * @tparam speed Speed
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            template<Speed speed>
-            static void SetSpeed();
-            
+        /**
+         * @brief Set pull mode with mask (template method)
+         * 
+         * @tparam mask Mask
+         * @tparam pull Pull mode
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        template<DataType mask, PullMode pullMode>
+        static void SetPullMode();
 
-            /**
-             * @brief Set pull mode with mask
-             * 
-             * @param [in] mask Mask
-             * @param [in] pull Pull mode
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            static void SetPullMode(DataType mask, PullMode pull);
-            
-            /**
-             * @brief Set pull mode with mask (template method)
-             * 
-             * @tparam mask Mask
-             * @tparam pull Pull mode
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            template<DataType mask, PullMode pull>
-            static void SetPullMode();
-            
-            /**
-             * @brief Set pull mode
-             * 
-             * @tparam pull Pull mode
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            template<PullMode pull>
-            static void SetPullMode();
-            
+        /**
+         * @brief Set pull mode
+         * 
+         * @tparam pull Pull mode
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        template<PullMode pullMode>
+        static void SetPullMode();
 
-            /**
-             * @brief Set driver type with mask
-             * 
-             * @param [in] mask Mask
-             * @param [in] driver Driver type
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            static void SetDriverType(DataType mask, DriverType driver);
-            
-            /**
-             * @brief Set driver type with mask (template method)
-             * 
-             * @tparam mask Mask
-             * @tparam driver Driver type
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            template<DataType mask, DriverType driver>
-            static void SetDriverType();
-            
-            /**
-             * @brief Set driver type
-             * 
-             * @tparam driver Driver type
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            template<DriverType driver>
-            static void SetDriverType();
-            
+        /**
+         * @brief Set driver type with mask
+         * 
+         * @param [in] mask Mask
+         * @param [in] driver Driver type
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        static void SetDriverType(DataType mask, DriverType driverType);
 
+        /**
+         * @brief Set driver type with mask (template method)
+         * 
+         * @tparam mask Mask
+         * @tparam driver Driver type
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        template<DataType mask, DriverType driverType>
+        static void SetDriverType();
 
-            /**
-             * @brief Set alternate function number with mask
-             * 
-             * @param [in] mask Mask
-             * @param [in] number Alternate function number
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            static void AltFuncNumber(DataType mask, uint8_t number);
-            
-            /**
-             * @brief Set alternate function number with mask (template method)
-             * 
-             * @tparam mask Mask
-             * @tparam number Alternate function number
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            template<DataType mask, unsigned number>
-            static void AltFuncNumber();
-            
-            /**
-             * @brief Set alternate function number
-             * 
-             * @tparam number Alternate function number
-             * 
-             * @par Returns
-             * 	Nothing
-             */
-            template<unsigned number>
-            static void AltFuncNumber();
-            
+        /**
+         * @brief Set driver type
+         * 
+         * @tparam driver Driver type
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        template<DriverType driverType>
+        static void SetDriverType();
 
-            /**
-             * @brief Detect index of pin in pinlist
-             * 
-             * @tparam Pin Pin
-             */
-            template<typename Pin>
-            const static int IndexOf = PinsAsTypeList::template search<Pin>();
-            
-            /**
-             * @brief Returns pin by index
-             * 
-             * @tparam Index Index
-             */
-            template<int Index>
-            using Pin = TypeUnbox<PinsAsTypeList::template get<Index>()>;
-        };
-    }
-}
+        /**
+         * @brief Set alternate function number with mask
+         * 
+         * @param [in] mask Mask
+         * @param [in] number Alternate function number
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        static void AltFuncNumber(DataType mask, uint8_t number);
+
+        /**
+         * @brief Set alternate function number with mask (template method)
+         * 
+         * @tparam mask Mask
+         * @tparam number Alternate function number
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        template<DataType mask, unsigned number>
+        static void AltFuncNumber();
+
+        /**
+         * @brief Set alternate function number
+         * 
+         * @tparam number Alternate function number
+         * 
+         * @par Returns
+         * 	Nothing
+         */
+        template<unsigned number>
+        static void AltFuncNumber();
+
+        /**
+         * @brief Detect index of pin in pinlist
+         * 
+         * @tparam Pin Pin
+         */
+        template<typename Pin>
+        const static int IndexOf = _pins.template search<Pin>();
+
+        /**
+         * @brief Returns pin by index
+         * 
+         * @tparam Index Index
+         */
+        template<int Index>
+        using Pin = TypeUnbox<_pins.template get<Index>()>;
+
+    private:
+        static constexpr auto GetPinlistValueForPort(auto port, DataType value);
+
+        static consteval auto GetPinlistMaskForPort(auto port);
+
+        template<typename Port>
+        static consteval auto GetPinsForPort(TypeBox<Port> port);
+
+        static DataType ExtractPinlistValueFromPort(auto port);
+    };
+} // namespace Zhele::IO
 
 #include "impl/pinlist.h"
 
