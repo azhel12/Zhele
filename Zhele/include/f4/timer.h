@@ -30,9 +30,9 @@ namespace Zhele::Timers
             using Type = typename Pins::DataType;
             Type mask = 1 << pinNumber;
             Pins::Enable();
-            Pins::SetConfiguration(mask, Pins::AltFunc);
-            Pins::SetDriverType(mask, Pins::DriverType::PushPull);
-            Pins::AltFuncNumber(mask, GetNumberRuntime<PinAltFuncNumbers>::Get(pinNumber));
+            Pins::SetConfiguration(Pins::AltFunc, mask);
+            Pins::SetDriverType(Pins::DriverType::PushPull, mask);
+            Pins::AltFuncNumber(GetNumberRuntime<PinAltFuncNumbers>::Get(pinNumber), mask);
         }
 
         template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>

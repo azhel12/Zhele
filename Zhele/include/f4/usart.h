@@ -38,15 +38,15 @@ namespace Zhele
             using Type = typename _TxPins::DataType;
             _TxPins::Enable();
             Type maskTx(1 << txPinNumber);
-            _TxPins::SetConfiguration(maskTx, _TxPins::AltFunc);
-            _TxPins::AltFuncNumber(maskTx, GetAltFunctionNumber<_Regs>);
+            _TxPins::SetConfiguration(_TxPins::AltFunc, maskTx);
+            _TxPins::AltFuncNumber(GetAltFunctionNumber<_Regs>, maskTx);
 
             if(rxPinNumber != -1)
             {
                 _RxPins::Enable();
                 Type maskRx(1 << rxPinNumber);
-                _RxPins::SetConfiguration(maskRx, _RxPins::AltFunc);
-                _RxPins::AltFuncNumber(maskRx, GetAltFunctionNumber<_Regs>);
+                _RxPins::SetConfiguration(_RxPins::AltFunc, maskRx);
+                _RxPins::AltFuncNumber(GetAltFunctionNumber<_Regs>, maskRx);
             }
         }
 
@@ -66,9 +66,10 @@ namespace Zhele
             using TxPin = typename _TxPins::template Pin<TxPinNumber>;
             using RxPin = std::conditional_t<RxPinNumber != -1, typename _RxPins::template Pin<RxPinNumber>, typename IO::NullPin>;
 
-            using usedPorts = IO::PortList<typename TemplateUtils::Unique<TypeList<typename TxPin::Port, typename RxPin::Port>>::type>;
+            constexpr auto usedPorts = TypeList<typename TxPin::Port, typename RxPin::Port>::remove_duplicates();
 
-            usedPorts::Enable();
+            usedPorts.foreach([](auto port) { port.Enable();});
+
             TxPin::SetConfiguration(TxPin::Port::AltFunc);
             TxPin::AltFuncNumber(GetAltFunctionNumber<_Regs>);
 
@@ -92,9 +93,9 @@ namespace Zhele
         template<typename TxPin, typename RxPin>
         void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins, _DmaTx, _DmaRx>::SelectTxRxPins()
         {
-            const int8_t txPinIndex = TypeIndex<TxPin, typename _TxPins::PinsAsTypeList>::value;
+            const int8_t txPinIndex = _TxPins::template IndexOf<TxPin>;
             const int8_t rxPinIndex = !std::is_same_v<RxPin, IO::NullPin>
-                                ? TypeIndex<RxPin, typename _RxPins::PinsAsTypeList>::value
+                                ? _RxPins::template IndexOf<RxPin>
                                 : -1;
             static_assert(txPinIndex >= 0);
             static_assert(rxPinIndex >= -1);

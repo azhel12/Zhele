@@ -19,6 +19,8 @@ namespace Zhele::TemplateUtils
     template<auto... Numbers>
     class NonTypeTemplateArray;
 
+    template<typename...>
+    class Length{};
     template<auto... Numbers>
     class Length<NonTypeTemplateArray<Numbers...>>
     {

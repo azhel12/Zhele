@@ -17,8 +17,14 @@ namespace Zhele::TemplateUtils
 {
     struct DummyTypeBoxBase {};
 
+    template <typename T, typename Enabler = void>
+    constexpr bool is_complete_v = false;
+
+    template <typename T>
+    constexpr bool is_complete_v<T, std::void_t<decltype(sizeof(T) != 0)>> = true;
+
     template<typename T>
-    struct TypeBox : public std::conditional_t<std::is_class_v<T>, T, DummyTypeBoxBase>
+    struct TypeBox : public std::conditional_t<std::is_class_v<T> && is_complete_v<T>, T, DummyTypeBoxBase>
     {
         using type = T;
     };

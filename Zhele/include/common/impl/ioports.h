@@ -21,7 +21,7 @@ namespace Zhele::IO::Private
     }
 
     PORTIMPL_TEMPLATE_ARGS
-    template<PORTIMPL_TEMPLATE_QUALIFIER::DataType value>
+    template<typename PORTIMPL_TEMPLATE_QUALIFIER::DataType value>
     void PORTIMPL_TEMPLATE_QUALIFIER::Write()
     {
         _Regs()->ODR = value;
@@ -82,7 +82,7 @@ namespace Zhele::IO::Private
     template<typename PORTIMPL_TEMPLATE_QUALIFIER::DataType value>
     void PORTIMPL_TEMPLATE_QUALIFIER::Toggle()
     {
-        _Regs()->BSRR = value << 16 | ~_Regs()->ODR & value;
+        _Regs()->BSRR = value << 16 | (_Regs()->ODR ^ value);
     }
 
     PORTIMPL_TEMPLATE_ARGS
