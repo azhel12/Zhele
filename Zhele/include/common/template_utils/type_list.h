@@ -9,18 +9,19 @@
 #ifndef ZHELE_TYPELIST_H
 #define ZHELE_TYPELIST_H
 
+#include <concepts>
 #include <type_traits>
 #include <utility>
 
 namespace Zhele::TemplateUtils
 {
-    /**
-     * @brief Type box
-     * 
-     * @tparam T Type
-    */
+    struct DummyTypeBoxBase {};
+
     template<typename T>
-    using TypeBox = std::type_identity<T>;
+    struct TypeBox : public std::conditional_t<std::is_class_v<T>, T, DummyTypeBoxBase>
+    {
+        using type = T;
+    };
 
     template<typename T>
     bool operator == (TypeBox<T>, TypeBox<T>) { return true; }

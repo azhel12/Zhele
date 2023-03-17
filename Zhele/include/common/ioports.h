@@ -13,6 +13,8 @@
 #include "ioreg.h"
 #include "template_utils/type_list.h"
 
+#include <numeric>
+
 namespace Zhele
 {
     namespace IO
@@ -57,7 +59,262 @@ namespace Zhele
                 Fast = 2, ///< Fast (< 50MHz)
                 Fastest = 3 ///< Fastest (< 50MHz)
             };
+            
+            /**
+             * @brief Send value to port
+             * 
+             * @param [in] value Value to write
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            static void Write(DataType value);
 
+            /**
+             * @brief Template @ref Write method
+             * 
+             * @tparam value Value to write
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            template<DataType value>
+            static void Write();
+
+            /**
+             * @brief Read output port value
+             * @details
+             * Method returns ODR register value
+             * 
+             * @return Port value
+             */
+            static DataType Read();
+
+            /**
+             * @brief Clear (reset) bits by mask
+             * 
+             * @param [in] value Clear mask
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            static void Clear(DataType value);
+
+            /**
+             * @brief Template @ref Clear method
+             * 
+             * @tparam value Clear mask
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            template<DataType value>
+            static void Clear();
+
+            /**
+             * @brief Set bits by mask
+             * 
+             * @param [in] value Set mask
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            static void Set(DataType value);
+
+            /**
+             * @brief Template @ref Set method
+            */
+            template<DataType value>
+            static void Set();
+
+            /**
+             * @brief Clear and set bits
+             * 
+             * @param [in] clearMask Clear mask
+             * @param [in] setMask Set mask
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            static void ClearAndSet(DataType clearMask, DataType setMask);
+
+            /**
+             * @brief Template @ref ClearAndSet method
+             * 
+             * @tparam clearMask Clear mask
+             * @tparam setMask Set mask
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            template<DataType clearMask, DataType setMask>
+            static void ClearAndSet();
+
+            /**
+             * @brief Toggle output bits
+             * 
+             * @details Inverse output register
+             * 
+             * @param [in] value Toggle mask
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            static void Toggle(DataType value);
+
+            /**
+             * @brief Template @ref Toggle method
+             * 
+             * @tparam value Toggle mask
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            template<DataType value>
+            static void Toggle();
+
+            /**
+             * @brief Returns input port value
+             * 
+             * @details
+             * Read and return IDR register
+             * 
+             * @returns IDR register value
+            */
+            static DataType PinRead();
+
+            /**
+             * @brief Set port configuration
+             * 
+             * @param [in] mask Pin mask
+             * @param [in] configuration Selected pins configuration
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            static void SetConfiguration(Configuration configuration, DataType mask = std::numeric_limits<DataType>::max());
+
+            /**
+             * @brief Template @ref SetConfiguration method
+             * 
+             * @tparam mask Pin mask
+             * @tparam configuration Selected pins configuration
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            template<Configuration configuration, DataType mask = std::numeric_limits<DataType>::max()>
+            static void SetConfiguration();
+
+            /**
+             * @brief Set driver type
+             * 
+             * @param [in] mask Pin mask
+             * @param [in] driver Driver type for selected pins
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            static void SetDriverType(DriverType driver, DataType mask = std::numeric_limits<DataType>::max());
+
+            /**
+             * @brief Template @ref SetDriverType method
+             * 
+             * @tparam mask Pin mask
+             * @tparam driver Driver type for selected pins
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            template <DriverType driver, DataType mask = std::numeric_limits<DataType>::max()>
+            static void SetDriverType();
+
+            /**
+             * @brief Set pull smode
+             * 
+             * @param [in] mask Pin mask
+             * @param [in] mode Pull mode for selected pins
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            static void SetPullMode(PullMode mode, DataType mask = std::numeric_limits<DataType>::max());
+
+            /**
+             * @brief Template @ref SetPullMode method
+             * 
+             * @tparam mask Pin mask
+             * @tparam mode Pull mode for selected pins
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            template <PullMode mode, DataType mask = std::numeric_limits<DataType>::max()>
+            static void SetPullMode();
+
+            /**
+             * @brief Set port speed
+             * 
+             * @param [in] mask Pin mask
+             * @param [in] speed Selected pins speed
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            static void SetSpeed(Speed speed, DataType mask = std::numeric_limits<DataType>::max());
+
+            /**
+             * @brief Template @ref SetSpeed method
+             * 
+             * @tparam mask Pin mask
+             * @tparam speed Selected pins speed
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            template<Speed speed, DataType mask = std::numeric_limits<DataType>::max()>
+            static void SetSpeed();
+
+            /**
+             * @brief Set alternate function number
+             * 
+             * @param [in] mask Pin mask
+             * @param [in] number Alternate function number for selected pins
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            static void AltFuncNumber(uint8_t number, DataType mask = std::numeric_limits<DataType>::max());
+
+            /**
+             * @brief Template @ref AltFuncNumber method
+             * 
+             * @tparam mask Pin mask
+             * @tparam number Alternate function number for selected pins
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            template<uint8_t number, DataType mask = std::numeric_limits<DataType>::max()>
+            static void AltFuncNumber();
+
+            /**
+             * @brief Enable clock for port
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            static void Enable();
+
+            /**
+             * @brief Disable clock for port
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            static void Disable();
+
+        protected:
             static constexpr inline unsigned UnpackConfig2bits(unsigned mask, unsigned value, unsigned configuration)
 			{
 				mask = (mask & 0xff00)     << 8 | (mask & 0x00ff);
@@ -157,9 +414,30 @@ namespace Zhele
              * @brief Implement GPIO port
              */
             template<typename _Regs, typename _ClkEnReg, int ID>
-            class PortImplementation :public NativePortBase
+            class PortImplementation : public NativePortBase
             {
             public:
+                /**
+                 * @brief Send value to port
+                 * 
+                 * @param [in] value Value to write
+                 * 
+                 * @par Returns
+                 *  Nothing
+                */
+                static void Write(DataType value);
+
+                /**
+                 * @brief Template @ref Write method
+                 * 
+                 * @tparam value Value to write
+                 * 
+                 * @par Returns
+                 *  Nothing
+                */
+                template<DataType value>
+                static void Write();
+
                 /**
                  * @brief Read output port value
                  * @details
@@ -168,41 +446,6 @@ namespace Zhele
                  * @return Port value
                  */
                 static DataType Read();
-                
-
-                /**
-                 * @brief Send value to port
-                 * 
-                 * @param [in] value Value to write
-                 * 
-                 * @par Returns
-                 *	Nothing
-                 */
-                static void Write(DataType value);
-                
-
-                /**
-                 * @brief Clear and set bits
-                 * 
-                 * @param [in] clearMask [in] Clear mask
-                 * @param [in] setMask [in] Set mask
-                 * 
-                 * @par Returns
-                 *	Nothing
-                 */
-                static void ClearAndSet(DataType clearMask, DataType setMask);
-               
-
-                /**
-                 * @brief Set bits by mask
-                 * 
-                 * @param [in] value Set mask
-                 * 
-                 * @par Returns
-                 *	Nothing
-                 */
-                static void Set(DataType value);
-                
 
                 /**
                  * @brief Clear (reset) bits by mask
@@ -210,86 +453,92 @@ namespace Zhele
                  * @param [in] value Clear mask
                  * 
                  * @par Returns
-                 *	Nothing
-                 */
+                 *  Nothing
+                */
                 static void Clear(DataType value);
-                
 
                 /**
-                 * @brief Toggle output bits
-                 * @details
-                 * Reverse (xor) ODR register
+                 * @brief Template @ref Clear method
                  * 
-                 * @param [in] value Toggle mask
+                 * @tparam value Clear mask
                  * 
                  * @par Returns
-                 *	Nothing
-                 */
-                static void Toggle(DataType value);
-                
+                 *  Nothing
+                */
+                template<DataType value>
+                static void Clear();
 
                 /**
-                 * @brief Returns input port value
-                 * @details
-                 * Read and return IDR register
+                 * @brief Set bits by mask
                  * 
-                 * @return IDR register value
-                 */
-                static DataType PinRead();
-               
+                 * @param [in] value Set mask
+                 * 
+                 * @par Returns
+                 *  Nothing
+                */
+                static void Set(DataType value);
 
                 /**
-                 * @brief Template clone of ClearAndSet function
-                 * @details
-                 * Template methods may be more effective.
-                 * It require less instructions, so requires less ROM, less time for execute
-                 * If you know parameters before run-time, you should use template methods.
+                 * @brief Template @ref Set method
+                */
+                template<DataType value>
+                static void Set();
+
+                /**
+                 * @brief Clear and set bits
+                 * 
+                 * @param [in] clearMask Clear mask
+                 * @param [in] setMask Set mask
+                 * 
+                 * @par Returns
+                 *  Nothing
+                */
+                static void ClearAndSet(DataType clearMask, DataType setMask);
+
+                /**
+                 * @brief Template @ref ClearAndSet method
                  * 
                  * @tparam clearMask Clear mask
                  * @tparam setMask Set mask
                  * 
                  * @par Returns
-                 *	Nothing
-                 */
+                 *  Nothing
+                */
                 template<DataType clearMask, DataType setMask>
                 static void ClearAndSet();
-             
 
                 /**
-                 * @brief Template clone of Toggle function
+                 * @brief Toggle output bits
+                 * 
+                 * @details Inverse output register
+                 * 
+                 * @param [in] value Toggle mask
+                 * 
+                 * @par Returns
+                 *  Nothing
+                */
+                static void Toggle(DataType value);
+
+                /**
+                 * @brief Template @ref Toggle method
                  * 
                  * @tparam value Toggle mask
                  * 
                  * @par Returns
-                 *	Nothing
-                 */
+                 *  Nothing
+                */
                 template<DataType value>
                 static void Toggle();
-               
 
                 /**
-                 * @brief Template clone of Set function
+                 * @brief Returns input port value
                  * 
-                 * @tparam value Set mask
+                 * @details
+                 * Read and return IDR register
                  * 
-                 * @par Returns
-                 *	Nothing
-                 */
-                template<DataType value>
-                static void Set();
-                
-
-                /**
-                 * @brief Template clone of Clear function
-                 * 
-                 * @tparam value Clear mask
-                 * 
-                 * @par Returns
-                 *	Nothing
-                 */
-                template<DataType value>
-                static void Clear();
-                
+                 * @returns IDR register value
+                */
+                static DataType PinRead();
 
                 /**
                  * @brief Set port configuration
@@ -298,72 +547,21 @@ namespace Zhele
                  * @param [in] configuration Selected pins configuration
                  * 
                  * @par Returns
-                 *	Nothing
-                 */
-                static void SetConfiguration(DataType mask, Configuration configuration);
-               
+                 *  Nothing
+                */
+                static void SetConfiguration(Configuration configuration, DataType mask = std::numeric_limits<DataType>::max());
 
                 /**
-                 * @brief Template clone of SetConfiguration function
+                 * @brief Template @ref SetConfiguration method
                  * 
                  * @tparam mask Pin mask
                  * @tparam configuration Selected pins configuration
                  * 
                  * @par Returns
-                 *	Nothing
-                 */
-                template<DataType mask, Configuration configuration>
+                 *  Nothing
+                */
+                template<Configuration configuration, DataType mask = std::numeric_limits<DataType>::max()>
                 static void SetConfiguration();
-                
-
-                /**
-                 * @brief Set port speed
-                 * 
-                 * @param [in] mask Pin mask
-                 * @param [in] speed Selected pins speed
-                 * 
-                 * @par Returns
-                 *	Nothing
-                 */
-                static void SetSpeed(DataType mask, Speed speed);
-                
-
-                /**
-                 * @brief Template clone of SetSpeed function
-                 * @tparam mask Pin mask
-                 * @tparam speed Selected pins speed
-                 * 
-                 * @par Returns
-                 *	Nothing
-                 */
-                template<DataType mask, Speed speed>
-                static void SetSpeed();
-               
-
-                /**
-                 * @brief Set pull smode
-                 * 
-                 * @param [in] mask Pin mask
-                 * @param [in] mode Pull mode for selected pins
-                 * 
-                 * @par Returns
-                 *	Nothing
-                 */
-                static void SetPullMode(DataType mask, PullMode mode);
-                
-
-                /**
-                 * @brief Template clone of SetPullMode function.
-                 * 
-                 * @tparam mask Pin mask
-                 * @tparam mode Pull mode for selected pins
-                 * 
-                 * @par Returns
-                 *	Nothing
-                 */
-                template <DataType mask, PullMode mode>
-                static void SetPullMode();
-                
 
                 /**
                  * @brief Set driver type
@@ -372,23 +570,67 @@ namespace Zhele
                  * @param [in] driver Driver type for selected pins
                  * 
                  * @par Returns
-                 *	Nothing
-                 */
-                static void SetDriverType(DataType mask, DriverType driver);
-                
+                 *  Nothing
+                */
+                static void SetDriverType(DriverType driver, DataType mask = std::numeric_limits<DataType>::max());
 
                 /**
-                 * @brief Template clone of SetDriverType function
+                 * @brief Template @ref SetDriverType method
                  * 
                  * @tparam mask Pin mask
                  * @tparam driver Driver type for selected pins
                  * 
                  * @par Returns
-                 *	Nothing
-                 */
-                template <DataType mask, DriverType driver>
+                 *  Nothing
+                */
+                template <DriverType driver, DataType mask = std::numeric_limits<DataType>::max()>
                 static void SetDriverType();
-                
+
+                /**
+                 * @brief Set pull smode
+                 * 
+                 * @param [in] mask Pin mask
+                 * @param [in] mode Pull mode for selected pins
+                 * 
+                 * @par Returns
+                 *  Nothing
+                */
+                static void SetPullMode(PullMode mode, DataType mask = std::numeric_limits<DataType>::max());
+
+                /**
+                 * @brief Template @ref SetPullMode method
+                 * 
+                 * @tparam mask Pin mask
+                 * @tparam mode Pull mode for selected pins
+                 * 
+                 * @par Returns
+                 *  Nothing
+                */
+                template <PullMode mode, DataType mask = std::numeric_limits<DataType>::max()>
+                static void SetPullMode();
+
+                /**
+                 * @brief Set port speed
+                 * 
+                 * @param [in] mask Pin mask
+                 * @param [in] speed Selected pins speed
+                 * 
+                 * @par Returns
+                 *  Nothing
+                */
+                static void SetSpeed(Speed speed, DataType mask = std::numeric_limits<DataType>::max());
+
+                /**
+                 * @brief Template @ref SetSpeed method
+                 * 
+                 * @tparam mask Pin mask
+                 * @tparam speed Selected pins speed
+                 * 
+                 * @par Returns
+                 *  Nothing
+                */
+                template<Speed speed, DataType mask = std::numeric_limits<DataType>::max()>
+                static void SetSpeed();
 
                 /**
                  * @brief Set alternate function number
@@ -397,38 +639,36 @@ namespace Zhele
                  * @param [in] number Alternate function number for selected pins
                  * 
                  * @par Returns
-                 *	Nothing
-                 */
-                static void AltFuncNumber(DataType mask, uint8_t number);
-               
+                 *  Nothing
+                */
+                static void AltFuncNumber(uint8_t number, DataType mask = std::numeric_limits<DataType>::max());
 
                 /**
-                 * @brief Template clone of AltFuncNumber function
+                 * @brief Template @ref AltFuncNumber method
                  * 
                  * @tparam mask Pin mask
                  * @tparam number Alternate function number for selected pins
                  * 
                  * @par Returns
-                 *	Nothing
-                 */
-                template<DataType mask, uint8_t number>
+                 *  Nothing
+                */
+                template<uint8_t number, DataType mask = std::numeric_limits<DataType>::max()>
                 static void AltFuncNumber();
-                
 
                 /**
                  * @brief Enable clock for port
                  * 
                  * @par Returns
-                 *	Nothing
-                 */
+                 *  Nothing
+                */
                 static void Enable();
-               
+
                 /**
                  * @brief Disable clock for port
                  * 
                  * @par Returns
-                 *	Nothing
-                 */
+                 *  Nothing
+                */
                 static void Disable();
                 
                 enum { Id = ID };

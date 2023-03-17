@@ -13,19 +13,13 @@ using namespace Zhele::TemplateUtils;
 namespace Zhele::IO
 {
     template<typename... _Pins>
-    void PinList<_Pins...>::Enable()
-    {
-        _ports.foreach([](auto port){ TypeUnbox<port>::Enable(); });
-    }
-
-    template<typename... _Pins>
     void PinList<_Pins...>::Write(PinList<_Pins...>::DataType value)
     {
         _ports.foreach([value](auto port) {
             if constexpr (GetPinsForPort(port).size() == 16)
-                TypeUnbox<port>::Write(GetPinlistValueForPort(port, value));
+                port.Write(GetPinlistValueForPort(port, value));
             else 
-                TypeUnbox<port>::ClearAndSet(GetPinlistMaskForPort(port), GetPinlistValueForPort(port, value));
+                port.ClearAndSet(GetPinlistMaskForPort(port), GetPinlistValueForPort(port, value));
         });
     }
 
@@ -35,14 +29,88 @@ namespace Zhele::IO
     {
         _ports.foreach([](auto port) {
             if constexpr (GetPinsForPort(port).size() == 16)
-                TypeUnbox<port>::Write(GetPinlistValueForPort(port, value));
+                port.template Write<GetPinlistValueForPort(port, value)>();
             else 
-                TypeUnbox<port>::ClearAndSet(GetPinlistMaskForPort(port), GetPinlistValueForPort(port, value));
+                port.template ClearAndSet<GetPinlistMaskForPort(port), GetPinlistValueForPort(port, value)>();
         });
     }
 
     template<typename... _Pins>
     typename PinList<_Pins...>::DataType PinList<_Pins...>::Read()
+    {
+        return 0xdeadbeef;
+    }
+
+    template<typename... _Pins>
+    void PinList<_Pins...>::Clear(DataType value)
+    {
+        _ports.foreach([value](auto port){
+            port.Clear(GetPinlistValueForPort(port, value));
+        });
+    }
+
+    template<typename... _Pins>
+    template<typename PinList<_Pins...>::DataType value>
+    void PinList<_Pins...>::Clear()
+    {
+        _ports.foreach([](auto port){
+            port.template Clear<GetPinlistValueForPort(port, value)>();
+        });
+    }
+
+    template<typename... _Pins>
+    void PinList<_Pins...>::Set(PinList<_Pins...>::DataType value)
+    {
+        _ports.foreach([value](auto port){
+            port.Set(GetPinlistValueForPort(port, value));
+        });
+    }
+
+    template<typename... _Pins>
+    template<typename PinList<_Pins...>::DataType value>
+    void PinList<_Pins...>::Set()
+    {
+        _ports.foreach([](auto port){
+            port.template Set<GetPinlistValueForPort(port, value)>();
+        });
+    }
+
+    template<typename... _Pins>
+    void PinList<_Pins...>::ClearAndSet(DataType clearMask, DataType setMask)
+    {
+        _ports.foreach([clearMask, setMask](auto port){
+            port.ClearAndSet(GetPinlistValueForPort(port, clearMask), GetPinlistValueForPort(port, setMask));
+        });
+    }
+
+    template<typename... _Pins>
+    template<typename PinList<_Pins...>::DataType clearMask, typename PinList<_Pins...>::DataType setMask>
+    void PinList<_Pins...>::ClearAndSet()
+    {
+        _ports.foreach([](auto port){
+            port.template ClearAndSet<GetPinlistValueForPort(port, clearMask), GetPinlistValueForPort(port, setMask)>();
+        });
+    }
+
+    template<typename... _Pins>
+    void PinList<_Pins...>::Toggle(PinList<_Pins...>::DataType value)
+    {
+        _ports.foreach([value](auto port){
+            port.Toggle(GetPinlistValueForPort(port, value));
+        });
+    }
+
+    template<typename... _Pins>
+    template<typename PinList<_Pins...>::DataType value>
+    void PinList<_Pins...>::Toggle()
+    {
+        _ports.foreach([](auto port){
+            port.template Toggle<GetPinlistValueForPort(port, value)>();
+        });
+    }
+
+    template<typename... _Pins>
+    typename PinList<_Pins...>::DataType PinList<_Pins...>::PinRead()
     {
         auto result = DataType();
 
@@ -52,139 +120,100 @@ namespace Zhele::IO
     }
 
     template<typename... _Pins>
-    void PinList<_Pins...>::Set(PinList<_Pins...>::DataType value)
-    {
-        _ports.foreach([value](auto port){
-            TypeUnbox<port>::Set(GetPinlistValueForPort(port, value));
-        });
-    }
-
-    template<typename... _Pins>
-    void PinList<_Pins...>::Clear(DataType value)
-    {
-        _ports.foreach([value](auto port){
-            TypeUnbox<port>::Clear(GetPinlistValueForPort(port, value));
-        });
-    }
-
-    template<typename... _Pins>
-    void PinList<_Pins...>::SetConfiguration(PinList<_Pins...>::DataType mask, NativePortBase::Configuration config)
+    void PinList<_Pins...>::SetConfiguration(NativePortBase::Configuration config, PinList<_Pins...>::DataType mask)
     {
         _ports.foreach([mask, config](auto port){
-            TypeUnbox<port>::SetConfiguration(GetPinlistValueForPort(port, mask), config);
+            port.SetConfiguration(config, GetPinlistValueForPort(port, mask));
         });
     }
 
     template<typename... _Pins>
-    template<typename PinList<_Pins...>::DataType mask, NativePortBase::Configuration config>
+    template<NativePortBase::Configuration config, typename PinList<_Pins...>::DataType mask>
     void PinList<_Pins...>::SetConfiguration()
     {
         _ports.foreach([](auto port){
-            TypeUnbox<port>::template SetConfiguration<GetPinlistValueForPort(port, mask), config>();
+            port.template SetConfiguration<config, GetPinlistValueForPort(port, mask)>();
         });
     }
 
     template<typename... _Pins>
-    template<NativePortBase::Configuration config>
-    void PinList<_Pins...>::SetConfiguration()
-    {
-        SetConfiguration<std::numeric_limits<DataType>::max(), config>();
-    }
-
-    template<typename... _Pins>
-    void PinList<_Pins...>::SetSpeed(PinList<_Pins...>::DataType mask, NativePortBase::Speed speed)
-    {
-        _ports.foreach([mask, speed](auto port){
-            TypeUnbox<port>::SetSpeed(GetPinlistValueForPort(port, mask), speed);
-        });
-    }
-
-    template<typename... _Pins>
-    template<typename PinList<_Pins...>::DataType mask, NativePortBase::Speed speed>
-    void PinList<_Pins...>::SetSpeed()
-    {
-        _ports.foreach([](auto port){
-            TypeUnbox<port>::template SetSpeed<GetPinlistValueForPort(port, mask), speed>();
-        });
-    }
-
-    template<typename... _Pins>
-    template<NativePortBase::Speed speed>
-    void PinList<_Pins...>::SetSpeed()
-    {
-        SetSpeed<std::numeric_limits<DataType>::max(), speed>();
-    }
-
-    template<typename... _Pins>
-    void PinList<_Pins...>::SetPullMode(PinList<_Pins...>::DataType mask, NativePortBase::PullMode pullMode)
-    {
-        _ports.foreach([mask, pullMode](auto port){
-            TypeUnbox<port>::SetPullMode(GetPinlistValueForPort(port, mask), pullMode);
-        });
-    }
-
-    template<typename... _Pins>
-    template<typename PinList<_Pins...>::DataType mask, NativePortBase::PullMode pullMode>
-    void PinList<_Pins...>::SetPullMode()
-    {
-        _ports.foreach([](auto port){
-            TypeUnbox<port>::template SetPullMode<GetPinlistValueForPort(port, mask), pullMode>();
-        });
-    }
-
-    template<typename... _Pins>
-    template<NativePortBase::PullMode pullMode>
-    void PinList<_Pins...>::SetPullMode()
-    {
-        SetPullMode<std::numeric_limits<DataType>::max(), pullMode>();
-    }
-
-    template<typename... _Pins>
-    void PinList<_Pins...>::SetDriverType(PinList<_Pins...>::DataType mask, NativePortBase::DriverType driverType)
+    void PinList<_Pins...>::SetDriverType(NativePortBase::DriverType driverType, PinList<_Pins...>::DataType mask)
     {
         _ports.foreach([mask, driverType](auto port){
-            TypeUnbox<port>::SetDriverType(GetPinlistValueForPort(port, mask), driverType);
+            port.SetDriverType(driverType, GetPinlistValueForPort(port, mask));
         });
     }
 
     template<typename... _Pins>
-    template<typename PinList<_Pins...>::DataType mask, NativePortBase::DriverType driverType>
+    template<NativePortBase::DriverType driverType, typename PinList<_Pins...>::DataType mask>
     void PinList<_Pins...>::SetDriverType()
     {
         _ports.foreach([](auto port){
-            TypeUnbox<port>::template SetDriverType<GetPinlistValueForPort(port, mask), driverType>();
+            port.template SetDriverType<driverType, GetPinlistValueForPort(port, mask)>();
         });
     }
 
     template<typename... _Pins>
-    template<NativePortBase::DriverType driverType>
-    void PinList<_Pins...>::SetDriverType()
+    void PinList<_Pins...>::SetPullMode(NativePortBase::PullMode pullMode, PinList<_Pins...>::DataType mask)
     {
-        SetDriverType<std::numeric_limits<DataType>::max(), driverType>();
+        _ports.foreach([mask, pullMode](auto port){
+            port.SetPullMode(pullMode, GetPinlistValueForPort(port, mask));
+        });
     }
 
     template<typename... _Pins>
-    void PinList<_Pins...>::AltFuncNumber(PinList<_Pins...>::DataType mask, uint8_t number)
+    template<NativePortBase::PullMode pullMode, typename PinList<_Pins...>::DataType mask>
+    void PinList<_Pins...>::SetPullMode()
+    {
+        _ports.foreach([](auto port){
+            port.template SetPullMode<pullMode, GetPinlistValueForPort(port, mask)>();
+        });
+    }
+
+    template<typename... _Pins>
+    void PinList<_Pins...>::SetSpeed(NativePortBase::Speed speed, PinList<_Pins...>::DataType mask)
+    {
+        _ports.foreach([mask, speed](auto port){
+            port.SetSpeed(speed, GetPinlistValueForPort(port, mask));
+        });
+    }
+
+    template<typename... _Pins>
+    template<NativePortBase::Speed speed, typename PinList<_Pins...>::DataType mask>
+    void PinList<_Pins...>::SetSpeed()
+    {
+        _ports.foreach([](auto port){
+            port.template SetSpeed<speed, GetPinlistValueForPort(port, mask)>();
+        });
+    }
+
+    template<typename... _Pins>
+    void PinList<_Pins...>::AltFuncNumber(uint8_t number, PinList<_Pins...>::DataType mask)
     {
         _ports.foreach([mask, number](auto port){
-            TypeUnbox<port>::AltFuncNumber(GetPinlistValueForPort(port, mask), number);
+            port.AltFuncNumber(number, GetPinlistValueForPort(port, mask));
         });
     }
 
     template<typename... _Pins>
-    template<typename PinList<_Pins...>::DataType mask, unsigned number>
+    template<uint8_t number, typename PinList<_Pins...>::DataType mask>
     void PinList<_Pins...>::AltFuncNumber()
     {
         _ports.foreach([](auto port){
-            TypeUnbox<port>::template AltFuncNumber<GetPinlistValueForPort(port, mask), number>();
+            port.template AltFuncNumber<number, GetPinlistValueForPort(port, mask)>();
         });
     }
 
     template<typename... _Pins>
-    template<unsigned number>
-    void PinList<_Pins...>::AltFuncNumber()
+    void PinList<_Pins...>::Enable()
     {
-        AltFuncNumber<std::numeric_limits<DataType>::max(), number>();
+        _ports.foreach([](auto port){ port.Enable(); });
+    }
+
+    template<typename... _Pins>
+    void PinList<_Pins...>::Disable()
+    {
+        _ports.foreach([](auto port){ port.Disable(); });
     }
 
     template<typename... _Pins>
@@ -193,7 +222,7 @@ namespace Zhele::IO
         auto result = typename TypeUnbox<port>::DataType();
 
         GetPinsForPort(port).foreach([value, &result](auto pin) {
-            if (value & (1 << TypeUnbox<pin>::Number))
+            if (value & (1 << pin.Number))
                 result |= (1 << _pins.search(pin));
         });
         return result;
@@ -205,7 +234,7 @@ namespace Zhele::IO
         auto mask = typename TypeUnbox<port>::DataType();
 
         GetPinsForPort(port).foreach([&mask](auto pin) {
-            mask |= (1 << TypeUnbox<pin>::Number);
+            mask |= (1 << pin.Number);
         });
 
         return mask;
@@ -221,13 +250,28 @@ namespace Zhele::IO
     }
 
     template<typename... _Pins>
+    typename PinList<_Pins...>::DataType PinList<_Pins...>::ExtractPinlistOutValueFromPort(auto port)
+    {
+        auto result = DataType();
+        auto portReadValue = TypeUnbox<port>::Read();
+        
+        GetPinsForPort(port).foreach([&result, portReadValue](auto pin){
+            result |= ((portReadValue & (1 << pin.Number)) != 0)
+                ? (1 << _pins.search(pin))
+                : 0;
+        });
+
+        return result;
+    }
+
+    template<typename... _Pins>
     typename PinList<_Pins...>::DataType PinList<_Pins...>::ExtractPinlistValueFromPort(auto port)
     {
         auto result = DataType();
         auto portReadValue = TypeUnbox<port>::PinRead();
         
         GetPinsForPort(port).foreach([&result, portReadValue](auto pin){
-            result |= ((portReadValue & (1 << TypeUnbox<pin>::Number)) != 0)
+            result |= ((portReadValue & (1 << pin.Number)) != 0)
                 ? (1 << _pins.search(pin))
                 : 0;
         });
