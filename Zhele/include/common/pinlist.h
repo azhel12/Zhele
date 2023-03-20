@@ -9,7 +9,7 @@
 #ifndef ZHELE_PINLIST_COMMON_H
 #define ZHELE_PINLIST_COMMON_H
 
-#include "ioports.h"
+#include <ioports.h>
 
 #include "template_utils/type_list.h"
 #include "template_utils/data_type_selector.h"

@@ -313,99 +313,61 @@ namespace Zhele
              *  Nothing
             */
             static void Disable();
-
-        protected:
-            static constexpr inline unsigned UnpackConfig2bits(unsigned mask, unsigned value, unsigned configuration)
-			{
-				mask = (mask & 0xff00)     << 8 | (mask & 0x00ff);
-				mask = (mask & 0x00f000f0) << 4 | (mask & 0x000f000f);
-				mask = (mask & 0x0C0C0C0C) << 2 | (mask & 0x03030303);
-				mask = (mask & 0x22222222) << 1 | (mask & 0x11111111);
-				return (value & ~(mask * 0x03)) | mask * configuration;
-			}
-			
-			static constexpr inline unsigned UnpackConfig4Bit(unsigned mask, unsigned value, unsigned configuration)
-			{
-				mask = (mask & 0xf0) << 12 | (mask & 0x0f);
-				mask = (mask & 0x000C000C) << 6 | (mask & 0x00030003);
-				mask = (mask & 0x02020202) << 3 | (mask & 0x01010101);
-				return (value & ~(mask * 0x0f)) | mask * configuration;
-			}
         };
 
         class NullPort : public NativePortBase
         {
         public:
-            typedef uint8_t DataT;
-            static void Write(DataT)
-            {}
-            static void ClearAndSet(DataT, DataT)
-            {}
-            static DataT Read()
-            {
-                return 0;
-            }
-            static void Set(DataT)
-            {}
-            static void Clear(DataT)
-            {}
-            static void Toggle(DataT)
-            {}
-            static DataT PinRead()
-            {
-                return 0;
-            }
+            using DataT = uint8_t;
 
-            static void Enable()
-            {}
-            static void Disable()
-            {}
-
-            template<DataT clearMask, DataT>
-            static void ClearAndSet()
-            {}
-
+            static void Write(DataT) {}
             template<DataT>
-            static void Toggle()
-            {}
-
-            template<DataT>
-            static void Set()
-            {}
-
-            template<DataT>
-            static void Clear()
-            {}
-
-            template<unsigned pin, class Config>
-            static void SetPinConfiguration(Config)
-            {}
-            template<typename Config>
-            static void SetConfiguration(DataT, Config)
-            {}
-
-            template<DataT mask, Configuration>
-            static void SetConfiguration()
-            {}
-
-            static void SetSpeed(DataT, Speed)
-            {}
+            static void Write() {}
             
-            static void SetPullMode(DataT, PullMode)
-            {}
+            static DataT Read() { return DataT(); }
 
-            template<DataT mask, DriverType>
-            static void SetDriverType()
-            {}
+            static void Clear(DataT) {}
+            template<DataT>
+            static void Clear() {}
 
-            static void SetDriverType(DataT, DriverType)
-            {}
-            
-            static void AltFuncNumber(DataT, uint8_t)
-            {}
+            static void Set(DataT) {}
+            template<DataT>
+            static void Set() {}
+
+            static void ClearAndSet(DataT, DataT) {}
+            template<DataT, DataT>
+            static void ClearAndSet() {}
+
+            static void Toggle(DataT) {}
+            template<DataT>
+            static void Toggle() {}
+
+            static DataT PinRead() { return DataT(); }
+
+            static void SetConfiguration(Configuration, DataT) {}
+            template<Configuration, DataT>
+            static void SetConfiguration() {}
+
+            static void SetDriverType(DriverType, DataT) {}
+            template<DriverType, DataT>
+            static void SetDriverType() {}
+
+            static void SetPullMode(PullMode, DataT) {}
+            template<PullMode, DataT>
+            static void SetPullMode() {}
+
+            static void SetSpeed(Speed, DataT) {}
+            template<Speed, DataT>
+            static void SetSpeed() {}
+
+            static void AltFuncNumber(uint8_t, DataT) {}
+            template<uint8_t, DataT>
+            static void AltFuncNumber() {}
+
+            static void Enable() {}
+            static void Disable() {}
 
             enum{Id = '-'};
-            enum{Width=sizeof(DataT)*8};
         };
 
         namespace Private
@@ -672,6 +634,10 @@ namespace Zhele
                 static void Disable();
                 
                 enum { Id = ID };
+
+            private:
+                static constexpr inline unsigned UnpackConfig2bits(unsigned mask, unsigned value, unsigned configuration);
+                static constexpr inline unsigned UnpackConfig4Bit(unsigned mask, unsigned value, unsigned configuration);
             };
         }
 
