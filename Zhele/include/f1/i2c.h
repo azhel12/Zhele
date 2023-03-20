@@ -30,13 +30,13 @@ namespace Zhele
 
             _SclPins::Enable();
             Type maskScl(1 << sclPinNumber);
-            SclPins::SetConfiguration(maskScl, SclPins::AltFunc);
-            SclPins::SetDriverType(maskScl, SclPins::OpenDrain);
+            SclPins::SetConfiguration(SclPins::AltFunc, maskScl);
+            SclPins::SetDriverType(SclPins::OpenDrain, maskScl);
 
             _SdaPins::Enable();
             Type maskSda(1 << sdaPinNumber);
-            SdaPins::SetConfiguration(maskSda, SdaPins::AltFunc);
-            SdaPins::SetDriverType(maskSda, SdaPins::OpenDrain);
+            SdaPins::SetConfiguration(SdaPins::AltFunc, maskSda);
+            SdaPins::SetDriverType(SdaPins::OpenDrain, maskSda);
 
             Clock::AfioClock::Enable();
             if(sclPinNumber == 1)
@@ -72,8 +72,8 @@ namespace Zhele
         template<typename SclPin, typename SdaPin>
         void I2C_TEMPLATE_QUALIFIER::SelectPins()
         {
-            const int sclPinIndex = TypeIndex<SclPin, typename _SclPins::PinsAsTypeList>::value;
-            const int sdaPinIndex = TypeIndex<SdaPin, typename _SdaPins::PinsAsTypeList>::value;
+            const int sclPinIndex = _SclPins::template IndexOf<SclPin>;
+            const int sdaPinIndex = _SdaPins::template IndexOf<SdaPin>;
             
             static_assert(sclPinIndex >= 0);
             static_assert(sdaPinIndex >= 0);

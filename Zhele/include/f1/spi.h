@@ -35,28 +35,28 @@ namespace Zhele
             {
                 _MosiPins::Enable();
                 Type maskMosi (1 << mosiPinNumber);
-                _MosiPins::SetConfiguration(maskMosi, _MosiPins::AltFunc);
-                _MosiPins::SetDriverType(maskMosi, _MosiPins::DriverType::PushPull);
+                _MosiPins::SetConfiguration(_MosiPins::AltFunc, maskMosi);
+                _MosiPins::SetDriverType(_MosiPins::DriverType::PushPull, maskMosi);
             }
 
             if(misoPinNumber != -1)
             {
                 _MisoPins::Enable();
                 Type maskMiso (1 << misoPinNumber);
-                _MisoPins::SetConfiguration(maskMiso, _MisoPins::AltFunc);
+                _MisoPins::SetConfiguration(_MisoPins::AltFunc, maskMiso);
             }
             
             _ClockPins::Enable();
             Type maskClock (1 << clockPinNumber);
-            _ClockPins::SetConfiguration(maskClock, _ClockPins::AltFunc);
-            _ClockPins::SetDriverType(maskClock, _ClockPins::DriverType::PushPull);
+            _ClockPins::SetConfiguration(_ClockPins::AltFunc, maskClock);
+            _ClockPins::SetDriverType(_ClockPins::DriverType::PushPull, maskClock);
             
             if(ssPinNumber != -1)
             {
                 _SsPins::Enable();
                 Type maskSs (1 << ssPinNumber);
-                _SsPins::SetConfiguration(maskSs, _SsPins::AltFunc);
-                _SsPins::SetDriverType(maskSs, _SsPins::DriverType::PushPull);
+                _SsPins::SetConfiguration(_SsPins::AltFunc, maskSs);
+                _SsPins::SetDriverType(_SsPins::DriverType::PushPull, maskSs);
             }
 
             Clock::AfioClock::Enable();
@@ -76,13 +76,13 @@ namespace Zhele
 
             static_assert(clockPinNumber <= 1);
 
-            using MosiPin = std::conditional_t<mosiPinNumber != -1, typename GetType<mosiPinNumber, typename _MosiPins::PinsAsTypeList>::type, typename IO::NullPin>;
-            using MisoPin = std::conditional_t<misoPinNumber != -1, typename GetType<misoPinNumber, typename _MisoPins::PinsAsTypeList>::type, typename IO::NullPin>;
-            using ClockPin = typename GetType<clockPinNumber, typename _ClockPins::PinsAsTypeList>::type;
-            using SsPin = std::conditional_t<ssPinNumber != -1, typename GetType<ssPinNumber, typename _SsPins::PinsAsTypeList>::type, typename IO::NullPin>;
+            using MosiPin = std::conditional_t<mosiPinNumber != -1, typename _MosiPins::template Pin<mosiPinNumber>, typename IO::NullPin>;
+            using MisoPin = std::conditional_t<misoPinNumber != -1, typename _MisoPins::template Pin<misoPinNumber>, typename IO::NullPin>;
+            using ClockPin = typename _ClockPins::template Pin<clockPinNumber>;
+            using SsPin = std::conditional_t<ssPinNumber != -1, typename _SsPins::template Pin<ssPinNumber>, typename IO::NullPin>;
             
-            using usedPorts = Zhele::IO::PortList<typename TemplateUtils::Unique<TypeList<typename MosiPin::Port, typename MisoPin::Port, typename ClockPin::Port, typename SsPin::Port>>::type>;
-            usedPorts::Enable();
+            constexpr auto usedPorts = TypeList<typename MosiPin::Port, typename MisoPin::Port, typename ClockPin::Port, typename SsPin::Port>::remove_duplicates();
+            usedPorts.foreach([](auto port) { port.Enable(); });
 
             if constexpr(mosiPinNumber != -1)
             {
@@ -116,15 +116,16 @@ namespace Zhele
         template<typename MosiPin, typename MisoPin, typename ClockPin, typename SsPin>
         void Spi<_Regs, _Clock, _MosiPins, _MisoPins, _ClockPins, _SsPins, _DmaTx, _DmaRx>::SelectPins()
         {
-            const int8_t mosiPinIndex = !std::is_same_v<MosiPin, IO::NullPin>
-                                ? TypeIndex<MosiPin, typename _MosiPins::PinsAsTypeList>::value
+            constexpr int8_t mosiPinIndex = !std::is_same_v<MosiPin, IO::NullPin>
+                                ? _MosiPins::template IndexOf<MosiPin>
                                 : -1;
-            const int8_t misoPinIndex = !std::is_same_v<MisoPin, IO::NullPin>
-                                ? TypeIndex<MisoPin, typename _MisoPins::PinsAsTypeList>::value
+            constexpr int8_t misoPinIndex = !std::is_same_v<MisoPin, IO::NullPin>
+                                ? _MisoPins::template IndexOf<MisoPin>
                                 : -1;
-            const int8_t clockPinIndex = TypeIndex<ClockPin, typename _ClockPins::PinsAsTypeList>::value;
-            const int8_t ssPinIndex = !std::is_same_v<SsPin, IO::NullPin>
-                                ? TypeIndex<SsPin, typename _SsPins::PinsAsTypeList>::value
+            constexpr int8_t clockPinIndex = _ClockPins::template IndexOf<ClockPin>;
+
+            constexpr int8_t ssPinIndex = !std::is_same_v<SsPin, IO::NullPin>
+                                ? _SsPins::template IndexOf<SsPin>
                                 : -1;
 
             static_assert(mosiPinIndex >= -1);

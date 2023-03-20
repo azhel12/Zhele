@@ -20,6 +20,8 @@
 #include "../common/template_utils/pair.h"
 #include "../common/template_utils/static_array.h"
 
+#include <type_traits>
+
 namespace Zhele
 {
 
@@ -46,13 +48,13 @@ namespace Zhele
 
             TxPins::Enable();
             Type maskTx(1 << txPinNumber);
-            TxPins::SetConfiguration(maskTx, TxPins::AltFunc);
+            TxPins::SetConfiguration(TxPins::AltFunc, maskTx);
 
             if(rxPinNumber != -1)
             {
                 RxPins::Enable();
                 Type maskRx(1 << rxPinNumber);
-                RxPins::SetConfiguration(maskRx, RxPins::In);
+                RxPins::SetConfiguration(RxPins::In, maskRx);
             }
 
             Clock::AfioClock::Enable();
@@ -81,7 +83,9 @@ namespace Zhele
             TxPin::Port::Enable();
             TxPin::SetConfiguration(TxPin::Port::AltFunc);
 
-            using RxPin = std::conditional_t<RxPinNumber != -1, typename _RxPins::Key::template Pin<RxPinNumber>, typename IO::NullPin>;
+            using RxPin = std::conditional_t<RxPinNumber != -1,
+                typename _RxPins::Key::template Pin<RxPinNumber>,
+                typename IO::NullPin>;
             
             if constexpr(!std::is_same_v<RxPin, IO::NullPin>)
             {
@@ -109,9 +113,9 @@ namespace Zhele
         template<typename TxPin, typename RxPin>
         void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins, _DmaTx, _DmaRx>::SelectTxRxPins()
         {
-            const int8_t txPinIndex = TypeIndex<TxPin, typename _TxPins::Key::PinsAsTypeList>::value;
+            const int8_t txPinIndex = _TxPins::Key:: template IndexOf<TxPin>;
             const int8_t rxPinIndex = !std::is_same_v<RxPin, IO::NullPin>
-                                ? TypeIndex<RxPin, typename _RxPins::Key::PinsAsTypeList>::value
+                                ? _RxPins::Key:: template IndexOf<RxPin>
                                 : -1;
             static_assert(txPinIndex >= 0);
             static_assert(rxPinIndex >= -1);
