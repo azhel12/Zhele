@@ -60,25 +60,25 @@ namespace Zhele
 
             SclPins::Enable();
             Type maskScl(1 << sclPinNumber);
-            SclPins::SetConfiguration(maskScl, SclPins::AltFunc);
-            SclPins::AltFuncNumber(maskScl, GetNumberRuntime<SclAltFuncNumbers>::Get(sclPinNumber));
-            SclPins::SetDriverType(maskScl, SclPins::OpenDrain);
-            SclPins::SetPullMode(maskScl, SclPins::PullMode::PullUp);
+            SclPins::SetConfiguration(SclPins::AltFunc, maskScl);
+            SclPins::AltFuncNumber(GetNumberRuntime<SclAltFuncNumbers>::Get(sclPinNumber), maskScl);
+            SclPins::SetDriverType(SclPins::OpenDrain, maskScl);
+            SclPins::SetPullMode(SclPins::PullMode::PullUp, maskScl);
 
             SdaPins::Enable();
             Type maskSda(1 << sdaPinNumber);
-            SdaPins::SetConfiguration(maskSda, SdaPins::AltFunc);
-            SdaPins::AltFuncNumber(maskSda, GetNumberRuntime<SdaAltFuncNumbers>::Get(sdaPinNumber));
-            SdaPins::SetDriverType(maskSda, SdaPins::OpenDrain);
-            SdaPins::SetPullMode(maskSda, SdaPins::PullMode::PullUp);
+            SdaPins::SetConfiguration(SdaPins::AltFunc, maskSda);
+            SdaPins::AltFuncNumber(GetNumberRuntime<SdaAltFuncNumbers>::Get(sdaPinNumber), maskSda);
+            SdaPins::SetDriverType(SdaPins::OpenDrain, maskSda);
+            SdaPins::SetPullMode(SdaPins::PullMode::PullUp, maskSda);
         }
         
         I2C_TEMPLATE_ARGS
         template<typename SclPin, typename SdaPin>
         void I2C_TEMPLATE_QUALIFIER::SelectPins()
         {
-            const int sclPinIndex = TypeIndex<SclPin, typename _SclPins::Key::PinsAsTypeList>::value;
-            const int sdaPinIndex = TypeIndex<SdaPin, typename _SdaPins::Key::PinsAsTypeList>::value;
+            const int sclPinIndex = _SclPins::Key:: template IndexOf<SclPin>;
+            const int sdaPinIndex = _SdaPins::Key:: template IndexOf<SdaPin>;
             
             static_assert(sclPinIndex >= 0);
             static_assert(sdaPinIndex >= 0);
