@@ -370,7 +370,7 @@ namespace Zhele::TemplateUtils
                 return TypeList<Ts...>{};
             } else if constexpr (j == size()) {
                 return insertion_sort<i + 1, i + 2>(pred);
-            } else if constexpr (pred(get<i>(), get<j>())) {
+            } else if constexpr (!pred(get<i>(), get<j>())) {
                 return swap<i, j>().template insertion_sort<i, j + 1>(pred);
             } else {
                 return insertion_sort<i, j + 1>(pred);
