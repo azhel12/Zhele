@@ -92,7 +92,7 @@ namespace Zhele::Usb
         if (_Regs()->ISTR & USB_ISTR_CTR)
         {
             uint8_t endpoint = _Regs()->ISTR & USB_ISTR_EP_ID;
-            EpHandlers::Handle(endpoint, ((_Regs()->ISTR & USB_ISTR_DIR) != 0 ? EndpointDirection::Out : EndpointDirection::In));
+            EpHandlers.Handle(endpoint, ((_Regs()->ISTR & USB_ISTR_DIR) != 0 ? EndpointDirection::Out : EndpointDirection::In));
         }
     }
 
@@ -337,7 +337,7 @@ namespace Zhele::Usb
             case GetDescriptorParameter::ConfigurationDescriptor: {
                 uint8_t temp[128];
                 // Now supports only one configuration. It will easy to support more by adding dispatcher like in endpoint/interface
-                uint16_t size = GetType<0, Configurations>::type::FillDescriptor(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]));
+                uint16_t size = Configurations.template get<0>().FillDescriptor(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]));
                 _Ep0::SendData(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]), setupRequest->Length < size ? setupRequest->Length : size);
                 break;
             }

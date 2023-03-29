@@ -11,9 +11,10 @@
 #define ZHELE_USB_DEVICE_H
 
 #include "configuration.h"
+#include "cdc.h"
 #include "endpoints_manager.h"
 #include "hid.h"
-#include "cdc.h"
+#include "interface.h"
 #include "msc.h"
 
 #include "../ioreg.h"
@@ -101,17 +102,17 @@ namespace Zhele::Usb
 #elif defined (USB_OTG_FS)
         using This = DeviceBase<_Regs, _DeviceRegs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
 #endif
-        using Configurations = TypeList<_Configurations...>;
-        using Interfaces = Append_t<typename _Configurations::Interfaces...>; 
-        using Endpoints = Append_t<typename _Configurations::Endpoints...>;
+        static constexpr auto Configurations = TypeList<_Configurations...>{};
+        static constexpr auto Interfaces = (TypeList<>{} + ... + _Configurations::Interfaces); 
+        static constexpr auto Endpoints = (TypeList<>{} + ... + _Configurations::Endpoints); 
 
-        using EpBufferManager = EndpointsManager<Append_t<_Ep0, Endpoints>>;
+        using EpBufferManager = EndpointsManager<decltype(Endpoints.template push_back<_Ep0>())>;
         // Replace Ep0 with this for correct handler register.
-        using EpHandlers = EndpointHandlers<Append_t<This, Endpoints>>;
+        static constexpr auto EpHandlers = EndpointHandlers<decltype(Endpoints.template push_back<This>())>{};
 #if defined (USB_OTG_FS)
         using EpFifoNotEmptyHandlers = EndpointFifoNotEmptyHandlers<Append_t<This, Endpoints>>;
 #endif
-        using IfHandlers = InterfaceHandlers<Interfaces>;
+        using IfHandlers = InterfaceHandlers<decltype((TypeList<>{} + ... + _Configurations::Interfaces))>;
 
         static uint8_t _tempAddressStorage;
         static volatile bool _isDeviceConfigured;

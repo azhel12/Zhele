@@ -55,8 +55,8 @@ namespace Zhele::Usb
     class Configuration
     {
     public:
-        using Interfaces = Zhele::TemplateUtils::TypeList<_Interfaces...>;
-        using Endpoints = Zhele::TemplateUtils::Append_t<typename _Interfaces::Endpoints...>;
+        static constexpr auto Interfaces = Zhele::TemplateUtils::TypeList<_Interfaces...>{};
+        static constexpr auto Endpoints = (Zhele::TemplateUtils::TypeList<>{} + ... + _Interfaces::Endpoints);
 
         /**
          * @brief Resets configuration
@@ -66,7 +66,9 @@ namespace Zhele::Usb
          */
         static void Reset()
         {
-            (_Interfaces::Reset(), ...);
+            Interfaces.foreach([](auto interface) {
+                interface.Reset();
+            });
         }
 
         /**
@@ -81,7 +83,7 @@ namespace Zhele::Usb
             uint16_t totalLength = sizeof(ConfigurationDescriptor);
 
             *descriptor = ConfigurationDescriptor {
-                .InterfacesCount = sizeof...(_Interfaces),
+                .InterfacesCount = Interfaces.size(),
                 .Number = _Number,
                 .Attributes = {.RemoteWakeup = _RemoteWakeup, .SelfPowered = _SelfPowered},
                 .MaxPower = _MaxPower
