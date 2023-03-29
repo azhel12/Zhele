@@ -71,6 +71,17 @@ namespace Zhele::Clock
         _Reg::And(~_Mask);
     }
 
+    constexpr ClockFrequenceT HseClock::SrcClockFreq() { return HSE_VALUE; }
+    constexpr ClockFrequenceT HseClock::GetDivider() { return 1; }
+    constexpr ClockFrequenceT HseClock::GetMultipler() { return 1; }
+    constexpr ClockFrequenceT HseClock::ClockFreq() { return SrcClockFreq(); }
+
+
+    constexpr ClockFrequenceT HsiClock::SrcClockFreq() { return HSI_VALUE; }
+    constexpr ClockFrequenceT HsiClock::GetDivider() { return 1; }
+    constexpr ClockFrequenceT HsiClock::GetMultipler() { return 1; }
+    constexpr ClockFrequenceT HsiClock::ClockFreq() { return SrcClockFreq(); }
+
 #if defined (RCC_CSR_LSION)
     constexpr ClockFrequenceT LsiClock::SrcClockFreq()
     {
