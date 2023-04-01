@@ -45,17 +45,37 @@ namespace Zhele::Usb
     };
 
 #if defined (USB)
-    template<auto Endpoints>
+    /**
+     * @brief USB offsets calculator
+     * 
+     * @tparam Endpoints
+    */
+    template<typename... Endpoints>
     class OffsetCalculator
     {
+        static constexpr auto _endpoints = TypeList<Endpoints...>{};
     public:
+        /**
+         * @brief Constexpr constructor (instead NTTP)
+         * 
+         * @param [in] endpoints Endpoints typelist object
+        */
+        constexpr OffsetCalculator(auto endpoints) {}
+
+        /**
+         * @brief Returns buffer offset for given endpoint
+         * 
+         * @param [in] endpoints Boxed endpoint
+         * 
+         * @returns Buffer offset for endpoint
+        */
         static consteval auto GetBufferOffset(auto endpoint) {
-            constexpr auto index = Endpoints.search(endpoint);
+            constexpr auto index = _endpoints.search(endpoint);
 
             if constexpr (index == 0) {
                 return 0;
             } else {
-                constexpr auto previousEndpoint = Endpoints.template get<index - 1>();
+                constexpr auto previousEndpoint = _endpoints.template get<index - 1>();
 
                 return GetBufferOffset(previousEndpoint) + 
                     ((previousEndpoint.Type == EndpointType::BulkDoubleBuffered
@@ -64,48 +84,45 @@ namespace Zhele::Usb
                         : previousEndpoint.MaxPacketSize);
             }
         }
-
+        /**
+         * @brief Template version of @ref GetBufferOffset method
+        */
         template<typename Endpoint>
         static consteval auto GetBufferOffset() {
             return GetBufferOffset(TypeBox<Endpoint>{});
         }
 
+        /**
+         * @brief Returns packet descriptor offset for given endpoint
+         * 
+         * @param [in] endpoint Boxed endpoint
+         * 
+         * @returns Decriptor offset
+        */
         static consteval auto GetPacketDescriptorOffset(auto endpoint) {
-            constexpr auto index = Endpoints.search(endpoint)();
+            constexpr auto index = _endpoints.search(endpoint)();
 
             if constexpr (index == 0) {
                 return 0;
             } else {
-                constexpr auto previousEndpoint = Endpoints.template get<index - 1>();
+                constexpr auto previousEndpoint = _endpoints.template get<index - 1>();
                 return endpoint.Type == EndpointType::BulkDoubleBuffered
                     ? 4 + GetPacketDescriptorOffset(previousEndpoint)
                     : 2 + GetPacketDescriptorOffset(previousEndpoint);
             }
         }
 
+        /**
+         * @brief Template version of @ref GetPacketDescriptorOffset method
+        */
         template<typename Endpoint>
         static consteval auto GetPacketDescriptorOffset() {
             return GetPacketDescriptorOffset(TypeBox<Endpoint>{});
         }
     };
-
-    /// Wrappers for EPnR registers.
-    /// C++ doesn't allows reinterpret_cast in compile-time.
-    IO_REG_WRAPPER(USB->EP0R, Ep0Reg, uint16_t);
-    IO_REG_WRAPPER(USB->EP1R, Ep1Reg, uint16_t);
-    IO_REG_WRAPPER(USB->EP2R, Ep2Reg, uint16_t);
-    IO_REG_WRAPPER(USB->EP3R, Ep3Reg, uint16_t);
-    IO_REG_WRAPPER(USB->EP4R, Ep4Reg, uint16_t);
-    IO_REG_WRAPPER(USB->EP5R, Ep5Reg, uint16_t);
-    IO_REG_WRAPPER(USB->EP6R, Ep6Reg, uint16_t);
-    IO_REG_WRAPPER(USB->EP7R, Ep7Reg, uint16_t);
-    using EndpointRegs = Zhele::TemplateUtils::TypeList<Ep0Reg, Ep1Reg, Ep2Reg, Ep3Reg, Ep4Reg, Ep5Reg, Ep6Reg, Ep7Reg>;
-
-    /**
-     * @brief Select endpoint register by number
-     */
-    template<uint8_t _EndpointNumber>
-    using EndpointReg = TypeUnbox<EndpointRegs::template get<_EndpointNumber>()>;
+    // deduction guide for OffsetCalculator
+    template<typename... Endpoints>
+    OffsetCalculator(TypeList<Endpoints...> endpoints) -> OffsetCalculator<Endpoints...>;
 
     /**
      * @brief Calculates endpoint`s registers.
@@ -114,19 +131,45 @@ namespace Zhele::Usb
      * So, you can declare 3 endpoints with numbers 0, 6, 10 (for example) and this class
      * assigns EP0R to Ep0, EP1R to Ep6 and EP2R to Ep10
      * 
-     * @tparam Endpoints All endpoints list
+     * @tparam Endpoints Endpoints
      */
-    template<auto Endpoints>
+    template<typename... Endpoints>
     class EndpointRegistersManager
     {
+        /// Wrappers for EPnR registers.
+        /// C++ doesn't allows reinterpret_cast in compile-time.
+        IO_REG_WRAPPER(USB->EP0R, Ep0Reg, uint16_t);
+        IO_REG_WRAPPER(USB->EP1R, Ep1Reg, uint16_t);
+        IO_REG_WRAPPER(USB->EP2R, Ep2Reg, uint16_t);
+        IO_REG_WRAPPER(USB->EP3R, Ep3Reg, uint16_t);
+        IO_REG_WRAPPER(USB->EP4R, Ep4Reg, uint16_t);
+        IO_REG_WRAPPER(USB->EP5R, Ep5Reg, uint16_t);
+        IO_REG_WRAPPER(USB->EP6R, Ep6Reg, uint16_t);
+        IO_REG_WRAPPER(USB->EP7R, Ep7Reg, uint16_t);
+        
+        static constexpr auto _endpointRegs = TypeList<Ep0Reg, Ep1Reg, Ep2Reg, Ep3Reg, Ep4Reg, Ep5Reg, Ep6Reg, Ep7Reg>{};
+        static constexpr auto _endpoints = TypeList<Endpoints...>{};
+    
     public:
+        /**
+         * @brief Constexpr constructor for CTAD
+        */
+        constexpr EndpointRegistersManager(auto endpoints) {}
+
+        /**
+         * @brief Returns register number for given endpoint (EPRn)
+         * 
+         * @param [in] endpoint Boxed endpoint
+         * 
+         * @returns Endpoint EPR number
+        */
         static consteval auto GetRegisterNumber(auto endpoint) {
-            constexpr auto index = Endpoints.search(endpoint);
+            constexpr auto index = _endpoints.search(endpoint);
 
             if constexpr (index == 0) {
                 return 0;
             } else {
-                constexpr auto previousEndpoint = Endpoints.template get<index - 1>();
+                constexpr auto previousEndpoint = _endpoints.template get<index - 1>();
 
                 constexpr bool IsEndpointIncompatibleWithPrevious = endpoint.Number == previousEndpoint.Number &&
                 (endpoint.Type == EndpointType::Control
@@ -142,43 +185,74 @@ namespace Zhele::Usb
                     ? GetRegisterNumber(previousEndpoint)
                     : GetRegisterNumber(previousEndpoint) + 1;
             }
-        };
+        }
 
+        /**
+         * @brief Template variant of @ref GetRegisterNumber method
+        */
         template<typename Endpoint>
         static consteval auto GetRegisterNumber() {
             return GetRegisterNumber(TypeBox<Endpoint>{});
         }
+
+        /**
+         * @brief Returns boxed endpoint reg for given endpoint
+         * 
+         * @tparam Endpoint Endpoint
+         * 
+         * @returns Boxed EPRn
+        */
+        template<typename Endpoint>
+        static consteval auto GetEndpointReg()
+        {
+            return _endpointRegs.template get<GetRegisterNumber(TypeBox<Endpoint>{})>();
+        }
     };
+    // deduction guide for OffsetCalculator
+    template<typename... Endpoints>
+    EndpointRegistersManager(TypeList<Endpoints...> endpoints) -> EndpointRegistersManager<Endpoints...>;
 
     /**
      * @brief Implements endpoint`s buffers management.
      * 
-     * @tparam AllEndpoints Sorted all endpoints list
-     * @tparam BidirectionalAndBulkDoubleBufferedEndpoints Sorted bidirectional and double-buffered bulk endpoints
-     * @tparam RxEndpoints Sorted RX endpoints (include double-buffered Bulk)
+     * @tparam Endpoints All endpoints
      */
-    template<typename AllEndpoints>
-    class EndpointsManagerBase;
-    template<typename... AllEndpoints>
-    class EndpointsManagerBase<TypeList<AllEndpoints...>>
+
+    template<typename... Endpoints>
+    class EndpointsManager
     {
         /// USB PMA base address
         static constexpr uint32_t PmaBufferBase = USB_PMAADDR;
-        static constexpr auto _sortedUniqueEndpoints = TypeList<AllEndpoints...>{}.remove_duplicates().sort([](auto first, auto second){ return first.Number < second.Number; });
-        static constexpr auto _registersManager = EndpointRegistersManager<_sortedUniqueEndpoints>{};
-        static constexpr auto _offsetCalculator = OffsetCalculator<_sortedUniqueEndpoints>{};
-
+        /// All endpoints sorted by number
+        static constexpr auto _sortedUniqueEndpoints = TypeList<Endpoints...>{}.remove_duplicates().sort([](auto first, auto second){ return first.Number < second.Number; });
+        /// EPRn manager
+        static constexpr auto _registersManager = EndpointRegistersManager{_sortedUniqueEndpoints};
+        /// Buffers and registers offset calculator
+        static constexpr auto _offsetCalculator = OffsetCalculator{_sortedUniqueEndpoints};
         /// Buffer descriptor table size (all realy used endpoints * 8)
         static constexpr auto BdtSize = 8 * (_registersManager.GetRegisterNumber(_sortedUniqueEndpoints.back()) + 1);
 
-        /// Buffer offset in PMA for endpoint
+        /**
+         * @brief Returns buffer offset for given endpoint
+         * 
+         * @param [in] endpoint Boxed endpoint
+         * 
+         * @returns Buffer offset
+        */
         static consteval auto GetBufferOffset(auto endpoint) {
             return BdtSize + _offsetCalculator.GetBufferOffset(endpoint);
         }
+        /// @brief Template variant of @ref GetBufferOffset
         template<typename Endpoint>
         static constexpr uint32_t BufferOffset = GetBufferOffset(TypeBox<Endpoint>{});
 
-        /// Buffer descriptor offset in BDT for endpoint
+        /**
+         * @brief Returns BDT cell offset for given endpoint
+         * 
+         * @param [in] endpoint Boxed endpoint
+         * 
+         * @returns BDT offset
+        */
         static consteval auto GetBdtCellOffset(auto endpoint) {
             return _registersManager.GetRegisterNumber(endpoint) * 8
                 + (endpoint.Type == EndpointType::BulkDoubleBuffered
@@ -187,11 +261,19 @@ namespace Zhele::Usb
                     ? 0
                     : 4);
         }
+        /// @brief Template variant of @ref GetBdtCellOffset
         template<typename Endpoint>
         static const uint32_t BdtCellOffset = GetBdtCellOffset(TypeBox<Endpoint>{});
 
+        /// @brief BDT base address
         static const uint32_t BdtBase = PmaBufferBase;
+
     public:
+        /**
+         * @brief Constexpr constructor for CTAD
+        */
+        constexpr EndpointsManager(auto endpoints) {}
+
         /**
          * @brief Extends endpoint (init addresses)
          * 
@@ -201,26 +283,26 @@ namespace Zhele::Usb
         using ExtendEndpoint = 
             typename std::conditional_t<Endpoint::Direction == EndpointDirection::Bidirectional,
                 BidirectionalEndpoint<Endpoint,
-                    EndpointReg<_registersManager.template GetRegisterNumber<Endpoint>()>,
+                    TypeUnbox<_registersManager.template GetEndpointReg<Endpoint>()>,
                     PmaBufferBase + PmaAlignMultiplier * BufferOffset<Endpoint>, // TxBuffer
                     PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 2), // TxCount
                     PmaBufferBase + PmaAlignMultiplier * (BufferOffset<Endpoint> + Endpoint::MaxPacketSize), // RxBuffer
                     PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 6)>, //RxCount
             typename std::conditional_t<Endpoint::Type == EndpointType::BulkDoubleBuffered,
                 BulkDoubleBufferedEndpoint<Endpoint,
-                    EndpointReg<_registersManager.template GetRegisterNumber<Endpoint>()>,
+                    TypeUnbox<_registersManager.template GetEndpointReg<Endpoint>()>,
                     PmaBufferBase + PmaAlignMultiplier * BufferOffset<Endpoint>, // Buffer0
                     PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 2), // Buffer0Count
                     PmaBufferBase + PmaAlignMultiplier * (BufferOffset<Endpoint> + Endpoint::MaxPacketSize), // Buffer1
                     PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 6)>, //Buffer1Count
             typename std::conditional_t<Endpoint::Direction == EndpointDirection::In,
                 InEndpoint<Endpoint,
-                    EndpointReg<_registersManager.template GetRegisterNumber<Endpoint>()>,
+                    TypeUnbox<_registersManager.template GetEndpointReg<Endpoint>()>,
                     PmaBufferBase + PmaAlignMultiplier * BufferOffset<Endpoint>, // Buffer
                     PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 2)>, // BufferCount
             typename std::conditional_t<Endpoint::Direction == EndpointDirection::Out,
                 OutEndpoint<Endpoint,
-                    EndpointReg<_registersManager.template GetRegisterNumber<Endpoint>()>,
+                    TypeUnbox<_registersManager.template GetEndpointReg<Endpoint>()>,
                     PmaBufferBase + PmaAlignMultiplier * BufferOffset<Endpoint>, // Buffer
                     PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 2)>, // BufferCount
             void>>>>;
@@ -290,14 +372,8 @@ namespace Zhele::Usb
                 : 0x8000 | ((endpoint.MaxPacketSize / 32 - 1) << 10);
         }
     };
-
-    /**
-     * @brief Endpoints manager.
-     * 
-     * @tparam Endpoints ALl endpoints list
-     */
-    template<typename Endpoints>
-    using EndpointsManager = EndpointsManagerBase<Endpoints>;
+    template<typename... Ep>
+    EndpointsManager(TypeList<Ep...> endpoints) -> EndpointsManager<Ep...>;
 
 #elif defined (USB_OTG_FS)
     #define USB_INEP(i)  (USB_OTG_FS_PERIPH_BASE + USB_OTG_IN_ENDPOINT_BASE + (i) * USB_OTG_EP_REG_SIZE)
@@ -476,28 +552,30 @@ namespace Zhele::Usb
      * @tparam Endpoints All endpoints list
      */
     template<typename... Endpoints>
-    using EndpointsInitializer = EndpointsManager<TypeList<Endpoints...>>;
+    using EndpointsInitializer = EndpointsManager<Endpoints...>;
 
     /**
      * @brief Implements endpoint`s handlers management.
      * 
-     * @tparam Endpoints Unique sorted endpoints.
-     * @tparam Indexes Handlers indexes.
+     * @tparam Endpoints All endpoints.
      */
-    template<typename Endpoints>
-    class EndpointHandlersBase;
     template<typename... Endpoints>
-    class EndpointHandlersBase<TypeList<Endpoints...>>
+    class EndpointHandlers
     {
         /**
          * @brief Builds indexes array for given interfaces
+         * 
+         * @details I have been use TypeUnbox<> for parameters because on element of Endpoints
+         *  is Typebox without inherit - it is TypeBox<DeviceBase<XXX>>, where DeviceBase<XXX> is incomplete type. 
          * 
          * @returns std::array with indexes
         */
         static consteval auto BuildIndexesArray()
         {
             constexpr auto endpoints = TypeList<Endpoints...>{};
-            constexpr auto maxEndpointsNumber = endpoints.sort([](auto a, auto b) { return TypeUnbox<a>::Number < TypeUnbox<b>::Number; }).back().Number;
+            constexpr auto maxEndpointsNumber = TypeUnbox<endpoints.sort([](auto a, auto b) {
+                return TypeUnbox<a>::Number < TypeUnbox<b>::Number;
+            }).back()>::Number;
 
             std::array<int8_t, (maxEndpointsNumber + 1) * 2> indexes {};
 
@@ -506,10 +584,10 @@ namespace Zhele::Usb
             }
 
             endpoints.foreach([&indexes, i{0}](auto endpoint) mutable {
-                if (endpoint.Direction == EndpointDirection::In || endpoint.Direction == EndpointDirection::Bidirectional)
-                    indexes[2 * endpoint.Number] = i;
-                if (endpoint.Direction == EndpointDirection::Out || endpoint.Direction == EndpointDirection::Bidirectional)
-                    indexes[1 + 2 * endpoint.Number] = i;
+                if (TypeUnbox<endpoint>::Direction == EndpointDirection::In || TypeUnbox<endpoint>::Direction == EndpointDirection::Bidirectional)
+                    indexes[2 * TypeUnbox<endpoint>::Number] = i;
+                if (TypeUnbox<endpoint>::Direction == EndpointDirection::Out || TypeUnbox<endpoint>::Direction == EndpointDirection::Bidirectional)
+                    indexes[1 + 2 * TypeUnbox<endpoint>::Number] = i;
                 ++i;
             });
 
@@ -519,11 +597,19 @@ namespace Zhele::Usb
         static constexpr EpRequestHandler _handlers[] = {Endpoints::Handler...};
         static constexpr auto _handlersIndexes = BuildIndexesArray();
     public:
+
+        template<typename... Ep>
+        constexpr EndpointHandlers(TypeList<Ep...> endpoints) {}
+
         inline static void Handle(uint8_t number, EndpointDirection direction)
         {
             _handlers[_handlersIndexes[2 * number + (direction == EndpointDirection::Out ? 1 : 0)]]();
         }
     };
+
+    template<typename... Ep>
+    EndpointHandlers(TypeList<Ep...> endpoints) -> EndpointHandlers<Ep...>;
+
 #if defined (USB_OTG_FS)
     /**
      * @brief Implements endpoint`s handlers management.
@@ -548,12 +634,6 @@ namespace Zhele::Usb
         }
     };
 #endif
-
-    /**
-     * @brief Endpoint`s handlers.
-     */
-    template<typename Endpoints>
-    using EndpointHandlers = EndpointHandlersBase<Endpoints>;
 
 #if defined (USB_OTG_FS)
     /**

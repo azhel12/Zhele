@@ -102,17 +102,15 @@ namespace Zhele::Usb
 #elif defined (USB_OTG_FS)
         using This = DeviceBase<_Regs, _DeviceRegs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
 #endif
-        static constexpr auto Configurations = TypeList<_Configurations...>{};
-        static constexpr auto Interfaces = (TypeList<>{} + ... + _Configurations::Interfaces); 
-        static constexpr auto Endpoints = (TypeList<>{} + ... + _Configurations::Endpoints); 
-
-        using EpBufferManager = EndpointsManager<decltype(Endpoints.template push_back<_Ep0>())>;
-        // Replace Ep0 with this for correct handler register.
-        static constexpr auto EpHandlers = EndpointHandlers<decltype(Endpoints.template push_back<This>())>{};
+        static constexpr auto _configurations = TypeList<_Configurations...>{};
+        static constexpr auto _interfaces = (TypeList<>{} + ... + _Configurations::Interfaces); 
+        static constexpr auto _endpoints = (TypeList<>{} + ... + _Configurations::Endpoints);
+        static constexpr auto _epBufferManager = EndpointsManager{_endpoints.template push_back<_Ep0>()};
+        static constexpr auto _epHandlers = EndpointHandlers{_endpoints.template push_back<This>()}; // Replace Ep0 with this for correct handler register.
+        static constexpr auto _ifHandlers = InterfaceHandlers{(TypeList<>{} + ... + _Configurations::Interfaces)};
 #if defined (USB_OTG_FS)
         using EpFifoNotEmptyHandlers = EndpointFifoNotEmptyHandlers<Append_t<This, Endpoints>>;
 #endif
-        using IfHandlers = InterfaceHandlers<decltype((TypeList<>{} + ... + _Configurations::Interfaces))>;
 
         static uint8_t _tempAddressStorage;
         static volatile bool _isDeviceConfigured;

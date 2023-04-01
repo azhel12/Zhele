@@ -95,6 +95,8 @@ namespace Zhele::TemplateUtils
     public:
         using type = Int8_tArray<Numbers..., Value>;
     };
+
+    
 }
 
 #endif //!ZHELE_STATICARRAY_H

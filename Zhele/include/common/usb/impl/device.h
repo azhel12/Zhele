@@ -56,7 +56,7 @@ namespace Zhele::Usb
     void USB_DEVICE_TEMPLATE_QUALIFIER::Enable()
     {
         _ClockCtrl::Enable();
-        EpBufferManager::Init();
+        _epBufferManager.Init();
 
         _Regs()->CNTR = USB_CNTR_CTRM | USB_CNTR_RESETM;
         _Regs()->ISTR = 0;
@@ -92,7 +92,7 @@ namespace Zhele::Usb
         if (_Regs()->ISTR & USB_ISTR_CTR)
         {
             uint8_t endpoint = _Regs()->ISTR & USB_ISTR_EP_ID;
-            EpHandlers.Handle(endpoint, ((_Regs()->ISTR & USB_ISTR_DIR) != 0 ? EndpointDirection::Out : EndpointDirection::In));
+            _epHandlers.Handle(endpoint, ((_Regs()->ISTR & USB_ISTR_DIR) != 0 ? EndpointDirection::Out : EndpointDirection::In));
         }
     }
 
@@ -310,7 +310,7 @@ namespace Zhele::Usb
     void USB_DEVICE_TEMPLATE_QUALIFIER::HandleSetupRequest(SetupPacket* setupRequest)
     {
         if (setupRequest->RequestType.Recipient == 1) {
-            IfHandlers::HandleSetupRequest(setupRequest->Index & 0xff);
+            _ifHandlers.HandleSetupRequest(setupRequest->Index & 0xff);
             return;
         }
         
@@ -337,7 +337,7 @@ namespace Zhele::Usb
             case GetDescriptorParameter::ConfigurationDescriptor: {
                 uint8_t temp[128];
                 // Now supports only one configuration. It will easy to support more by adding dispatcher like in endpoint/interface
-                uint16_t size = Configurations.template get<0>().FillDescriptor(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]));
+                uint16_t size = _configurations.template get<0>().FillDescriptor(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]));
                 _Ep0::SendData(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]), setupRequest->Length < size ? setupRequest->Length : size);
                 break;
             }

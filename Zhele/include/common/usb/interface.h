@@ -118,10 +118,8 @@ namespace Zhele::Usb
      * 
      * @tparam Interfaces Interfaces typelist.
      */
-    template<typename...>
-    class InterfaceHandlers;
     template<typename... Interfaces>
-    class InterfaceHandlers<Zhele::TemplateUtils::TypeList<Interfaces...>>
+    class InterfaceHandlers
     {
         /**
          * @brief Builds indexes array for given interfaces
@@ -148,10 +146,14 @@ namespace Zhele::Usb
         static constexpr InterfaceSetupRequestHandler _handlers[] = {Interfaces::SetupHandler...};
         static constexpr auto _handlersIndexes = BuildIndexesArray();
     public:
+        constexpr InterfaceHandlers(auto interfaces) {}
+
         inline static void HandleSetupRequest(uint8_t number)
         {
             _handlers[_handlersIndexes[number]]();
         }
     };
+    template<typename... Interfaces>
+    InterfaceHandlers(Zhele::TemplateUtils::TypeList<Interfaces...> interfaces) -> InterfaceHandlers<Interfaces...>;
 }
 #endif // ZHELE_USB_INTERFACE_H
