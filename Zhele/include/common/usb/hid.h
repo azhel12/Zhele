@@ -103,7 +103,6 @@ namespace Zhele::Usb
     {
         using Base = Interface<_Number, _AlternateSetting, InterfaceClass::Hid, _SubClass, _Protocol, _Ep0, _Endpoints...>;
     public:
-        using Endpoints = Base::Endpoints;
 
         /**
          * @brief Interface setup request handler

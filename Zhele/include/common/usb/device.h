@@ -11,9 +11,10 @@
 #define ZHELE_USB_DEVICE_H
 
 #include "configuration.h"
+#include "cdc.h"
 #include "endpoints_manager.h"
 #include "hid.h"
-#include "cdc.h"
+#include "interface.h"
 #include "msc.h"
 
 #include "../ioreg.h"
@@ -101,17 +102,18 @@ namespace Zhele::Usb
 #elif defined (USB_OTG_FS)
         using This = DeviceBase<_Regs, _DeviceRegs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
 #endif
-        using Configurations = TypeList<_Configurations...>;
-        using Interfaces = Append_t<typename _Configurations::Interfaces...>; 
-        using Endpoints = Append_t<typename _Configurations::Endpoints...>;
-
-        using EpBufferManager = EndpointsManager<Append_t<_Ep0, Endpoints>>;
-        // Replace Ep0 with this for correct handler register.
-        using EpHandlers = EndpointHandlers<Append_t<This, Endpoints>>;
+        static constexpr auto _configurations = TypeList<_Configurations...>{};
+        static constexpr auto _interfaces = (TypeList<>{} + ... + _Configurations::Interfaces); 
+        static constexpr auto _endpoints = (TypeList<>{} + ... + _Configurations::Endpoints);
+        static constexpr auto _epBufferManager = EndpointsManager{_endpoints.template push_back<_Ep0>()};
+        static constexpr auto _epHandlers = EndpointHandlers{_endpoints.template push_back<This>()}; // Replace Ep0 with this for correct handler register.
+        static constexpr auto _ifHandlers = InterfaceHandlers{(TypeList<>{} + ... + _Configurations::Interfaces)};
 #if defined (USB_OTG_FS)
-        using EpFifoNotEmptyHandlers = EndpointFifoNotEmptyHandlers<Append_t<This, Endpoints>>;
+        static constexpr auto _outEndpoints = _endpoints.filter([](auto endpoint){
+            return endpoint.Direction == EndpointDirection::Out || endpoint.Direction == EndpointDirection::Bidirectional;
+        }).template push_back<This>();
+        static constexpr auto _epFifoNotEmptyHandlers = EndpointFifoNotEmptyHandlers{_outEndpoints};
 #endif
-        using IfHandlers = InterfaceHandlers<Interfaces>;
 
         static uint8_t _tempAddressStorage;
         static volatile bool _isDeviceConfigured;
@@ -203,24 +205,24 @@ namespace Zhele::Usb
         /**
          * @brief Calculate DAINTMSK value for OTG
          * 
-         * @tparam Endpoints Endpoints
+         * @param [in] endpoints Endpoints
+         * 
+         * @returns DAINT mask
          */
-        template<typename EndpointsList>
-        struct DaintMskCalculator;
+        static consteval auto CalculateDaintMask(auto endpoints) {
+            uint32_t result = 0;
 
-        template<typename... Endpoints>
-        struct DaintMskCalculator<TypeList<Endpoints...>>
-        {
-            static const uint32_t value = (0 | ... |
-                (Endpoints::Direction == EndpointDirection::In
-                    ? (1 << Endpoints::Number)
-                    : (Endpoints::Direction == EndpointDirection::Out
-                        ? ((1 << Endpoints::Number) << 16)
-                        : ((1 << Endpoints::Number) | ((1 << Endpoints::Number) << 16))
-                    )
-                )
-            );
-        };
+            endpoints.foreach([&result](auto endpoint) {
+                result |=  TypeUnbox<endpoint>::Direction == EndpointDirection::In
+                    ? (1 << TypeUnbox<endpoint>::Number)
+                    : (TypeUnbox<endpoint>::Direction == EndpointDirection::Out
+                        ? ((1 << TypeUnbox<endpoint>::Number) << 16)
+                        : ((1 << TypeUnbox<endpoint>::Number) | ((1 << TypeUnbox<endpoint>::Number) << 16))
+                    );
+            });
+
+            return result;
+        }
     };
 }
 

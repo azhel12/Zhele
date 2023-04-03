@@ -348,7 +348,7 @@ namespace Zhele::Timers
             class ChannelBase
             {
             protected:
-                using ModeBitField = typename GetType<_ChannelNumber, ModeList>::type;
+                using ModeBitField = TypeUnbox<ModeList::template get<_ChannelNumber>()>;
             
             public:
                 static_assert(_ChannelNumber < 4);

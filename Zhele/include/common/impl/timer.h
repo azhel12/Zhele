@@ -308,8 +308,8 @@ namespace Zhele::Timers::Private
         using Type = typename Pins::DataType;
         Type mask = 1 << pinNumber;
         Pins::Enable();
-        Pins::SetSpeed(mask, Pins::Speed::Slow);
-        Pins::SetDriverType(mask, Pins::DriverType::PushPull);
+        Pins::SetSpeed(Pins::Speed::Slow, mask);
+        Pins::SetDriverType(Pins::DriverType::PushPull, mask);
         Base::SelectPins(pinNumber);
     }
 

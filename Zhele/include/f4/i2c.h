@@ -30,17 +30,17 @@ namespace Zhele
 
             _SclPins::Enable();
             Type maskScl(1 << sclPinNumber);
-            _SclPins::SetConfiguration(maskScl, _SclPins::AltFunc);
-            _SclPins::AltFuncNumber(maskScl, GetAltFunctionNumber<_Regs>);
-            _SclPins::SetDriverType(maskScl, _SclPins::OpenDrain);
-            _SclPins::SetPullMode(maskScl, _SclPins::PullMode::PullUp);
+            _SclPins::SetConfiguration(_SclPins::AltFunc, maskScl);
+            _SclPins::AltFuncNumber(GetAltFunctionNumber<_Regs>, maskScl);
+            _SclPins::SetDriverType(_SclPins::OpenDrain, maskScl);
+            _SclPins::SetPullMode(_SclPins::PullMode::PullUp, maskScl);
 
             _SdaPins::Enable();
             Type maskSda(1 << sdaPinNumber);
-            _SdaPins::SetConfiguration(maskSda, _SdaPins::AltFunc);
-            _SdaPins::AltFuncNumber(maskSda, GetAltFunctionNumber<_Regs>);
-            _SdaPins::SetDriverType(maskSda, _SdaPins::OpenDrain);
-            _SdaPins::SetPullMode(maskSda, _SdaPins::PullMode::PullUp);
+            _SdaPins::SetConfiguration(_SdaPins::AltFunc, maskSda);
+            _SdaPins::AltFuncNumber(GetAltFunctionNumber<_Regs>, maskSda);
+            _SdaPins::SetDriverType(_SdaPins::OpenDrain, maskSda);
+            _SdaPins::SetPullMode(_SdaPins::PullMode::PullUp, maskSda);
         }
         
         I2C_TEMPLATE_ARGS
@@ -69,8 +69,8 @@ namespace Zhele
         template<typename SclPin, typename SdaPin>
         void I2C_TEMPLATE_QUALIFIER::SelectPins()
         {
-            const int sclPinIndex = TypeIndex<SclPin, typename _SclPins::PinsAsTypeList>::value;
-            const int sdaPinIndex = TypeIndex<SdaPin, typename _SdaPins::PinsAsTypeList>::value;
+            const int sclPinIndex = _SclPins::template IndexOf<SclPin>;
+            const int sdaPinIndex = _SdaPins::template IndexOf<SdaPin>;
             
             static_assert(sclPinIndex >= 0);
             static_assert(sdaPinIndex >= 0);

@@ -23,13 +23,13 @@ namespace Zhele::TemplateUtils
     * 16..32 - uint_fast32_t
     * 33..64 - uint_fast64_t
     */
-    template<uint8_t Length>
-    class SuitableUnsignedType
+    template<uint8_t length> 
+    static consteval auto GetSuitableUnsignedType()
     {
-        using unsignedTypes = TypeList<uint_fast8_t, uint_fast16_t, uint_fast32_t, uint_fast16_t>;
-    public:
-        using type = typename GetType<(Length - 1) / 8, unsignedTypes>::type;
-    };
+        constexpr auto unsignedTypes = TypeList<uint_fast8_t, uint_fast16_t, uint_fast32_t, uint_fast16_t>{};
+
+        return unsignedTypes.template get<(length - 1) / 8>();
+    }
 
     /**
     * @brief Allows to select suitable unsigned integer type to cover necessary length

@@ -1,402 +1,411 @@
 /**
  * @file
- * Implement types list for C++17
+ * Implement types list for C++20
  * 
- * @author Alexey Zhelonkin
- * @date 2019
+ * @author Alexey Zhelonkin (based on VladislavS code)
+ * @date 2023
  * @license FreeBSD
  */
-
 #ifndef ZHELE_TYPELIST_H
 #define ZHELE_TYPELIST_H
 
+#include <concepts>
 #include <type_traits>
 #include <utility>
 
-namespace Zhele
+namespace Zhele::TemplateUtils
 {
-    namespace TemplateUtils
+    struct DummyTypeBoxBase {};
+
+    template <typename T, typename Enabler = void>
+    constexpr bool is_complete_v = false;
+
+    template <typename T>
+    constexpr bool is_complete_v<T, std::void_t<decltype(sizeof(T) != 0)>> = true;
+
+    template<typename T>
+    struct TypeBox : public std::conditional_t<std::is_class_v<T> && is_complete_v<T>, T, DummyTypeBoxBase>
     {
+        using type = T;
+    };
+
+    template<typename T>
+    bool operator == (TypeBox<T>, TypeBox<T>) { return true; }
+    template<typename T, typename U>
+    bool operator == (TypeBox<T>, TypeBox<U>) { return false; }
+
+    /**
+     * @brief Type unbox
+     * 
+     * @tparam Value Type box
+    */
+    template<auto Value>
+    using TypeUnbox = typename decltype(Value)::type;
+
+    /**
+     * @brief Value box
+     * 
+     * @tparam Value Value
+    */
+    template <auto Value>
+    struct ValueBox
+    {
+        static constexpr auto value = Value;
+    };
+
+    /**
+     * @brief Unbox value
+     * 
+     * @tparam T Value box
+     * 
+     * @returns Unboxed value
+    */
+    template<typename T>
+    constexpr auto value_unbox() { return T::type::value; }
+
+    /**
+     * @brief Unbox value
+     * 
+     * @param t Value box
+     * 
+     * @returns Unboxed value
+    */
+    constexpr auto value_unbox(auto t) { return decltype(t)::type::value; }
+
+    /**
+     * @brief Implements type list
+    */
+    template<typename... Ts>
+    class TypeList
+    {
+    public:
         /**
-         * @brief Container for types
-         */
-        template<typename... Types>
-        class TypeList
-        {
-        };
+         * @brief Returns typelist size
+         * 
+         * @returns Typelist size (length)
+        */
+        static consteval auto size() { return sizeof...(Ts); }
 
         /**
-         * @brief Type type length
-         */
-        template<typename...>
-        class Length {};
+         * @brief Check typelist is empty
+         * 
+         * @retval true Typelist is empty
+         * @retval false Typelist is not empty
+        */
+        static consteval bool is_empty() { return (sizeof...(Ts) == 0); }
 
-        template<typename... Types>
-        class Length<TypeList<Types...>>
+        /**
+         * @brief Returns head of typelist
+         * 
+         * @returns Boxed head type
+        */
+        static consteval auto head()
         {
-        public:
-            static const unsigned value = sizeof...(Types);
-        };
+            return [] <typename T, typename... Us> (TypeList<T, Us...>) {
+                return TypeBox<T>{};
+            } (TypeList<Ts...>{});
+        }
+
+        /**
+         * @brief Returns tail of typelist
+         * 
+         * @returns Typelist with tail
+        */
+        static consteval auto tail()
+        {
+            return []<typename T, typename... Us>(TypeList<T, Us...>) { return TypeList<Us...>{}; }(TypeList<Ts...>{});
+        }
+
+        /**
+         * @brief Returns type by index
+         * 
+         * @todo Replace with static operator[] in c++23
+         * 
+         * @par index Type index
+         * 
+         * @returns Boxed required type
+        */
+        template<unsigned index>
+        static consteval auto get()
+        {
+            static_assert(index < size());
+
+            if constexpr (index == 0)
+                return head();
+            else
+                return tail().template get<index - 1>();
+        }
 
         /**
          * @brief Search type in typelist
-         */
-        template<typename, typename...>
-        class TypeIndex {};
-
-        template<typename Search>
-        class TypeIndex<Search, TypeList<>>
+         * 
+         * @tparam T Required type
+         * 
+         * @returns Type index or -1 if type does not present in typelist
+        */
+        template<typename T>
+        static consteval int search()
         {
-        public:
-            static const int value = -1;
-        };
-
-        template<typename Search, typename... Tail>
-        class TypeIndex<Search, TypeList<Search, Tail...>>
-        {
-        public:
-            static const int value = 0;
-        };
-
-        template<typename Search, typename Head, typename... Tail>
-        class TypeIndex<Search, TypeList<Head, Tail...>>
-        {
-        public:
-            static const int value = TypeIndex<Search, TypeList<Tail...>>::value >= 0
-                ? TypeIndex<Search, TypeList<Tail...>>::value + 1
-                : TypeIndex<Search, TypeList<Tail...>>::value;
-        };
+            if constexpr (is_empty())
+                return -1;
+            else if constexpr (std::is_same_v<TypeUnbox<head()>, T>)
+                return 0;
+            else
+                return tail().template search<T>() == -1
+                    ? -1
+                    : tail().template search<T>() + 1;
+        }
 
         /**
-         * @brief Select type from type list by index
-         */
-        template<int, typename...>
-        class GetType {};
-
-        template<typename Head, typename... Tail>
-        class GetType<-1, TypeList<Head, Tail...>>
+         * @brief Method \ref search with boxed parameter
+        */
+        template<typename T>
+        static consteval int search(TypeBox<T>)
         {
-        public:
-            using type = void;
-        };
-
-        template<typename Head, typename... Tail>
-        class GetType<0, TypeList<Head, Tail...>>
-        {
-        public:
-            using type = Head;
-        };
-
-        template<int Index, typename Head, typename... Tail>
-        class GetType<Index, TypeList<Head , Tail...>>
-        {
-            static_assert(Index < Length<TypeList<Head, Tail...>>::value);
-        public:
-            using type = typename GetType<Index - 1, TypeList<Tail...>>::type;
-        };
-
-        template<int Index, typename Types>
-        using GetType_t = typename GetType<Index, Types>::type;
+            return search<T>();   
+        }
 
         /**
-         * @brief Insert type to front of type
-         */
-        template <typename...>
-        class InsertFront{};
-
-        template <typename New, typename ...Types>
-        class InsertFront<New, TypeList<Types...>>
-        {
-        public:
-            using type = TypeList<New, Types...>;
-        };
+         * @brief Returns last type in typelist
+         * 
+         * @returns Boxed last type
+        */
+        static consteval auto back() { return (TypeBox<Ts>{}, ...); }
 
         /**
-         * @brief Insert type to back of type
-         */
-        template <typename ...Types>
-        class InsertBack;
-
-        template <typename New, typename ...Types>
-        class InsertBack<TypeList<Types...>, New>
-        {
-        public:
-            using type = TypeList<Types..., New>;
-        };
+         * @brief Insert type to front of typelist
+         * 
+         * @tparam T Type for insert
+         * 
+         * @returns Typebox with new typelist
+        */
+        template<typename T>
+        static consteval auto push_front() { return TypeList<T, Ts...>{}; }
 
         /**
-         * @brief Delete first type occurence from list
-         */
-        template <typename TypeToDelete, typename TypeList>
-        class DeleteFirst
-        {
-        public:
-            using type = TypeList;
-        };
-
-        template <typename TypeToDelete>
-        class DeleteFirst<TypeToDelete, TypeList<>>
-        {
-        public:
-            using type = TypeList<>;
-        };
-
-        template <typename TypeToDelete, typename... Tail>
-        class DeleteFirst<TypeToDelete, TypeList<TypeToDelete, Tail...>>
-        {
-        public:
-            using type = TypeList<Tail...>;
-        };
-
-        template <typename TypeToDelete, typename Head, typename... Tail>
-        class DeleteFirst<TypeToDelete, TypeList<Head, Tail...>>
-        {
-        public:
-            using type = typename InsertFront<Head, typename DeleteFirst<TypeToDelete, TypeList<Tail...>>::type>::type;
-        };
+         * @brief Method \ref push_front with boxed parameter
+        */
+        template<typename T>
+        static consteval auto push_front(TypeBox<T>) { return push_front<T>(); }
 
         /**
-         * @brief Delete all type occurence from list
-         */
-        template <typename TypeToDelete, typename TypeList>
-        class DeleteAll : public DeleteFirst<TypeToDelete, TypeList> {};
-
-        template <typename TypeToDelete, typename ...Tail>
-        class DeleteAll<TypeToDelete, TypeList<TypeToDelete, Tail...>>
-        {
-        public:
-            using type = typename DeleteAll<TypeToDelete, TypeList<Tail...>>::type;
-        };
-
-        template <typename TypeToDelete, typename Head, typename ...Tail>
-        class DeleteAll<TypeToDelete, TypeList<Head, Tail...>>
-        {
-        public:
-            using type = typename InsertFront<Head, typename DeleteAll<TypeToDelete, TypeList<Tail...>>::type>::type;
-        };
-        /**
-         * @brief Remove duplicates
-         */
-        template <typename>
-        class Unique;
-
-        template <>
-        class Unique<TypeList<>>
-        {
-        public:
-            using type = TypeList<>;
-        };
-
-        template <typename Head, typename... Tail>
-        class Unique<TypeList<Head, Tail...>>
-        {
-            using TailWithoutDuplicates = typename Unique<TypeList<Tail...>>::type;
-            using TailWithoutHead = typename DeleteFirst<Head, TailWithoutDuplicates>::type;
-        public:
-            using type = typename InsertFront<Head, TailWithoutHead>::type;
-        };
+         * @brief Insert type to back of typelist
+         * 
+         * @tparam T Type for insert
+         * 
+         * @returns Typebox with new typelist
+        */
+        template<typename T>
+        static consteval auto push_back()  { return TypeList<Ts..., T>{}; }
 
         /**
-         * @brief Appends typelists
-         */
-        template<typename...>
-        class Append{};
-
-        template<>
-        class Append<>
-        {
-        public:
-            using type = TypeList<>;
-        };
-
-        template<typename T, typename... Types>
-        class Append<T, TypeList<Types...>>
-        {
-        public:
-            using type = TypeList<T, Types...>;
-        };
-
-        /// 1 types list
-        template<typename... FirstListTypes>
-        class Append<TypeList<FirstListTypes...>>
-        {
-        public:
-            using type = TypeList<FirstListTypes...>;
-        };
-
-        /// 2 types lists
-        template<typename... FirstListTypes, typename... SecondListTypes>
-        class Append<TypeList<FirstListTypes...>, TypeList<SecondListTypes...>>
-        {
-        public:
-            using type = TypeList<FirstListTypes..., SecondListTypes...>;
-        };
-
-        /// 3 types lists
-        template<typename... FirstListTypes, typename... SecondListTypes, typename... ThirdListTypes>
-        class Append<TypeList<FirstListTypes...>, TypeList<SecondListTypes...>, TypeList<ThirdListTypes...>>
-        {
-        public:
-            using type = TypeList<FirstListTypes..., SecondListTypes..., ThirdListTypes...>;
-        };
-
-        /// 4 types lists
-        template<typename... FirstListTypes, typename... SecondListTypes, typename... ThirdListTypes, typename... FourthListTypes>
-        class Append<TypeList<FirstListTypes...>, TypeList<SecondListTypes...>, TypeList<ThirdListTypes...>, TypeList<FourthListTypes...>>
-        {
-        public:
-            using type = TypeList<FirstListTypes..., SecondListTypes..., ThirdListTypes..., FourthListTypes...>;
-        };
-
-        /// 5 types lists
-        template<typename... FirstListTypes, typename... SecondListTypes, typename... ThirdListTypes, typename... FourthListTypes, typename... FifthListTypes>
-        class Append<TypeList<FirstListTypes...>, TypeList<SecondListTypes...>, TypeList<ThirdListTypes...>, TypeList<FourthListTypes...>, TypeList<FifthListTypes...>>
-        {
-        public:
-            using type = TypeList<FirstListTypes..., SecondListTypes..., ThirdListTypes..., FourthListTypes..., FifthListTypes...>;
-        };
-
-        /// 6 types lists
-        template<typename... FirstListTypes, typename... SecondListTypes, typename... ThirdListTypes, typename... FourthListTypes, typename... FifthListTypes, typename... SixthListTypes>
-        class Append<TypeList<FirstListTypes...>, TypeList<SecondListTypes...>, TypeList<ThirdListTypes...>, TypeList<FourthListTypes...>, TypeList<FifthListTypes...>, TypeList<SixthListTypes...>>
-        {
-        public:
-            using type = TypeList<FirstListTypes..., SecondListTypes..., ThirdListTypes..., FourthListTypes..., FifthListTypes..., SixthListTypes...>;
-        };
-
-        template<typename... T>
-        using Append_t = typename Append<T...>::type;
+         * @brief Method \ref push_back with boxed parameter
+        */
+        template<typename T>
+        static consteval auto push_back(TypeBox<T>) { return push_back<T>(); }
 
         /**
-         * @brief Select list slice
-         */
-        template<int, int, typename...>
-        class Slice {};
-
-        template<int Offset, typename List>
-        class Slice<Offset, 0, List>
-        {
-        public:
-            using type = TypeList<>;
-        };
-
-        template<int Offset, typename List>
-        class Slice<Offset, 1, List>
-        {
-        public:
-            using type = TypeList<typename GetType<Offset, List>::type>;
-        };
-
-        template<int Offset, int Length, typename List>
-        class Slice<Offset, Length, List>
-        {
-        public:
-            using type = typename InsertBack<typename Slice<Offset, Length - 1, List>::type, typename GetType<Offset + Length - 1, List>::type>::type;
-        };
+         * @brief Check that typelis contains given type
+         * 
+         * @tparam T Required type
+         * 
+         * @retval true Typelist contains given type
+         * @retval false Typelist not contains given type
+        */
+        template<typename T>
+        static consteval bool contains() { return (... || std::is_same_v<T, Ts>); }
 
         /**
-         * @brief Select by bool template argument
-         */
-        template <bool, typename IfTrue, typename IfFalse>
-        class Select
-        {
-        public:
-            using value = IfTrue;
-        };
-
-        template<typename IfTrue, typename IfFalse>
-        class Select<false, IfTrue, IfFalse>
-        {
-        public:
-            using value = IfFalse;
-        };
+         * @brief Method \ref contains with boxed parameter
+        */
+        template<typename T>
+        static consteval bool contains(TypeBox<T>) { return contains<T>(); }
 
         /**
-         * @brief Select elements by predicate
-         */
-        template<template <typename> class, typename...>
-        class Sample;
-
-        template<template <typename> class Predicate, typename... Types>
-        class Sample<Predicate, TypeList<Types...>>
-        {
-        public:
-            using type = typename DeleteAll<void, TypeList<typename Select<Predicate<Types>::value, Types, void>::value ...>>::type;
-        };
-
-        template<template <typename> class Predicate, typename... Types>
-        using Sample_t = typename Sample<Predicate, Types...>::type;
+         * @brief Check that typelist is unique by given comparator
+         * 
+         * @retval true Typelist is unique
+         * @retval false Typelist does not unique
+        */
+        static consteval bool is_unique(auto func) { return is_unique_<Ts...>(func); }
 
         /**
-         * @brief Search type by predicate
-         */
-        template<template <typename> class, typename...>
-        class Search;
-
-        template<template <typename> class Predicate>
-        class Search<Predicate, TypeList<>>
+         * @brief Check that typelist does not have duplicates
+         * 
+         * @retval true Typelist does not have duplicates
+         * @retval false Typelist has duplicates
+        */
+        static consteval bool is_unique()
         {
-        public:
-            static const int value = -1;
-        };
+            return is_unique([](auto v1, auto v2) { return std::is_same_v<TypeUnbox<v1>, TypeUnbox<v2>>; });
+        }
 
-        template<template <typename> class Predicate, typename Head, typename... Tail>
-        class Search<Predicate, TypeList<Head, Tail...>>
+        /**
+         * @brief Returns typelist without duplicates
+         * 
+         * @returns Typelist without duplicates
+        */
+        static consteval auto remove_duplicates()
         {
-        public:
-            static const int value = Predicate<Head>::value
-                ? 0
-                : (Search<Predicate, TypeList<Tail...>>::value >= 0
-                    ? Search<Predicate, TypeList<Tail...>>::value + 1
-                    : Search<Predicate, TypeList<Tail...>>::value);
-        };
+            if constexpr (is_empty())
+                return TypeList<>{};
+            else if constexpr (size() == 1)
+                return TypeList<Ts...>{};
+            else if constexpr (tail().contains(head()))
+                return TypeList<>{} + tail().remove_duplicates();
+            else
+                return TypeList<TypeUnbox<head()>>{} + tail().remove_duplicates();
+        }
 
-        // Thanks https://codereview.stackexchange.com/questions/131194/selection-sorting-a-type-list-compile-time
-        template <auto i, auto j, typename List>
-        class SwapElementsInTypeList
+        /**
+         * @brief Sort typelist by given predicate
+         * 
+         * @returns Sorted typelist
+        */
+        static consteval auto sort(auto pred)
         {
-            template <typename IndexSequence>
-            struct SwapElementsInTypeListImpl;
-            template <unsigned... Indexes>
-            struct SwapElementsInTypeListImpl<std::index_sequence<Indexes...>>
-            {
-                using type = TypeList<GetType_t<Indexes != i && Indexes != j ? Indexes : Indexes == i ? j : i, List> ...>;
-            };
+            return insertion_sort<0, 1>(pred);
+        }
 
-        public:
-            using type = typename SwapElementsInTypeListImpl<std::make_index_sequence<Length<List>::value>>::type;
-        };
-
-        template <template <typename, typename> class Comparator, typename List>
-        class TypeListSort
+        /**
+         * @brief Accumulate types in typelist by given function
+         * 
+         * @param func Function-processor for types
+         * 
+         * @returns New typelist
+        */
+        static consteval auto accumulate(auto func)
         {
-            template <unsigned i, unsigned j, unsigned Size, typename LoopList>
-            struct TypeListSortImpl
-            {
-                using PermutationList = std::conditional_t<
-                    Comparator<GetType_t<i, LoopList>, GetType_t<j, LoopList>>::value,
-                    typename SwapElementsInTypeList<i, j, LoopList>::type,
-                    LoopList
-                >;
+            return (TypeList<>{} + ... + func(TypeBox<Ts>{}));
+        }
 
-                using type = typename TypeListSortImpl<i, j + 1, Size, PermutationList>::type;
-            };
+        /**
+         * @brief Apply function for each type in typelist
+         * 
+         * @param func Function
+         * 
+         * @par Returns
+         *  Nothing
+        */
+        static constexpr void foreach(auto func)
+        {
+            (func(TypeBox<Ts> {}), ...);
+        }
 
-            template <unsigned i, unsigned Size, typename LoopList>
-            struct TypeListSortImpl<i, Size, Size, LoopList>
-            {
-                using type = typename TypeListSortImpl<i + 1, i + 2, Size, LoopList>::type;
-            };
+        /**
+         * @brief Transform each type in typelist with given function
+         * 
+         * @param func Type transformer
+         * 
+         * @returns New typelist
+        */
+        static consteval auto transform(auto func) { return TypeList<TypeUnbox<func(TypeBox<Ts>{})>...>{}; }
 
-            template <unsigned j, unsigned Size, class LoopList>
-            struct TypeListSortImpl<Size, j, Size, LoopList>
-            {
-                using type = LoopList;
-            };
+        /**
+         * @brief Filter types by given binary predicate
+         * 
+         * @tparam First type argument for predicate
+         * 
+         * @param pred Predicate
+         * 
+         * @returns New typelist
+        */
+        template<typename T>
+        static consteval auto filter(auto pred)
+        {
+            return (TypeList<>{}+ ... +std::conditional_t<pred(TypeBox<T>{}, TypeBox<Ts>{}),TypeList<Ts>,TypeList<>>{});
+        }
 
-        public:
-            using type = typename TypeListSortImpl<0, 1, Length<List>::value, List>::type;
-        };
+        /**
+         * @brief Method \ref filter with boxed parameter
+        */
+        template<typename T>
+        static consteval auto filter(TypeBox<T> box, auto pred) { return filter<T>(pred); }
+
+        /**
+         * @brief Filter types by given unary predicate
+         * 
+         * @param pred Unary predicate
+         * 
+         * @returns New typelist
+        */
+        static consteval auto filter(auto pred)
+        {
+            return (TypeList<>{} + ... + std::conditional_t<pred(TypeBox<Ts>{}), TypeList<Ts>, TypeList<>>{});
+        }
+
+        template<typename... Us>
+        friend class TypeList;
+    private:
+        /**
+         * @brief Dummy is_unique_ for empty list
+         * 
+         * @par unused
+         * 
+         * @returns Always true
+        */
+        static consteval bool is_unique_(auto) { return true; }
+
+        /**
+         * @brief Check typelist is unique by given predicate
+         * 
+         * @tparam T Head
+         * @tparam Us Tail
+         * 
+         * @param func Binary predicate
+         * 
+         * @retval true Typelist is unique by predicate
+         * @retval false Typelist does not unique by predicate
+        */
+        template <typename T, typename... Us>
+        static consteval bool is_unique_(auto func)
+        {
+            return !(func(TypeBox<T>{}, TypeBox<Us>{}) || ...) && is_unique_<Us...>(func);
+        }
+
+        template<auto i, auto j>
+        static consteval auto insertion_sort(auto pred)
+        {
+            if constexpr (i == size()) {
+                return TypeList<Ts...>{};
+            } else if constexpr (j == size()) {
+                return insertion_sort<i + 1, i + 2>(pred);
+            } else if constexpr (!pred(get<i>(), get<j>())) {
+                return swap<i, j>().template insertion_sort<i, j + 1>(pred);
+            } else {
+                return insertion_sort<i, j + 1>(pred);
+            }
+        }
+
+        template<auto i, auto j>
+        static consteval auto swap()
+        {
+            return []<typename... Us, unsigned... Indexes>(TypeList<Ts...>, std::index_sequence<Indexes...>){
+                return TypeList<TypeUnbox<get<Indexes != i && Indexes != j ? Indexes : Indexes == i ? j : i>()> ...>{};
+            }(TypeList<Ts...>{}, std::make_index_sequence<size()>());
+        }
+    };
+
+    template<typename... Ts, typename... Us>
+    consteval bool operator == (TypeList<Ts...>, TypeList<Us...>) { return false; }
+
+    template<typename... Ts>
+    consteval bool operator == (TypeList<Ts...>, TypeList<Ts...>) { return true; }
+
+    template<typename... Ts, typename... Us>
+    consteval bool operator != (TypeList<Ts...>, TypeList<Us...>) { return true; }
+
+    template<typename... Ts>
+    consteval bool operator != (TypeList<Ts...>, TypeList<Ts...>) { return false; }
+
+    template<typename... Ts, typename... Us>
+    consteval auto operator + (TypeList<Ts...>, TypeList<Us...>) { return TypeList<Ts..., Us...> {}; }
+
+    template<typename... Ts, typename... Us>
+    consteval auto operator - (TypeList<Ts...> first, TypeList<Us...> second)
+    {
+        return first.filter([second](auto type) { return !second.contains(type); });
     }
 }
+
 #endif //! ZHELE_TYPELIST_H

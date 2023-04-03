@@ -64,7 +64,6 @@ namespace Zhele
              * @returns External source (HSE) clock frequence
              */
             static constexpr ClockFrequenceT SrcClockFreq();
-            
 
             /**
              * @brief Returns HSE divider
@@ -80,7 +79,6 @@ namespace Zhele
              */
             static constexpr ClockFrequenceT GetMultipler();
 
-
             /**
              * @brief Returns final clock frequence
              * 
@@ -90,7 +88,6 @@ namespace Zhele
              * @returns Final frequence
              */
             static constexpr ClockFrequenceT ClockFreq();
-            
 
             /**
              * @brief Enables Hse source
@@ -99,7 +96,6 @@ namespace Zhele
              * @retval false Fail enable
              */
             static bool Enable();
-           
 
             /**
              * @brief Disables Hse source
@@ -108,7 +104,6 @@ namespace Zhele
              * @retval false Fail disable
              */
             static bool Disable();
-         
         };
 
         /**
@@ -123,7 +118,6 @@ namespace Zhele
              * @returns External source (HSE) clock frequence
              */
             static constexpr ClockFrequenceT SrcClockFreq();
-           
 
             /**
              * @brief Returns HSI divider
@@ -164,7 +158,6 @@ namespace Zhele
              * @retval false Fail disable
              */
             static bool Disable();
-            
         };
 
         /**

@@ -42,7 +42,7 @@ namespace Zhele::Private
     template <typename _Regs>
     struct AltFuncHelper
     {
-        const static uint8_t value = static_cast<uint8_t>(GetNonTypeValueByIndex<TemplateUtils::TypeIndex<_Regs, Regs>::value, AltFunctionNumbers>::value);
+        const static uint8_t value = static_cast<uint8_t>(GetNonTypeValueByIndex<Regs::search<_Regs>(), AltFunctionNumbers>::value);
     };
 
     template<typename Regs>

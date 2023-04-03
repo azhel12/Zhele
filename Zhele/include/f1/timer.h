@@ -32,7 +32,7 @@ namespace Zhele::Timers
         template <typename _Regs>
         struct TimerRemapHelper
         {
-            using type = typename GetType<TypeIndex<_Regs, TimerRegs>::value, TimerRemaps>::type;
+            using type = TypeUnbox<TimerRemaps::template get<TimerRegs::template search<_Regs>()>()>;
         };
 
         template<typename Regs>
@@ -49,8 +49,8 @@ namespace Zhele::Timers
             Type mask = 1 << pinNumber;
 
             Pins::Enable();
-            Pins::SetConfiguration(mask, Pins::AltFunc);
-            Pins::SetDriverType(mask, Pins::DriverType::PushPull);
+            Pins::SetConfiguration(Pins::AltFunc, mask);
+            Pins::SetDriverType(Pins::DriverType::PushPull, mask);
             GetTimerRemap<_Regs>::Set(GetNumberRuntime<PinsAltFuncNumbers>::Get(pinNumber));
         }
 
@@ -61,7 +61,7 @@ namespace Zhele::Timers
         {
             using Pins = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::Pins;
             using PinsAltFuncNumbers = GPTimer<_Regs, _ClockEnReg, _IRQNumber, _ChPins>::OutputCompare<_ChannelNumber>::PinsAltFuncNumber;
-            using Pin = typename Pins::template Pin<PinNumber>;
+            using Pin = Pins::template Pin<PinNumber>;
             
             Pin::Port::Enable();
             Pin::template SetConfiguration<Pins::AltFunc>();
@@ -91,7 +91,7 @@ namespace Zhele::Timers
             Type mask = 1 << pinNumber;
 
             Pins::Enable();
-            Pins::SetConfiguration(mask, Pins::In);
+            Pins::SetConfiguration(Pins::In, mask);
             GetTimerRemap<_Regs>::Set(GetNumberRuntime<PinsAltFuncNumbers>::Get(pinNumber));
         }
 
