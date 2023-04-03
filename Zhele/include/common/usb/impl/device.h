@@ -134,7 +134,7 @@ namespace Zhele::Usb
     {
         _ClockCtrl::Enable();
         
-        EpBufferManager::Init();
+        _epBufferManager.Init();
 
 
         while (!(_Regs()->GRSTCTL & USB_OTG_GRSTCTL_AHBIDL)) continue;
@@ -184,12 +184,12 @@ namespace Zhele::Usb
         for (auto i = 0; i < 3; ++i)
             _Regs()->DIEPTXF[i] = 0;
 
-        EpBufferManager::Init();
+        _epBufferManager.Init();
 
         _Ep0::Reset();
         (_Configurations::Reset(), ...);
 
-        _DeviceRegs()->DAINTMSK = DaintMskCalculator<Append_t<_Ep0, Endpoints>>::value;
+        _DeviceRegs()->DAINTMSK = CalculateDaintMask(_endpoints.template push_back<This>());
         _DeviceRegs()->DOEPMSK = USB_OTG_DOEPMSK_STUPM // Enable setup-done irq
                                 | USB_OTG_DOEPMSK_XFRCM;  // Enable tx-done irq
 
@@ -217,23 +217,23 @@ namespace Zhele::Usb
             uint16_t size = (status & USB_OTG_GRXSTSP_BCNT) >> USB_OTG_GRXSTSP_BCNT_Pos;
             uint8_t enpointNumber = status & USB_OTG_GRXSTSP_EPNUM;
 
-            EpFifoNotEmptyHandlers::HandleRxFifoNotEmpty(enpointNumber, size);
+            _epFifoNotEmptyHandlers.HandleRxFifoNotEmpty(enpointNumber, size);
         }
 
         if(_Regs()->GINTSTS & USB_OTG_GINTSTS_OEPINT) {
             uint32_t endpoints = _DeviceRegs()->DAINT & _DeviceRegs()->DAINTMSK;
 
             if (endpoints & (1 << 16)) {
-                EpHandlers::Handle(0, EndpointDirection::Out);
+                _epHandlers.Handle(0, EndpointDirection::Out);
             }
             if (endpoints & (1 << 17)) {
-                EpHandlers::Handle(1, EndpointDirection::Out);
+                _epHandlers.Handle(1, EndpointDirection::Out);
             }
             if (endpoints & (1 << 18)) {
-                EpHandlers::Handle(2, EndpointDirection::Out);
+                _epHandlers.Handle(2, EndpointDirection::Out);
             }
             if (endpoints & (1 << 19)) {
-                EpHandlers::Handle(3, EndpointDirection::Out);
+                _epHandlers.Handle(3, EndpointDirection::Out);
             }
         }
 
@@ -241,16 +241,16 @@ namespace Zhele::Usb
             uint32_t endpoints = _DeviceRegs()->DAINT & _DeviceRegs()->DAINTMSK;
 
             if (endpoints & (1 << 0)) {
-                EpHandlers::Handle(0, EndpointDirection::In);
+                _epHandlers.Handle(0, EndpointDirection::In);
             }
             if (endpoints & (1 << 1)) {
-                EpHandlers::Handle(1, EndpointDirection::In);
+                _epHandlers.Handle(1, EndpointDirection::In);
             }
             if (endpoints & (1 << 2)) {
-                EpHandlers::Handle(2, EndpointDirection::In);
+                _epHandlers.Handle(2, EndpointDirection::In);
             }
             if (endpoints & (1 << 3)) {
-                EpHandlers::Handle(3, EndpointDirection::In);
+                _epHandlers.Handle(3, EndpointDirection::In);
             }
         }
     }

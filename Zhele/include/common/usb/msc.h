@@ -437,7 +437,6 @@ namespace Zhele::Usb
         static constexpr std::add_pointer_t<bool(void* buffer, uint16_t size)> _lunRxHandlers[] = {_Luns::RxHandler...};
         static constexpr std::add_pointer_t<bool(const BulkOnlyCBW& cbw, BulkOnlyCSW& csw, InTransferCallback callback)> _lunCommandHandlers[] = {(ScsiLun<_Luns>::template CommandHandler<_InEp>)...};
     public:
-        using Endpoints = Base::Endpoints;
 
         /**
          * @brief Interface setup request handler
