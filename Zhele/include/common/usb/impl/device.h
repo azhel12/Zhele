@@ -288,9 +288,9 @@ namespace Zhele::Usb
     }
 
     USB_DEVICE_TEMPLATE_ARGS
-    void USB_DEVICE_TEMPLATE_QUALIFIER::FillDescriptor(DeviceDescriptor* descriptor)
+    consteval DeviceDescriptor USB_DEVICE_TEMPLATE_QUALIFIER::GetDescriptor()
     {
-        *descriptor = DeviceDescriptor {
+        return DeviceDescriptor {
             .UsbVersion = _UsbVersion,
             .Class = _Class,
             .SubClass = _SubClass,
@@ -328,9 +328,7 @@ namespace Zhele::Usb
         case StandartRequestCode::GetDescriptor: {
             switch (static_cast<GetDescriptorParameter>(setupRequest->Value)) {
             case GetDescriptorParameter::DeviceDescriptor: {
-                DeviceDescriptor tempDeviceDescriptor;
-                FillDescriptor(&tempDeviceDescriptor);
-                _Ep0::SendData(&tempDeviceDescriptor, setupRequest->Length < sizeof(DeviceDescriptor) ? setupRequest->Length : sizeof(DeviceDescriptor));
+                _Ep0::SendData(&_deviceDescriptor, setupRequest->Length < sizeof(_deviceDescriptor) ? setupRequest->Length : sizeof(_deviceDescriptor));
                 break;
             }
 

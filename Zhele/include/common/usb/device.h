@@ -96,7 +96,13 @@ namespace Zhele::Usb
         typename... _Configurations>
     class DeviceBase : public _Ep0
     {
-    public:
+        /**
+         * @brief Build dvice descriptor
+         * 
+         * @returns Device descriptor
+         */
+        static consteval DeviceDescriptor GetDescriptor();
+
 #if defined (USB)
         using This = DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
 #elif defined (USB_OTG_FS)
@@ -108,6 +114,7 @@ namespace Zhele::Usb
         static constexpr auto _epBufferManager = EndpointsManager{_endpoints.template push_back<_Ep0>()};
         static constexpr auto _epHandlers = EndpointHandlers{_endpoints.template push_back<This>()}; // Replace Ep0 with this for correct handler register.
         static constexpr auto _ifHandlers = InterfaceHandlers{(TypeList<>{} + ... + _Configurations::Interfaces)};
+        static constexpr auto _deviceDescriptor = GetDescriptor();
 #if defined (USB_OTG_FS)
         static constexpr auto _outEndpoints = _endpoints.filter([](auto endpoint){
             return endpoint.Direction == EndpointDirection::Out || endpoint.Direction == EndpointDirection::Bidirectional;
@@ -154,16 +161,6 @@ namespace Zhele::Usb
          * @retval false Device is not configured yet
          */
         static bool IsDeviceConfigured();
-
-        /**
-         * @brief Fills descriptor
-         * 
-         * @param [out] descriptor Destination memory
-         * 
-         * @par Returns
-         *  Nothing
-         */
-        static void FillDescriptor(DeviceDescriptor* descriptor);
 
         /**
          * @brief Common USB handler
