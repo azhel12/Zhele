@@ -413,7 +413,7 @@ namespace Zhele::Usb
 #if defined (USB_LP_IRQn)
     #define USB_IRQ USB_LP_IRQn
 #elif defined (USB)
-    // #define USB_IRQ USB_IRQ
+    #define USB_IRQ USB_IRQn
 #elif defined (USB_OTG_FS)
     #define USB_IRQ OTG_FS_IRQn
 #endif

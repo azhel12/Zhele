@@ -203,8 +203,8 @@ namespace Zhele::Usb
          * @returns Boxed EPRn
         */
         template<typename Endpoint>
-        {
         static consteval auto GetEndpointReg()
+        {
             return _endpointRegs.template get<GetRegisterNumber(TypeBox<Endpoint>{})>();
         }
     };
