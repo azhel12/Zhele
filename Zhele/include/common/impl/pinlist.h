@@ -222,8 +222,8 @@ namespace Zhele::IO
         auto result = typename TypeUnbox<port>::DataType();
 
         GetPinsForPort(port).foreach([value, &result](auto pin) {
-            if (value & (1 << pin.Number))
-                result |= (1 << _pins.search(pin));
+            if (value & (1 << _pins.search(pin)))
+                result |= (1 << pin.Number);
         });
         return result;
     }
