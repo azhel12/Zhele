@@ -230,6 +230,7 @@ namespace Zhele
     void DMAMODULE_TEMPLATE_QUALIFIER::ClearChannelFlag()
     {
     #if defined(DMA_CCR_EN)
+        static_assert(ChannelNum > 0);
         _DmaRegs()->IFCR |= (static_cast<uint32_t>(FlagMask) << ((ChannelNum - 1) * 4));
     #endif
     #if defined(DMA_SxCR_EN)

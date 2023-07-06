@@ -75,7 +75,7 @@ namespace Zhele::IO::Private
     PORTIMPL_TEMPLATE_ARGS
     void PORTIMPL_TEMPLATE_QUALIFIER::Toggle(PORTIMPL_TEMPLATE_QUALIFIER::DataType value)
     {
-        _Regs()->BSRR = value << 16 | ~_Regs()->ODR & value;
+        _Regs()->BSRR = value << 16 | (~_Regs()->ODR & value);
     }
 
     PORTIMPL_TEMPLATE_ARGS
