@@ -13,12 +13,12 @@ namespace Zhele::Clock
     {
         if(GetClockSource() == Internal)
             return 2;
-    #if defined (RCC_CFGR_PLLXTPRE)
+    #if defined (RCC_CFGR2_PREDIV1)
+        return ((RCC->CFGR2 & RCC_CFGR2_PREDIV1) >> RCC_CFGR2_PREDIV1_Pos) + 1;
+    #else
         return (RCC->CFGR & RCC_CFGR_PLLXTPRE_HSE_DIV2) > 0 
             ? 2
             : 1;
-    #else
-        return ((RCC->CFGR2 & RCC_CFGR2_PREDIV1) >> RCC_CFGR2_PREDIV1_Pos) + 1;
     #endif
     }
 
@@ -28,7 +28,7 @@ namespace Zhele::Clock
         if(divider > 15)
             divider = 15;
         divider -= 1;
-        RCC->CFGR2 = (((RCC->CFGR2 & ~RCC_CFGR2_PREDIV1) | (divider << RCC_CFGR2_PREDIV1_Pos));
+        RCC->CFGR2 = ((RCC->CFGR2 & ~RCC_CFGR2_PREDIV1) | (divider << RCC_CFGR2_PREDIV1_Pos));
     #else
         if(divider > 2)
             divider = 2;
@@ -41,8 +41,9 @@ namespace Zhele::Clock
     ClockFrequenceT PllClock::GetMultipler()
     {
     #if defined(RCC_CFGR_PLLMULL6_5)
-        clock_freq_t mul = ((RCC->CFGR & RCC_CFGR_PLLMULL) >> 18);
-        if(mul == 13) return 65;
+        ClockFrequenceT mul = ((RCC->CFGR & RCC_CFGR_PLLMULL) >> RCC_CFGR_PLLMULL_Pos);
+        if(mul == (RCC_CFGR_PLLMULL6_5 >> RCC_CFGR_PLLMULL_Pos))
+            return 65;
         return mul + 2;
     #else
         return ((RCC->CFGR & RCC_CFGR_PLLMULL) >> RCC_CFGR_PLLMULL_Pos) + 2;
