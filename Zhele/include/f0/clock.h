@@ -15,6 +15,58 @@
 
 namespace Zhele::Clock
 {
+    inline ClockFrequenceT PllClock::SetClockFreq(ClockFrequenceT freq)
+    {
+        return 0;
+    }
+
+    inline ClockFrequenceT PllClock::GetDivider()
+    {
+        if(GetClockSource() == Internal)
+            return 2;
+
+        return (RCC->CFGR & RCC_CFGR_PLLXTPRE_HSE_PREDIV_DIV2) > 0 
+            ? 2
+            : 1;
+    }
+
+    inline void PllClock::SetDivider(ClockFrequenceT divider)
+    {
+        if(divider > 2)
+            divider = 2;
+        RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_PLLXTPRE) | (divider == 2
+            ? RCC_CFGR_PLLXTPRE_HSE_PREDIV_DIV2
+            : RCC_CFGR_PLLXTPRE_HSE_PREDIV_DIV1);
+    
+    }
+
+    inline ClockFrequenceT PllClock::GetMultipler()
+    {
+        return ((RCC->CFGR & RCC_CFGR_PLLMUL) >> RCC_CFGR_PLLMUL_Pos) + 2;
+    }
+
+    inline void PllClock::SetMultiplier(ClockFrequenceT multiplier)
+    {
+        if(multiplier > 16)
+            multiplier = 16;
+        multiplier-=2;
+        RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_PLLMUL) | (multiplier << RCC_CFGR_PLLMUL_Pos);
+    }    
+
+    inline void PllClock::SelectClockSource(ClockSource clockSource)
+    {
+        RCC->CFGR = clockSource == External
+            ? RCC->CFGR  | RCC_CFGR_PLLSRC
+            : RCC->CFGR  & ~RCC_CFGR_PLLSRC;
+    }
+
+    inline PllClock::ClockSource PllClock::GetClockSource()
+    {
+        return RCC->CFGR & RCC_CFGR_PLLSRC
+            ? ClockSource::External
+            : ClockSource::Internal;
+    }
+
     #if defined(RCC_HSI48_SUPPORT)
         /**
          * @brief Implements Hsi48 clock source

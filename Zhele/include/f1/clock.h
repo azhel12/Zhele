@@ -15,6 +15,82 @@
 
 namespace Zhele::Clock
 {
+    inline ClockFrequenceT PllClock::SetClockFreq(ClockFrequenceT freq)
+    {
+        // Not implemented yet
+        return 0;
+    }
+
+    inline ClockFrequenceT PllClock::GetDivider()
+    {
+        if(GetClockSource() == Internal)
+            return 2;
+    #if defined (RCC_CFGR2_PREDIV1)
+        return ((RCC->CFGR2 & RCC_CFGR2_PREDIV1) >> RCC_CFGR2_PREDIV1_Pos) + 1;
+    #else
+        return (RCC->CFGR & RCC_CFGR_PLLXTPRE_HSE_DIV2) > 0 
+            ? 2
+            : 1;
+    #endif
+    }
+
+    inline void PllClock::SetDivider(ClockFrequenceT divider)
+    {
+    #if defined(RCC_CFGR2_PREDIV1)
+        if(divider > 15)
+            divider = 15;
+        divider -= 1;
+        RCC->CFGR2 = ((RCC->CFGR2 & ~RCC_CFGR2_PREDIV1) | (divider << RCC_CFGR2_PREDIV1_Pos));
+    #else
+        if(divider > 2)
+            divider = 2;
+        RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_PLLXTPRE) | (divider == 2
+            ? RCC_CFGR_PLLXTPRE_HSE_DIV2
+            : RCC_CFGR_PLLXTPRE_HSE);
+    #endif
+    }
+
+    inline ClockFrequenceT PllClock::GetMultipler()
+    {
+    #if defined(RCC_CFGR_PLLMULL6_5)
+        ClockFrequenceT mul = ((RCC->CFGR & RCC_CFGR_PLLMULL) >> RCC_CFGR_PLLMULL_Pos);
+        if(mul == (RCC_CFGR_PLLMULL6_5 >> RCC_CFGR_PLLMULL_Pos))
+            return 65;
+        return mul + 2;
+    #else
+        return ((RCC->CFGR & RCC_CFGR_PLLMULL) >> RCC_CFGR_PLLMULL_Pos) + 2;
+    #endif
+    }
+
+    inline void PllClock::SetMultiplier(ClockFrequenceT multiplier)
+    {
+    #if !(defined(RCC_CFGR_PLLMULL3) && defined(RCC_CFGR_PLLMULL10))
+        if(multiplier > 9)
+            multiplier = 9;
+        if(multiplier < 4)
+            multiplier = 4;
+    #else
+        if(multiplier > 16)
+            multiplier = 16;
+    #endif
+        multiplier-=2;
+        RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_PLLMULL) | (multiplier << RCC_CFGR_PLLMULL_Pos);
+    }    
+
+    inline void PllClock::SelectClockSource(ClockSource clockSource)
+    {
+        RCC->CFGR = clockSource == External
+            ? RCC->CFGR  | RCC_CFGR_PLLSRC
+            : RCC->CFGR  & ~RCC_CFGR_PLLSRC;
+    }
+
+    inline PllClock::ClockSource PllClock::GetClockSource()
+    {
+        return RCC->CFGR & RCC_CFGR_PLLSRC
+            ? ClockSource::External
+            : ClockSource::Internal;
+    }
+
     const static unsigned AhbPrescalerBitFieldOffset = RCC_CFGR_HPRE_Pos;
     const static unsigned AhbPrescalerBitFieldLength = GetBitFieldLength<(RCC_CFGR_HPRE_Msk >> RCC_CFGR_HPRE_Pos)>;
     IO_BITFIELD_WRAPPER(RCC->CFGR, AhbPrescalerBitField, uint32_t, AhbPrescalerBitFieldOffset, AhbPrescalerBitFieldLength);
