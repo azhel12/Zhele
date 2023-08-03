@@ -352,8 +352,6 @@ namespace Zhele
     void DMAMODULE_TEMPLATE_QUALIFIER::Enable()
     {
         _Clock::Enable();
-        // See note.
-        DmaDummy();
     }
 
     DMAMODULE_TEMPLATE_ARGS

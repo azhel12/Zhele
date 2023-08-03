@@ -37,12 +37,6 @@
     #define ONLY_IF_STREAM_SUPPORTED(TEXT)
 #endif
 
-// Dummy function for fix compiler problem.
-// Without this hook compiler does not overload weak irq handlers (not include cpp files with handlers).
-// So, I have placed declaration here and empty definition in each cpp file.
-// It should be fixed (but I dont know how do it).
-void DmaDummy();
-
 namespace Zhele
 {
     class DmaBase
