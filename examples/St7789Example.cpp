@@ -11,7 +11,7 @@ using namespace Zhele::Clock;
 using namespace Zhele::IO;
 using namespace Zhele::Drivers;
 
-using Lcd = St7735<Spi1, IO::Pa4, IO::Pa3, IO::Pa2, 160, 128>;
+using Lcd = St7789<Spi1, IO::Pa4, IO::Pa3, IO::Pa2, 240, 240, St77xxRotation::Rot90>;
 
 void ConfigureClock();
 void ConfigurePins();
@@ -72,7 +72,9 @@ void ConfigurePins()
 void ConfigureSpi()
 {
     Spi1::Init(Spi1::ClockDivider::Fastest);
-    Spi1::SetClockPolarity(Spi1::ClockPolarity::ClockPolarityHigh);
-    Spi1::SetClockPhase(Spi1::ClockPhase::ClockPhaseFallingEdge);
-    Spi1::SelectPins<IO::Pa7, IO::Pa6, IO::Pa5, IO::NullPin>();
+    Spi1::SetClockPolarity(Spi1::ClockPolarity::ClockPolarityLow);
+    Spi1::SetClockPhase(Spi1::ClockPhase::ClockPhaseLeadingEdge);
+    Spi1::SelectPins<IO::Pa7, IO::NullPin, IO::Pa5, IO::NullPin>();
+    Pa7::template SetSpeed<Pa7::Speed::Fastest>();
+    Pa5::template SetSpeed<Pa5::Speed::Fastest>();
 }
