@@ -230,7 +230,7 @@ namespace Zhele::Usb
                 .Attributes = static_cast<uint8_t>(Type) & 0x3,
                 .MaxPacketSize = MaxPacketSize,
                 .Interval = Interval}.GetBytes();
-            auto dstEnd = std::copy(desc.begin(), desc.end(), result.begin());
+            auto dst = std::copy(desc.begin(), desc.end(), result.begin());
 
             if constexpr(Direction == EndpointDirection::Bidirectional)
             {
@@ -239,7 +239,7 @@ namespace Zhele::Usb
                     .Attributes = static_cast<uint8_t>(Type),
                     .MaxPacketSize = MaxPacketSize,
                     .Interval = Interval}.GetBytes();
-                std::copy(secondDesc.begin(), secondDesc.end(), dstEnd);
+                std::copy(secondDesc.begin(), secondDesc.end(), dst);
             }
 
             return result;
@@ -907,7 +907,7 @@ namespace Zhele::Usb
                 .Attributes = static_cast<uint8_t>(Type) & 0x3,
                 .MaxPacketSize = MaxPacketSize,
                 .Interval = Interval}.GetBytes();
-            auto dstEnd = std::copy(desc.begin(), desc.end(), result.begin());
+            auto dst = std::copy(desc.begin(), desc.end(), result.begin());
 
             if constexpr(Direction == EndpointDirection::Bidirectional)
             {
@@ -916,7 +916,7 @@ namespace Zhele::Usb
                     .Attributes = static_cast<uint8_t>(Type),
                     .MaxPacketSize = MaxPacketSize,
                     .Interval = Interval}.GetBytes();
-                std::copy(secondDesc.begin(), secondDesc.end(), dstEnd);
+                std::copy(secondDesc.begin(), secondDesc.end(), dst);
             }
 
             return result;

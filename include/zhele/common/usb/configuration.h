@@ -123,11 +123,11 @@ namespace Zhele::Usb
                 .MaxPower = _MaxPower
             }.GetBytes();
 
-            auto dstEnd = std::copy(head.begin(), head.end(), result.begin());
+            auto dst = std::copy(head.begin(), head.end(), result.begin());
 
-            Interfaces.foreach([&result, &dstEnd](auto interface) {
+            Interfaces.foreach([&dst](auto interface) {
                 auto nextInterfaceDescriptor = Zhele::TemplateUtils::TypeUnbox<interface>::GetDescriptor();
-                dstEnd = std::copy(nextInterfaceDescriptor.begin(), nextInterfaceDescriptor.end(), dstEnd);
+                dst = std::copy(nextInterfaceDescriptor.begin(), nextInterfaceDescriptor.end(), dst);
             });
 
             return result;

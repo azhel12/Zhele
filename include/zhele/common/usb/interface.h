@@ -83,6 +83,7 @@ namespace Zhele::Usb
 
             return size;
         }
+
     public:
         static const uint16_t Number = _Number;
 
@@ -120,11 +121,11 @@ namespace Zhele::Usb
                 .SubClass = _SubClass,
                 .Protocol = _Protocol
             }.GetBytes();
-            auto dstEnd = std::copy(head.begin(), head.end(), result.begin());
+            auto dst = std::copy(head.begin(), head.end(), result.begin());
 
-            Endpoints.foreach([&result, &dstEnd](auto endpoint) {
+            Endpoints.foreach([&dst](auto endpoint) {
                 auto nextEndpointDescriptor = Zhele::TemplateUtils::TypeUnbox<endpoint>::GetDescriptor();
-                dstEnd = std::copy(nextEndpointDescriptor.begin(), nextEndpointDescriptor.end(), dstEnd);
+                dst = std::copy(nextEndpointDescriptor.begin(), nextEndpointDescriptor.end(), dst);
             });
 
             return result;

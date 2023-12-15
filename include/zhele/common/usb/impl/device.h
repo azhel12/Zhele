@@ -325,11 +325,11 @@ namespace Zhele::Usb
         constexpr auto size = ConfigurationDescriptorSize();
 
         std::array<uint8_t, size> result;
-        auto descEnd = result.begin();
+        auto dst = result.begin();
 
-        _configurations.foreach([&result, &descEnd](auto configuration) {
+        _configurations.foreach([&dst](auto configuration) {
             auto nextConfigurationDescriptor = TypeUnbox<configuration>::GetDescriptor();
-            descEnd = std::copy(nextConfigurationDescriptor.begin(), nextConfigurationDescriptor.end(), descEnd);
+            dst = std::copy(nextConfigurationDescriptor.begin(), nextConfigurationDescriptor.end(), dst);
         });
 
         return result;
