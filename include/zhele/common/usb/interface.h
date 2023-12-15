@@ -53,6 +53,21 @@ namespace Zhele::Usb
     template <uint8_t _Number, uint8_t _AlternateSetting, DeviceAndInterfaceClass _Class, uint8_t _SubClass, uint8_t _Protocol, typename _Ep0, typename... _Endpoints>
     class Interface
     {
+        /**
+         * @brief Returns nested interface descriptor total size
+         * 
+         * @returns Size in bytes
+        */
+        static consteval unsigned NestedDescriptorSize()
+        {
+            unsigned size = 0;
+
+            Endpoints.foreach([&size](auto endpoint) {
+                size += endpoint.GetDescriptor().size();
+            });
+
+            return size;
+        }
     public:
         static const uint16_t Number = _Number;
 
@@ -73,30 +88,34 @@ namespace Zhele::Usb
         }
 
         /**
-         * @brief Fills descriptor
+         * @brief Build interface descriptor
          * 
-         * @param [out] descriptor Destination memory
-         * 
-         * @par Returns
-         *  Nothing
+         * @return Bytes of descriptor
          */
-        static uint16_t FillDescriptor(InterfaceDescriptor* descriptor)
+        static consteval auto GetDescriptor()
         {
-            uint16_t totalLength = sizeof(InterfaceDescriptor);
+            constexpr uint16_t size = sizeof(InterfaceDescriptor) + NestedDescriptorSize();
+            std::array<uint8_t, size> result;
 
-            *descriptor = InterfaceDescriptor {
-                .Number = _Number,
-                .AlternateSetting = _AlternateSetting,
-                .EndpointsCount = EndpointsCount,
-                .Class = _Class,
-                .SubClass = _SubClass,
-                .Protocol = _Protocol
+            constexpr std::array<uint8_t, sizeof(InterfaceDescriptor)> head = {
+                0x09,                                           // Lenght
+                static_cast<uint8_t>(DescriptorType::Interface),// Descriptor type
+                _Number,                                        // Number
+                static_cast<uint8_t>(_AlternateSetting),        // AlternateSetting
+                EndpointsCount,                                 // EndpointsCount
+                static_cast<uint8_t>(_Class),                   // Class
+                _SubClass,                                      // SubClass
+                _Protocol,                                      // Protocol
+                0                                               // String index
             };
-            
-            uint8_t* endpointsDescriptors = reinterpret_cast<uint8_t*>(descriptor);
-            ((totalLength += _Endpoints::FillDescriptor(reinterpret_cast<EndpointDescriptor*>(&endpointsDescriptors[totalLength]))), ...);
+            auto dstEnd = std::copy(head.begin(), head.end(), result.begin());
 
-            return totalLength;
+            Endpoints.foreach([&result, &dstEnd](auto endpoint) {
+                auto nextEndpointDescriptor = Zhele::TemplateUtils::TypeUnbox<endpoint>::GetDescriptor();
+                dstEnd = std::copy(nextEndpointDescriptor.begin(), nextEndpointDescriptor.end(), dstEnd);
+            });
+
+            return result;
         }
 
         /**

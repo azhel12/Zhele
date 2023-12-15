@@ -54,6 +54,21 @@ namespace Zhele::Usb
     template <uint8_t _Number, uint8_t _MaxPower, bool _RemoteWakeup = false, bool _SelfPowered = false, typename... _Interfaces>
     class Configuration
     {
+        /**
+         * @brief Returns nested interface descriptor total size
+         * 
+         * @returns Size in bytes
+        */
+        static consteval unsigned NestedDescriptorSize()
+        {
+            unsigned size = 0;
+
+            Interfaces.foreach([&size](auto interface) {
+                size += interface.GetDescriptor().size();
+            });
+
+            return size;
+        }
     public:
         static constexpr auto Interfaces = Zhele::TemplateUtils::TypeList<_Interfaces...>{};
         static constexpr auto Endpoints = (Zhele::TemplateUtils::TypeList<>{} + ... + _Interfaces::Endpoints);
@@ -72,29 +87,34 @@ namespace Zhele::Usb
         }
 
         /**
-         * @brief Fills descriptor
+         * @brief Build descriptor
          * 
-         * @param [out] descriptor Destination memory
-         *
-         * @returns Total bytes written
+         * @returns Bytes of descriptor
          */
-        static uint16_t FillDescriptor(ConfigurationDescriptor* descriptor)
+        static consteval auto GetDescriptor()
         {
-            uint16_t totalLength = sizeof(ConfigurationDescriptor);
+            constexpr uint16_t size = sizeof(ConfigurationDescriptor) + NestedDescriptorSize();
+            std::array<uint8_t, size> result;
 
-            *descriptor = ConfigurationDescriptor {
-                .InterfacesCount = Interfaces.size(),
-                .Number = _Number,
-                .Attributes = {.RemoteWakeup = _RemoteWakeup, .SelfPowered = _SelfPowered},
-                .MaxPower = _MaxPower
+            constexpr std::array<uint8_t, sizeof(ConfigurationDescriptor)> head = {
+                0x09,                                                   // Length
+                static_cast<uint8_t>(DescriptorType::Configuration),    // Descriptor type
+                size & 0xff, (size >> 8) & 0xff,                        // TotalLength
+                Interfaces.size(),                                      // InterfacesCount
+                _Number,                                                // Number
+                0,                                                      // String index
+                ((_RemoteWakeup ? 1 : 0) << 5) | ((_SelfPowered ? 1 : 0) << 6),   // Attributes
+                _MaxPower                                               // MaxPower
             };
 
-            uint8_t* interfacesDescriptors = reinterpret_cast<uint8_t*>(descriptor);
-            ((totalLength += _Interfaces::FillDescriptor(reinterpret_cast<InterfaceDescriptor*>(&interfacesDescriptors[totalLength]))), ...);
+            auto dstEnd = std::copy(head.begin(), head.end(), result.begin());
 
-            descriptor->TotalLength = totalLength;
+            Interfaces.foreach([&result, &dstEnd](auto interface) {
+                auto nextInterfaceDescriptor = Zhele::TemplateUtils::TypeUnbox<interface>::GetDescriptor();
+                dstEnd = std::copy(nextInterfaceDescriptor.begin(), nextInterfaceDescriptor.end(), dstEnd);
+            });
 
-            return totalLength;
+            return result;
         }
     };
 }

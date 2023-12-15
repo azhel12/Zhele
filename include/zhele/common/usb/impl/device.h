@@ -288,7 +288,7 @@ namespace Zhele::Usb
     }
 
     USB_DEVICE_TEMPLATE_ARGS
-    consteval DeviceDescriptor USB_DEVICE_TEMPLATE_QUALIFIER::GetDescriptor()
+    consteval DeviceDescriptor USB_DEVICE_TEMPLATE_QUALIFIER::BuildDeviceDescriptor()
     {
         return DeviceDescriptor {
             .UsbVersion = _UsbVersion,
@@ -304,6 +304,35 @@ namespace Zhele::Usb
             .SerialNumberStringIndex = (std::is_same_v<decltype(_Serial), decltype(EmptyFixedString16)>) ? 0 : 3,
             .ConfigurationsCount = sizeof...(_Configurations)
         };
+    }
+
+    USB_DEVICE_TEMPLATE_ARGS
+    consteval unsigned USB_DEVICE_TEMPLATE_QUALIFIER::ConfigurationDescriptorSize()
+    {
+        uint16_t size = 0;
+
+        _configurations.foreach([&size](auto configuration) {
+            size += TypeUnbox<configuration>::GetDescriptor().size();
+        });
+
+        return size;
+    }
+
+
+    USB_DEVICE_TEMPLATE_ARGS
+    consteval auto USB_DEVICE_TEMPLATE_QUALIFIER::BuildConfigurationDescriptor()
+    {
+        constexpr auto size = ConfigurationDescriptorSize();
+
+        std::array<uint8_t, size> result;
+        auto descEnd = result.begin();
+
+        _configurations.foreach([&result, &descEnd](auto configuration) {
+            auto nextConfigurationDescriptor = TypeUnbox<configuration>::GetDescriptor();
+            descEnd = std::copy(nextConfigurationDescriptor.begin(), nextConfigurationDescriptor.end(), descEnd);
+        });
+
+        return result;
     }
 
     USB_DEVICE_TEMPLATE_ARGS
@@ -328,15 +357,14 @@ namespace Zhele::Usb
         case StandartRequestCode::GetDescriptor: {
             switch (static_cast<GetDescriptorParameter>(setupRequest->Value)) {
             case GetDescriptorParameter::DeviceDescriptor: {
-                _Ep0::SendData(&_deviceDescriptor, setupRequest->Length < sizeof(_deviceDescriptor) ? setupRequest->Length : sizeof(_deviceDescriptor));
+                constexpr auto descriptor = BuildDeviceDescriptor();
+                _Ep0::SendData(&descriptor, setupRequest->Length < sizeof(descriptor) ? setupRequest->Length : sizeof(descriptor));
                 break;
             }
 
             case GetDescriptorParameter::ConfigurationDescriptor: {
-                uint8_t temp[128];
-                // Now supports only one configuration. It will easy to support more by adding dispatcher like in endpoint/interface
-                uint16_t size = _configurations.template get<0>().FillDescriptor(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]));
-                _Ep0::SendData(reinterpret_cast<ConfigurationDescriptor*>(&temp[0]), setupRequest->Length < size ? setupRequest->Length : size);
+                constexpr auto descriptor = BuildConfigurationDescriptor();
+                _Ep0::SendData(descriptor.data(), setupRequest->Length < descriptor.size() ? setupRequest->Length : descriptor.size());
                 break;
             }
             case GetDescriptorParameter::StringLangDescriptor: {

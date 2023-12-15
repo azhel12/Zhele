@@ -97,11 +97,25 @@ namespace Zhele::Usb
     class DeviceBase : public _Ep0
     {
         /**
-         * @brief Build dvice descriptor
+         * @brief Build device descriptor
          * 
          * @returns Device descriptor
          */
-        static consteval DeviceDescriptor GetDescriptor();
+        static consteval DeviceDescriptor BuildDeviceDescriptor();
+
+        /**
+         * @brief Calculates configuration descriptor size
+         * 
+         * @returns Configuration descriptor size in bytes
+        */
+        static consteval unsigned ConfigurationDescriptorSize();
+
+        /**
+         * @brief Build configuration descriptor
+         * 
+         * @returns Bytes with configuration descriptor
+        */
+        static consteval auto BuildConfigurationDescriptor();
 
 #if defined (USB)
         using This = DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
@@ -114,7 +128,6 @@ namespace Zhele::Usb
         static constexpr auto _epBufferManager = EndpointsManager{_endpoints.template push_back<_Ep0>()};
         static constexpr auto _epHandlers = EndpointHandlers{_endpoints.template push_back<This>()}; // Replace Ep0 with this for correct handler register.
         static constexpr auto _ifHandlers = InterfaceHandlers{(TypeList<>{} + ... + _Configurations::Interfaces)};
-        static constexpr auto _deviceDescriptor = GetDescriptor();
 #if defined (USB_OTG_FS)
         static constexpr auto _outEndpoints = _endpoints.filter([](auto endpoint){
             return endpoint.Direction == EndpointDirection::Out || endpoint.Direction == EndpointDirection::Bidirectional;
