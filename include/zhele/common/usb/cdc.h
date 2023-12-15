@@ -56,7 +56,30 @@ namespace Zhele::Usb
     class CdcCommInterface : public Interface<_Number, _AlternateSetting, DeviceAndInterfaceClass::Comm, _SubClass, _Protocol, _Ep0, _Endpoint>
     {
         using Base = Interface<_Number, _AlternateSetting, DeviceAndInterfaceClass::Comm, _SubClass, _Protocol, _Ep0, _Endpoint>;
+        static constexpr auto Functionals = Zhele::TemplateUtils::TypeList<_Functionals...>{};
+
         static LineCoding _lineCoding;
+
+        /**
+         * @brief Returns nested interface descriptor total size
+         * 
+         * @returns Size in bytes
+        */
+        static consteval unsigned NestedDescriptorSize()
+        {
+            unsigned size = 0;
+
+            Base::Endpoints.foreach([&size](auto endpoint) {
+                size += endpoint.GetDescriptor().size();
+            });
+
+            Functionals.foreach([&size](auto functional) {
+                size += functional.GetDescriptor().size();
+            });
+
+            return size;
+        }
+
     public:
         /**
          * @brief Interface setup request handler
@@ -94,34 +117,36 @@ namespace Zhele::Usb
         }
 
         /**
-         * @brief Fills descriptor
+         * @brief Build interface descriptor
          * 
-         * @param [out] descriptor Destination memory
-         * 
-         * @par Returns
-         *  Nothing
+         * @returns Bytes of interface descriptor
          */
-        static uint16_t FillDescriptor(InterfaceDescriptor* descriptor)
+        static consteval auto FillDescriptor()
         {
-            uint16_t totalLength = sizeof(InterfaceDescriptor);
+            constexpr unsigned size = sizeof(InterfaceDescriptor) + NestedDescriptorSize();
+            std::array<uint8_t, size> result;
             
-            *descriptor = InterfaceDescriptor {
+            constexpr auto head = InterfaceDescriptor {
                 .Number = _Number,
                 .AlternateSetting = _AlternateSetting,
                 .EndpointsCount = Base::EndpointsCount,
                 .Class = DeviceAndInterfaceClass::Comm,
                 .SubClass = _SubClass,
                 .Protocol = _Protocol
-            };
+            }.GetBytes();
+            auto dst = std::copy(head.begin(), head.end(), result.begin());
+
+            Functionals.foreach([&dst](auto functional){
+                auto nextFunctionalDescriptor = Zhele::TemplateUtils::TypeUnbox<functional>::GetDescriptor();
+                dst = std::copy(nextFunctionalDescriptor.begin(), nextFunctionalDescriptor.end(), dst);
+            });
         
-            uint8_t* functionalDescriptors = reinterpret_cast<uint8_t*>(descriptor);
+            Base::Endpoints.foreach([&dst](auto endpoint) {
+                auto nextEndpointDescriptor = Zhele::TemplateUtils::TypeUnbox<endpoint>::GetDescriptor();
+                dst = std::copy(nextEndpointDescriptor.begin(), nextEndpointDescriptor.end(), dst);
+            });
 
-            ((totalLength += _Functionals::FillDescriptor(&functionalDescriptors[totalLength])), ...);
-
-            EndpointDescriptor* endpointDescriptors = reinterpret_cast<EndpointDescriptor*>(&functionalDescriptors[totalLength]);
-            totalLength += _Endpoint::FillDescriptor(endpointDescriptors);
-
-            return totalLength;
+            return result;
         }
     };
     template <uint8_t _Number, uint8_t _AlternateSetting, uint8_t _SubClass, uint8_t _Protocol, typename _Ep0, typename _Endpoint, typename... _Functionals>
@@ -152,33 +177,6 @@ namespace Zhele::Usb
         static void SetupHandler()
         {
         }
-
-        /**
-         * @brief Fills descriptor
-         * 
-         * @param [out] descriptor Destination memory
-         * 
-         * @par Returns
-         *  Nothing
-         */
-        static uint16_t FillDescriptor(InterfaceDescriptor* descriptor)
-        {
-            uint16_t totalLength = sizeof(InterfaceDescriptor);
-            
-            *descriptor = InterfaceDescriptor {
-                .Number = _Number,
-                .AlternateSetting = _AlternateSetting,
-                .EndpointsCount = Base::EndpointsCount,
-                .Class = DeviceAndInterfaceClass::CdcData,
-                .SubClass = _SubClass,
-                .Protocol = _Protocol
-            };
-
-            uint8_t* endpointsDescriptors = reinterpret_cast<uint8_t*>(descriptor);
-            ((totalLength += _Endpoints::FillDescriptor(reinterpret_cast<EndpointDescriptor*>(&endpointsDescriptors[totalLength]))), ...);
-
-            return totalLength;
-        }
     };
 
     /**
@@ -191,19 +189,26 @@ namespace Zhele::Usb
     template<uint8_t _DescriptorType, uint8_t _DescriptorSubtype, uint8_t... _Data>
     class FunctionalDescriptor
     {
-        static constexpr uint8_t _data[sizeof...(_Data)] = {_Data...};
+        static constexpr std::array<uint8_t, sizeof...(_Data)> _data = {_Data...};
     public:
-        static uint8_t FillDescriptor(void* address)
+        /**
+         * @brief Returns functional descriptor
+         * 
+         * @return Bytes of descriptor
+        */
+        static consteval auto GetDescriptor()
         {
-            uint8_t* destination = reinterpret_cast<uint8_t*>(address);
+            std::array<uint8_t, 3 + sizeof...(_Data)> result {
+                3 + sizeof...(_Data),
+                _DescriptorType,
+                _DescriptorSubtype
+            };
+            auto dst = result.begin();
+            std::advance(dst, 3);
             
-            destination[0] = 3 + sizeof...(_Data); // bFunctionLength
-            destination[1] = _DescriptorType; // bDescriptorType
-            destination[2] = _DescriptorSubtype; // bDescriptorSubtype
+            std::copy(_data.begin(), _data.end(), dst);
 
-            memcpy(&destination[3], _data, sizeof...(_Data)); // Data
-
-            return 3 + sizeof...(_Data);
+            return result;
         }
     };
 
