@@ -336,6 +336,20 @@ namespace Zhele::Usb
     }
 
     USB_DEVICE_TEMPLATE_ARGS
+    inline consteval auto USB_DEVICE_TEMPLATE_QUALIFIER::BuildStringDescriptor(auto str)
+    {
+        std::array<uint16_t, str.Size / 2 + 1> result {
+            ((2 + str.Size) << 8) | static_cast<uint8_t>(DescriptorType::String)
+        };
+        auto dst = result.begin();
+        ++dst;
+
+        std::copy(str.Text, str.Text + str.Size / 2, dst);
+
+        return result;
+    }
+
+    USB_DEVICE_TEMPLATE_ARGS
     void USB_DEVICE_TEMPLATE_QUALIFIER::HandleSetupRequest(SetupPacket* setupRequest)
     {
         if (setupRequest->RequestType.Recipient == 1) {
@@ -375,12 +389,9 @@ namespace Zhele::Usb
             case GetDescriptorParameter::StringManDescriptor: {
                 if constexpr (!std::is_same_v<decltype(_Manufacturer), decltype(EmptyFixedString16)>)
                 {
-                    uint8_t temp[sizeof(StringDescriptor) + _Manufacturer.Size];
-                    auto descriptor = reinterpret_cast<StringDescriptor*>(temp);
-                    *descriptor = StringDescriptor {.Length = sizeof(temp)};
-
-                    memcpy(descriptor->String, _Manufacturer.Text, _Manufacturer.Size);
-                    _Ep0::SendData(temp, setupRequest->Length < descriptor->Length ? setupRequest->Length : descriptor->Length);
+                    constexpr auto descriptor = BuildStringDescriptor(_Manufacturer);
+                    constexpr auto size = descriptor.size() * sizeof(descriptor[0]);
+                    _Ep0::SendData(descriptor.data(), setupRequest->Length < size ? setupRequest->Length : size);
                     break;
                 }
             }
@@ -388,24 +399,18 @@ namespace Zhele::Usb
             case GetDescriptorParameter::StringProdDescriptor: {
                 if constexpr (!std::is_same_v<decltype(_Product), decltype(EmptyFixedString16)>)
                 {
-                    uint8_t temp[sizeof(StringDescriptor) + _Product.Size];
-                    auto descriptor = reinterpret_cast<StringDescriptor*>(temp);
-                    *descriptor = StringDescriptor {.Length = sizeof(temp)};
-
-                    memcpy(descriptor->String, _Product.Text, _Product.Size);
-                    _Ep0::SendData(temp, setupRequest->Length < descriptor->Length ? setupRequest->Length : descriptor->Length);
+                    constexpr auto descriptor = BuildStringDescriptor(_Product);
+                    constexpr auto size = descriptor.size() * sizeof(descriptor[0]);
+                    _Ep0::SendData(descriptor.data(), setupRequest->Length < size ? setupRequest->Length : size);
                     break;
                 }
             }
             case GetDescriptorParameter::StringSerialNumberDescriptor: {
                 if constexpr (!std::is_same_v<decltype(_Serial), decltype(EmptyFixedString16)>)
                 {
-                    uint8_t temp[sizeof(StringDescriptor) + _Serial.Size];
-                    auto descriptor = reinterpret_cast<StringDescriptor*>(temp);
-                    *descriptor = StringDescriptor {.Length = sizeof(temp)};
-
-                    memcpy(descriptor->String, _Serial.Text, _Serial.Size);
-                    _Ep0::SendData(temp, setupRequest->Length < descriptor->Length ? setupRequest->Length : descriptor->Length);
+                    constexpr auto descriptor = BuildStringDescriptor(_Serial);
+                    constexpr auto size = descriptor.size() * sizeof(descriptor[0]);
+                    _Ep0::SendData(descriptor.data(), setupRequest->Length < size ? setupRequest->Length : size);
                     break;
                 }
             }

@@ -117,6 +117,13 @@ namespace Zhele::Usb
         */
         static consteval auto BuildConfigurationDescriptor();
 
+        /**
+         * @brief Build string descriptor
+         * 
+         * @returns Bytes with string descriptor
+        */
+        static consteval auto BuildStringDescriptor(auto str);
+
 #if defined (USB)
         using This = DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
 #elif defined (USB_OTG_FS)
