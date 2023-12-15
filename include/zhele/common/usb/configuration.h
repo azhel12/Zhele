@@ -39,6 +39,25 @@ namespace Zhele::Usb
         uint8_t StringIndex = 0; ///< Configuration string index
         ConfigurationAttributes Attributes; ///< Configuration attributes
         uint8_t MaxPower; ///< Max power (in 2mA units)
+
+        /**
+         * @brief Returns descriptor bytes
+         * 
+         * @returns Bytes of descriptor
+        */
+        constexpr auto GetBytes()
+        {
+            return std::array<uint8_t, 9> {
+                Length,
+                static_cast<uint8_t>(Type),
+                static_cast<uint8_t>(TotalLength & 0xff), static_cast<uint8_t>((TotalLength >> 8) & 0xff),
+                InterfacesCount,
+                Number,
+                StringIndex,
+                static_cast<uint8_t>(((Attributes.RemoteWakeup ? 1 : 0) << 5) | ((Attributes.SelfPowered ? 1 : 0) << 6)),
+                MaxPower
+            };
+        }
     };
 #pragma pack(pop)
 
@@ -96,16 +115,13 @@ namespace Zhele::Usb
             constexpr uint16_t size = sizeof(ConfigurationDescriptor) + NestedDescriptorSize();
             std::array<uint8_t, size> result;
 
-            constexpr std::array<uint8_t, sizeof(ConfigurationDescriptor)> head = {
-                0x09,                                                   // Length
-                static_cast<uint8_t>(DescriptorType::Configuration),    // Descriptor type
-                size & 0xff, (size >> 8) & 0xff,                        // TotalLength
-                Interfaces.size(),                                      // InterfacesCount
-                _Number,                                                // Number
-                0,                                                      // String index
-                ((_RemoteWakeup ? 1 : 0) << 5) | ((_SelfPowered ? 1 : 0) << 6),   // Attributes
-                _MaxPower                                               // MaxPower
-            };
+            constexpr auto head = ConfigurationDescriptor {
+                .TotalLength = size,
+                .InterfacesCount = Interfaces.size(),
+                .Number = _Number,
+                .Attributes = {.RemoteWakeup = _RemoteWakeup, .SelfPowered = _SelfPowered},
+                .MaxPower = _MaxPower
+            }.GetBytes();
 
             auto dstEnd = std::copy(head.begin(), head.end(), result.begin());
 

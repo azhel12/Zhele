@@ -71,6 +71,23 @@ namespace Zhele::Usb
         uint8_t Attributes; ///< Endpoint attributes
         uint16_t MaxPacketSize; ///< Endpoint max packet size
         uint8_t Interval; ///< Endpoint poll interval
+
+        /**
+         * @brief Return descriptor bytes
+         * 
+         * @returns Bytes of descriptor
+        */
+        constexpr auto GetBytes() const
+        {
+            return std::array<uint8_t, 7> {
+                Length,
+                static_cast<uint8_t>(Type),
+                Address,
+                Attributes,
+                static_cast<uint8_t>(MaxPacketSize & 0xff), static_cast<uint8_t>((MaxPacketSize >> 8) & 0xff),
+                Interval
+            };
+        }
     };
     #pragma pack(pop)
 
@@ -208,26 +225,20 @@ namespace Zhele::Usb
             
             std::array<uint8_t, size> result;
 
-            constexpr std::array<uint8_t, sizeof(EndpointDescriptor)> desc = {
-                0x07,                                                                           // Length
-                static_cast<uint8_t>(DescriptorType::Endpoint),                                 // Descriptor type
-                static_cast<uint8_t>(Number) | ((static_cast<uint8_t>(Direction) & 0x01) << 7), // Address
-                static_cast<uint8_t>(Type) & 0x3,                                               // Attributes
-                MaxPacketSize & 0xff, (MaxPacketSize >> 8) & 0xff,                              // MaxPacketSize
-                Interval                                                                        // Interval
-            };
+            constexpr auto desc = EndpointDescriptor{
+                .Address = static_cast<uint8_t>(Number) | ((static_cast<uint8_t>(Direction) & 0x01) << 7),
+                .Attributes = static_cast<uint8_t>(Type) & 0x3,
+                .MaxPacketSize = MaxPacketSize,
+                .Interval = Interval}.GetBytes();
             auto dstEnd = std::copy(desc.begin(), desc.end(), result.begin());
 
             if constexpr(Direction == EndpointDirection::Bidirectional)
             {
-                constexpr std::array<uint8_t, sizeof(EndpointDescriptor)> secondDesc = {
-                    0x07,                                                                       // Length
-                    static_cast<uint8_t>(DescriptorType::Endpoint),                             // Descriptor type
-                    static_cast<uint8_t>(Number) | (1 << 7),                                    // Address
-                    static_cast<uint8_t>(Type),                                                 // Attributes
-                    MaxPacketSize,                                                              // MaxPacketSize
-                    Interval                                                                    // Interval
-                }; 
+                constexpr auto secondDesc = EndpointDescriptor{
+                    .Address = static_cast<uint8_t>(Number) | (1 << 7),
+                    .Attributes = static_cast<uint8_t>(Type),
+                    .MaxPacketSize = MaxPacketSize,
+                    .Interval = Interval}.GetBytes();
                 std::copy(secondDesc.begin(), secondDesc.end(), dstEnd);
             }
 
@@ -891,26 +902,20 @@ namespace Zhele::Usb
             
             std::array<uint8_t, size> result;
 
-            constexpr std::array<uint8_t, sizeof(EndpointDescriptor)> desc = {
-                0x07,                                                                           // Length
-                static_cast<uint8_t>(DescriptorType::Endpoint),                                 // Descriptor type
-                static_cast<uint8_t>(Number) | ((static_cast<uint8_t>(Direction) & 0x01) << 7), // Address
-                static_cast<uint8_t>(Type) & 0x3,                                               // Attributes
-                MaxPacketSize & 0xff, (MaxPacketSize >> 8) & 0xff,                              // MaxPacketSize
-                Interval                                                                        // Interval
-            };
+            constexpr auto desc = EndpointDescriptor{
+                .Address = static_cast<uint8_t>(Number) | ((static_cast<uint8_t>(Direction) & 0x01) << 7),
+                .Attributes = static_cast<uint8_t>(Type) & 0x3,
+                .MaxPacketSize = MaxPacketSize,
+                .Interval = Interval}.GetBytes();
             auto dstEnd = std::copy(desc.begin(), desc.end(), result.begin());
 
             if constexpr(Direction == EndpointDirection::Bidirectional)
             {
-                constexpr std::array<uint8_t, sizeof(EndpointDescriptor)> secondDesc = {
-                    0x07,                                                                       // Length
-                    static_cast<uint8_t>(DescriptorType::Endpoint),                             // Descriptor type
-                    static_cast<uint8_t>(Number) | (1 << 7),                                    // Address
-                    static_cast<uint8_t>(Type),                                                 // Attributes
-                    MaxPacketSize,                                                              // MaxPacketSize
-                    Interval                                                                    // Interval
-                }; 
+                constexpr auto secondDesc = EndpointDescriptor{
+                    .Address = static_cast<uint8_t>(Number) | (1 << 7),
+                    .Attributes = static_cast<uint8_t>(Type),
+                    .MaxPacketSize = MaxPacketSize,
+                    .Interval = Interval}.GetBytes();
                 std::copy(secondDesc.begin(), secondDesc.end(), dstEnd);
             }
 
