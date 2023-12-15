@@ -26,7 +26,7 @@ namespace Zhele::Usb
     template<uint8_t... _Data>
     struct HidReport
     {
-        static constexpr uint8_t Data[sizeof...(_Data)] = {_Data...};
+        static constexpr std::array<uint8_t, sizeof...(_Data)> Data = {_Data...};
     };
 
     /**
@@ -36,38 +36,55 @@ namespace Zhele::Usb
      * @tparam _Reports All reports.
      */
     template<uint16_t _Version = 0x0200, typename... _Reports>
-    struct HidImpl
+    class HidImpl
     {
-        uint8_t Length = 0x06 + 3 *  sizeof...(_Reports);
-        uint8_t DescriptorType = 0x21;
-        uint16_t Version = _Version;
-        uint8_t CountryCode = 0x00;
-        uint8_t ReportsCount = sizeof...(_Reports);
+        static constexpr auto Reports = Zhele::TemplateUtils::TypeList<_Reports...>{};
 
         /**
          * @brief Total reports size
          * 
          * @returns Reports size
          */
-        static constexpr uint16_t ReportsSize()
+        static consteval unsigned GetReportsSize()
         {
-            return (static_cast<uint16_t>(sizeof(_Reports::Data)) + ...);
+            unsigned size = 0;
+
+            Reports.foreach([&size](auto report) {
+                size += report.Data.size();
+            });
+
+            return size;
         }
 
-        /**
-         * @brief Fills reports descriptors
-         * 
-         * @param [out] address Destination memory
-         * 
-         * @returns Total bytes writter
-         */
-        static uint16_t FillReportsDescriptors(uint8_t* address)
-        {
-            ((*address++ = 0x22,
-            *address++ = static_cast<uint8_t>(static_cast<uint16_t>(sizeof(_Reports::Data)) & 0xff),
-            *address++ = static_cast<uint8_t>((static_cast<uint16_t>(sizeof(_Reports::Data)) >> 8) & 0xff)),...);
+    public:
 
-            return 3 * sizeof...(_Reports);
+        /**
+         * @brief Build reports descriptors
+         * 
+         * @returns Report descriptor bytes
+         */
+        static consteval auto GetDescriptor()
+        {
+            constexpr unsigned size = 0x06 + 3 * sizeof...(_Reports);
+
+            std::array<uint8_t, size> result = {
+                size,                                       // Lenght
+                0x21,                                       // Descriptor type
+                _Version & 0xff, (_Version >> 8) & 0xff,    // Version
+                0x00,                                       // County code
+                sizeof...(_Reports)                         // Reports count
+            };
+
+            auto dst = result.begin();
+            std::advance(dst, 0x06);
+
+            Reports.foreach([&dst](auto report) {
+                *(dst++) = 0x22;
+                *(dst++) = report.Data.size() & 0xff;
+                *(dst++) = (report.Data.size() >> 8) & 0xff;
+            });
+
+            return result;
         }
 
         /**
@@ -77,11 +94,18 @@ namespace Zhele::Usb
          * 
          * @returns Total bytes writter
          */
-        static uint16_t FillReports(uint8_t* address)
+        static consteval auto GetReports()
         {
-            ((memcpy(address, _Reports::Data, sizeof(_Reports::Data)), address += sizeof(_Reports::Data)), ...);
+            constexpr auto size = GetReportsSize();
+            
+            std::array<uint8_t, size> result;
+            auto dst = result.begin();
 
-            return ReportsSize();
+            Reports.foreach([&dst](auto report) {
+                dst = std::copy(report.Data.begin(), report.Data.end(), dst);
+            });
+
+            return result;
         }
     };
 
@@ -102,6 +126,20 @@ namespace Zhele::Usb
     class HidInterface : public Interface<_Number, _AlternateSetting, InterfaceClass::Hid, _SubClass, _Protocol, _Ep0, _Endpoints...>
     {
         using Base = Interface<_Number, _AlternateSetting, InterfaceClass::Hid, _SubClass, _Protocol, _Ep0, _Endpoints...>;
+        
+
+        static consteval unsigned NestedDescriptorSize()
+        {
+            unsigned size = 0;
+
+            Base::Endpoints.foreach([&size](auto endpoint) {
+                size += endpoint.GetDescriptor().size();
+            });
+
+            size += _HidImpl::GetDescriptor().size();
+
+            return size;
+        }
     public:
 
         /**
@@ -117,67 +155,41 @@ namespace Zhele::Usb
             if (setup->Request == StandartRequestCode::GetDescriptor
                 && static_cast<GetDescriptorParameter>(setup->Value) == GetDescriptorParameter::HidReportDescriptor)
             {
-                uint8_t temp[HidInterface::ReportsSize()];
-                uint16_t size = HidInterface::FillReports(temp);
-                _Ep0::SendData(temp, setup->Length < size ? setup->Length : size);
+                constexpr auto descriptor = _HidImpl::GetReports();
+                _Ep0::SendData(descriptor.data(), setup->Length < descriptor.size() ? setup->Length : descriptor.size());
             }
         }
 
         /**
-         * @brief Fills descriptor
+         * @brief Build HID interface descriptor
          * 
-         * @param [out] descriptor Destination memory
-         * 
-         * @par Returns
-         *  Nothing
+         * @returns Bytes of interface descriptor
          */
-        static uint16_t FillDescriptor(InterfaceDescriptor* descriptor)
+        static consteval auto GetDescriptor()
         {
-            uint16_t totalLength = sizeof(InterfaceDescriptor);
+            constexpr unsigned size = sizeof(InterfaceDescriptor) + NestedDescriptorSize();
+            std::array<uint8_t, size> result;
+            auto dst = result.begin();
 
-            *descriptor = InterfaceDescriptor {
+            constexpr auto interfacefDesc = InterfaceDescriptor {
                 .Number = _Number,
                 .AlternateSetting = _AlternateSetting,
                 .EndpointsCount = Base::EndpointsCount,
                 .Class = InterfaceClass::Hid,
                 .SubClass = _SubClass,
                 .Protocol = _Protocol
-            };
-            _HidImpl* hidDescriptor = reinterpret_cast<_HidImpl*>(++descriptor);
-            *hidDescriptor = _HidImpl {
-            };
-            
-            uint8_t* reportsPart = reinterpret_cast<uint8_t*>(++hidDescriptor);
-            uint16_t bytesWritten = _HidImpl::FillReportsDescriptors(reportsPart);
+            }.GetBytes();
+            dst = std::copy(interfacefDesc.begin(), interfacefDesc.end(), dst);
 
-            totalLength += sizeof(_HidImpl) + bytesWritten;
+            constexpr auto reportDescriptors = _HidImpl::GetDescriptor();
+            dst = std::copy(reportDescriptors.begin(), reportDescriptors.end(), dst);
 
-            EndpointDescriptor* endpointsDescriptors = reinterpret_cast<EndpointDescriptor*>(&reportsPart[bytesWritten]);
-            totalLength += (0 + ... + _Endpoints::FillDescriptor(endpointsDescriptors++));
+            Base::Endpoints.foreach([&dst](auto endpoint){
+                auto nextEndpointDescriptor = endpoint.GetDescriptor();
+                dst = std::copy(nextEndpointDescriptor.begin(), nextEndpointDescriptor.end(), dst);
+            });
 
-            return totalLength;
-        }
-
-        /**
-         * @brief Returns reports size
-         * 
-         * @returns Reports size
-         */
-        static constexpr uint16_t ReportsSize()
-        {
-            return _HidImpl::ReportsSize();
-        }
-
-        /**
-         * @brief Fills reports
-         * 
-         * @param [out] descriptor Destination memory
-         * 
-         * @returns Total bytes written
-         */
-        static uint16_t FillReports(uint8_t* destination)
-        {
-            return _HidImpl::FillReports(destination);
+            return result;
         }
     };
 }
