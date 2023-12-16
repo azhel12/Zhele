@@ -5,42 +5,103 @@ Support: I created public group in [telegram](https://t.me/stm32_zhele), where I
 
 Also I write small [lessons](https://github.com/azhel12/ZheleLessons) about applying c++ templates (and my framework) for stm32.
 # Getting started
-I'm using VSCode IDE + Platformio + GNU Arm Embedded Toolchain Version 10.3-2021.10 (it supports features from c++20).
-Basically c++17 is required, c++20 needed only for USB. But I'm planning to use more new features from modern C++ (such as concepts and maybe coroutines), so it's recommended to use latest toolchain.
-1. Download Visual Studio Code from [official site](https://code.visualstudio.com/download) and install it.
-2. Run VS code, Press _Ctrl+Shift+X_ (or press _Extension_ in left sidebar), input _PlatformIO_ in search and push install.
-You can get some errors about python virtual environments. There is many solutions in Internet.
-![VSCode Extensions](https://user-images.githubusercontent.com/8615986/117636383-6a7aca00-b189-11eb-915a-6ada899ad39b.png)
-3. Open _PIO Home_, push _Platforms_, check _Emedded_ and print _stm32_ and press _ST STM32_ header.
-![PlatformIO platforms](https://user-images.githubusercontent.com/8615986/117636466-82524e00-b189-11eb-80cb-5127f36f4157.png)
-4. Press "Install" and wait.
-![Install plaform](https://user-images.githubusercontent.com/8615986/117636624-ac0b7500-b189-11eb-8d93-2fd990c3a6fd.png)
-5. Open _PIO Home_ _Home_, press _New Project_, input project name, board (examples for stm32f103) and **CMSIS** in _Framework_.
-![New project](https://user-images.githubusercontent.com/8615986/117640495-c2b3cb00-b18d-11eb-8f3a-791a0e9aa443.PNG)
-7. Download new Arm Embedded Toolchain from [official site](https://developer.arm.com/downloads/-/gnu-rm). Choose gcc-arm-none-eabi-10.3-2021.10-win32.zip
-![Arm Embedded Toolchain download](https://user-images.githubusercontent.com/8615986/173829139-9afdb9fe-0ac7-42ad-8ba0-a0308000940e.png)
-7. Unpack archive and copy witj replace folders _bin_, _share_, _arm-none-eabi_ and _lib_ to _C:\\Users\\%Username%\\.platformio\\packages\\toolchain-gccarmnoneeabi\\_ (With last Platofrmio update this directory has new name: _toolchain-gccarmnoneeabi@VERSION_). Warning! Do not delete files _.piopm_ and _package.json_.
-![Copy new toolchain](https://user-images.githubusercontent.com/8615986/117638529-972fe100-b18b-11eb-9aff-e4deec2e6707.png)
-9. Open _PIO Home_ _Home_, press _New Project_, input project name, board (examples for stm32f103) and **CMSIS** in _Framework_. Press _Finish_.
-![New project](https://user-images.githubusercontent.com/8615986/117637568-964a7f80-b18a-11eb-8022-35007a8d913f.PNG)
-10. Copy _Zhele/Zhele_ to _lib_ folder.
-![Copy Zhele](https://user-images.githubusercontent.com/8615986/117638795-e544e480-b18b-11eb-8fdb-39096f67f3fe.PNG)
-12. Copy some example in src folder or create new *.cpp file
-![Add source file](https://user-images.githubusercontent.com/8615986/117638994-1d4c2780-b18c-11eb-9dad-e68d75127d1b.PNG)
-14. Edit platformio.ini for target device. In my case (stm32f103c8t6) platformio.ini like this:
+I'm using following stack:
+- **VSCode IDE**
+- **CMake**
+- **GNU Arm Embedded Toolchain Version** (latest is 13.2.1)
+- **stm32-cmake** project for CMSIS/HAL access
+- **openocd** and cmsis-dap/stlink for flash and debug
 
-```[env:bluepill_f103c8]
-platform = ststm32
-board = bluepill_f103c8
-framework = cmsis
-debug_tool = stlink
-upload_port = stlink
-build_flags = 
-    -D STM32F1
-    -std=c++20
-build_unflags =
-    -std=c++11
+Basically c++17 is required, c++20 needed only for USB. But I'm planning to use more new features from modern C++ (such as concepts and maybe coroutines
+and some features from c++23), so it's strongly recommended to use latest toolchain.
+1. Download Visual Studio Code from [official site](https://code.visualstudio.com/download) and install it.
+
+2. Download new Arm Embedded Toolchain from [official site](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads). Choose latest (arm-gnu-toolchain-13.2.rel1-mingw-w64-i686-arm-none-eabi).
+Download *exe* and install, or you can download zip and add **bin** folder location to system PATH.\
+If you use *nix system download appropriate linux hosted cross toolchains.
+There is no latest version in official repo (I tried on ubuntu), so unpack toolchain manually
+and add to path. [Tutorial post](https://askubuntu.com/questions/1243252/how-to-install-arm-none-eabi-gdb-on-ubuntu-20-04-lts-focal-fossa).\
+Check that compiler available from terminal.
+![gcc](https://github.com/azhel12/Zhele/assets/8615986/46a1962a-ba24-4c97-81ac-3d86d02c023f)
+
+3. Download and install [Cmake](https://cmake.org/download/).
+Check that cmake is available from terminal.
+![cmake](https://github.com/azhel12/Zhele/assets/8615986/d6f8e1b3-3d85-45da-84ab-c773fc8a3b8e)
+
+4. Install C++ extension pack and Cmake Tools in VSCode (it's not requires but useful).
+![Extensions](https://github.com/azhel12/Zhele/assets/8615986/29a2506d-275c-4cce-bdec-a377adad46cc)
+
+5. Create project folder or [download](https://github.com/azhel12/Zhele-template) template.\
+You can download [stm32-cmake](https://github.com/ObKo/stm32-cmake) manually. Read README.
+
+6. Add **CMakeLists** to project root
+```cmake
+cmake_minimum_required(VERSION 3.16)
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/stm32_gcc.cmake)
+set (CMAKE_CXX_STANDARD 23)
+
+project(zhele_template CXX C ASM)
+
+# Populate CMSIS using stm32-cmake project
+stm32_fetch_cmsis(F1)
+find_package(CMSIS COMPONENTS STM32F1 REQUIRED)
+
+# Add zhele
+# You can download zhele and use add_subdirectory instead:
+# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Zhele)
+include(FetchContent)
+FetchContent_Declare(Zhele
+    GIT_REPOSITORY https://github.com/azhel12/Zhele.git
+    GIT_TAG        zhele_v0.1.1
+)
+FetchContent_MakeAvailable(Zhele)
+
+# Project sources. Add other cpp if needed
+set(PROJECT_SOURCES
+    src/main.cpp
+)
+
+# Add executable (firmware) target
+add_executable(zhele_template ${PROJECT_SOURCES})
+
+# Link CMSIS and Zhele. Add other dependences here
+target_link_libraries(zhele_template zhele::zhele CMSIS::STM32::F103C8 STM32::NoSys STM32::Nano)
+# Recommended options for stm32 dev
+target_compile_options(zhele_template PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
+
+# Print size
+stm32_print_size_of_target(zhele_template)
+# Generate bin file
+stm32_generate_binary_file(zhele_template)
 ```
-15. Build project, upload it on your device.
-![Building](https://user-images.githubusercontent.com/8615986/117639903-196cd500-b18d-11eb-861d-abe8046e91d8.png)
-If VSCode doesnt build and shows editbox in top, restart VSCode and try again.
+
+6. Write code in source file.
+```c++
+// Define target cpu frequence.
+#define F_CPU 8000000
+
+#include <zhele/iopins.h>
+
+using namespace Zhele::IO;
+
+// Connect LED on A4 for this example (or edit example code, it's simple).
+int main()
+{
+    Pa4::Port::Enable();
+    Pa4::SetConfiguration(Pa4::Configuration::Out);
+    Pa4::SetDriverType(Pa4::DriverType::PushPull);
+    Pa4::Clear();
+
+    for (;;)
+    {
+    }
+}
+```
+
+7. Press **Build** button in CMake extension.
+First time you need choose toolchain.
+![build](https://github.com/azhel12/Zhele/assets/8615986/a0859086-cf28-43a5-9f8a-3840fd425858)
+
+8. Profit! You can flash files i
+![output](https://github.com/azhel12/Zhele/assets/8615986/a75ba712-248b-4643-aa7a-5f8351a02b22)
+![files](https://github.com/azhel12/Zhele/assets/8615986/ad4364ac-d2b8-4d44-983d-2ca029144e17)
