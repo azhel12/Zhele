@@ -91,7 +91,7 @@ namespace Zhele::Timers
             Type mask = 1 << pinNumber;
 
             Pins::Enable();
-            Pins::SetConfiguration(Pins::In, mask);
+            Pins::SetConfiguration(Pins::Configuration::AltFunc, mask);
             GetTimerRemap<_Regs>::Set(GetNumberRuntime<PinsAltFuncNumbers>::Get(pinNumber));
         }
 
@@ -105,7 +105,7 @@ namespace Zhele::Timers
             using Pin = typename Pins::template Pin<PinNumber>;
             
             Pin::Port::Enable();
-            Pin::template SetConfiguration<Pins::In>();
+            Pin::template SetConfiguration<Pin::Configuration::AltFunc>();
             GetTimerRemap<_Regs>::Set(GetNonTypeValueByIndex<Pins::template IndexOf<Pin>, PinsAltFuncNumbers>::value);
         }
 
