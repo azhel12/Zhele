@@ -11,6 +11,7 @@
 
 #include <cstdint>
 
+
 namespace Zhele
 {
     inline constexpr uint32_t Flash::FlashSize()
@@ -33,8 +34,11 @@ namespace Zhele
 
     inline bool Flash::Unlock()
     {
-        FLASH->KEYR = FLASH_KEY1;
-        FLASH->KEYR = FLASH_KEY2;
+        static constexpr uint32_t flashKey1 = 0x45670123UL;
+        static constexpr uint32_t flashKey2 = 0xCDEF89ABUL;
+
+        FLASH->KEYR = flashKey1;
+        FLASH->KEYR = flashKey2;
         
         WaitWhileBusy();
 
