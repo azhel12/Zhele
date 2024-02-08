@@ -16,7 +16,7 @@
 #define ADC_TYPE_2
 #endif
 
-#include <delay.h>
+#include <zhele/delay.h>
 
 namespace Zhele::Private
 {
@@ -204,7 +204,7 @@ namespace Zhele::Private
         }
         else
         {
-            Pins::SetConfiguration(1u << channel, Pins::Analog);
+            Pins::SetConfiguration(Pins::Analog, 1u << channel);
         }
     }
 

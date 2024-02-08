@@ -9,10 +9,10 @@
 #ifndef ZHELE_ADC_H
 #define ZHELE_ADC_H
 
-#include <clock.h>
-#include <dma.h>
-#include <iopins.h>
-#include <pinlist.h>
+#include <zhele/clock.h>
+#include <zhele/dma.h>
+#include <zhele/iopins.h>
+#include <zhele/pinlist.h>
 
 #include "../common/adc.h"
 
