@@ -1,0 +1,3 @@
+add_subdirectory(Common)
+add_subdirectory(InputCapture)
+add_subdirectory(InputCaptureWithTrgo)
