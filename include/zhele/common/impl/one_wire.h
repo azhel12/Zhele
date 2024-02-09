@@ -70,7 +70,7 @@ namespace Zhele
                         [&readComplete](void* data, unsigned size, bool success){
                             readComplete = true;});
         
-        _Usart::Write(_readDummyBuffer, 8, true);
+        _Usart::WriteAsync(_readDummyBuffer, 8);
 
         while (!readComplete){}
 
