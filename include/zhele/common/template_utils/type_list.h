@@ -125,12 +125,14 @@ namespace Zhele::TemplateUtils
          * 
          * @returns Boxed required type
         */
-        template<unsigned index>
+        template<int index>
         static consteval auto get()
         {
-            static_assert(index < size());
+            static_assert(index < static_cast<int>(size()));
 
-            if constexpr (index == 0)
+            if constexpr (index < 0)
+                return TypeBox<void>();
+            else if constexpr (index == 0)
                 return head();
             else
                 return tail().template get<index - 1>();
