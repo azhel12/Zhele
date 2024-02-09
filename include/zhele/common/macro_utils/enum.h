@@ -14,6 +14,8 @@
 #ifndef ZHELE_ENUM_H
 #define ZHELE_ENUM_H
 
+#include <cstdint>
+
 #define DECLARE_ENUM_OPERATIONS(ENUM_NAME)                               \
 inline ENUM_NAME                                                         \
 operator|(ENUM_NAME left, ENUM_NAME right)                               \
