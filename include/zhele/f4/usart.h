@@ -71,7 +71,7 @@ namespace Zhele
 
             if constexpr(RxPinNumber != -1)
             {
-                using RxPin = typename _RxPins::Key::template Pin<RxPinNumber>;
+                using RxPin = typename _RxPins::template Pin<RxPinNumber>;
 
                 if constexpr (!std::is_same_v<typename RxPin::Port, typename TxPin::Port>) {
                     RxPin::Port::Enable();
@@ -92,7 +92,7 @@ namespace Zhele
          *	Nothing
         */
         template<typename _Regs, IRQn_Type _IRQNumber, typename _ClockCtrl, typename _TxPins, typename _RxPins, typename _DmaTx, typename _DmaRx>
-        template<typename TxPin, typename RxPin = IO::NullPin>
+        template<typename TxPin, typename RxPin>
         void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins, _DmaTx, _DmaRx>::SelectTxRxPins()
         {
             const int8_t txPinIndex = _TxPins::template IndexOf<TxPin>;

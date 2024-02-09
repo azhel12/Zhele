@@ -101,17 +101,17 @@ namespace Zhele
         template<typename MosiPin, typename MisoPin, typename ClockPin, typename SsPin>
         void Spi<_Regs, _Clock, _MosiPins, _MisoPins, _ClockPins, _SsPins, _DmaTx, _DmaRx>::SelectPins()
         {
-            const int8_t mosiPinIndex = !std::is_same_v<MosiPin, IO::NullPin>
+            constexpr auto mosiPinIndex = !std::is_same_v<MosiPin, IO::NullPin>
                                 ? _MosiPins::template IndexOf<MosiPin>
                                 : -1;
-            const int8_t misoPinIndex = !std::is_same_v<MisoPin, IO::NullPin>
+            constexpr auto misoPinIndex = !std::is_same_v<MisoPin, IO::NullPin>
                                 ? _MisoPins::template IndexOf<MisoPin>
                                 : -1;
-            const int8_t clockPinIndex = _ClockPins::template IndexOf<ClockPin>;
+            constexpr auto clockPinIndex = _ClockPins::template IndexOf<ClockPin>;
 
-            const int8_t ssPinIndex = !std::is_same_v<MisoPin, IO::NullPin>
+            constexpr auto ssPinIndex = !std::is_same_v<MisoPin, IO::NullPin>
                                 ? _SsPins::template IndexOf<SsPin>
-                                : 1;
+                                : -1;
 
             static_assert(mosiPinIndex >= -1);
             static_assert(misoPinIndex >= -1);

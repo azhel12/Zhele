@@ -118,15 +118,15 @@ namespace Zhele
         template<typename MosiPin, typename MisoPin, typename ClockPin, typename SsPin>
         void Spi<_Regs, _Clock, _MosiPins, _MisoPins, _ClockPins, _SsPins, _DmaTx, _DmaRx>::SelectPins()
         {
-            const int8_t mosiPinIndex = !std::is_same_v<MosiPin, IO::NullPin>
+            constexpr auto mosiPinIndex = !std::is_same_v<MosiPin, IO::NullPin>
                                 ? _MosiPins::Key::template IndexOf<MosiPin>
                                 : -1;
-            const int8_t misoPinIndex = !std::is_same_v<MisoPin, IO::NullPin>
+            constexpr auto misoPinIndex = !std::is_same_v<MisoPin, IO::NullPin>
                                 ? _MisoPins::Key:: template IndexOf<MisoPin>
                                 : -1;
-            const int8_t clockPinIndex = _ClockPins::Key:: template IndexOf<ClockPin>;
+            constexpr auto clockPinIndex = _ClockPins::Key:: template IndexOf<ClockPin>;
 
-            const int8_t ssPinIndex = !std::is_same_v<MisoPin, IO::NullPin>
+            constexpr auto ssPinIndex = !std::is_same_v<MisoPin, IO::NullPin>
                                 ? _SsPins::Key:: template IndexOf<SsPin>
                                 : -1;
 
@@ -143,29 +143,10 @@ namespace Zhele
 		IO_STRUCT_WRAPPER(SPI2, Spi2Regs, SPI_TypeDef);
     #endif
 
-        using Spi1SsPins = Pair<IO::PinList<IO::Pa4, IO::Pa15
-        #if defined(GPIOE)
-            COMMA IO::Pe12
-        #endif
-            >, NonTypeTemplateArray<0, 0, 1>>;
-
-		using Spi1ClockPins = Pair<IO::PinList<IO::Pa5, IO::Pb3
-        #if defined(GPIOE)
-            COMMA IO::Pe13
-        #endif
-            >, NonTypeTemplateArray<0, 0, 1>>;
-
-		using Spi1MisoPins = Pair<IO::PinList<IO::Pa6, IO::Pb4
-        #if defined(GPIOE)
-            COMMA IO::Pe14
-        #endif
-            >, NonTypeTemplateArray<0, 0, 1>>;
-
-		using Spi1MosiPins = Pair<IO::PinList<IO::Pa7, IO::Pb5
-        #if defined(GPIOE)
-            COMMA IO::Pe15
-        #endif
-            >, NonTypeTemplateArray<0, 0, 1>>;
+        using Spi1SsPins = Pair<IO::PinList<IO::Pa4, IO::Pa15, IO::Pe12>, NonTypeTemplateArray<0, 0, 1>>;
+		using Spi1ClockPins = Pair<IO::PinList<IO::Pa5, IO::Pb3, IO::Pe13>, NonTypeTemplateArray<0, 0, 1>>;
+		using Spi1MisoPins = Pair<IO::PinList<IO::Pa6, IO::Pb4, IO::Pe14>, NonTypeTemplateArray<0, 0, 1>>;
+		using Spi1MosiPins = Pair<IO::PinList<IO::Pa7, IO::Pb5, IO::Pe15>, NonTypeTemplateArray<0, 0, 1>>;
 		
 		using Spi2SsPins = Pair<IO::PinList<IO::Pb12, IO::Pb9, IO::Pd0>, NonTypeTemplateArray<0, 5, 1>>;
 		using Spi2ClockPins = Pair<IO::PinList<IO::Pb13, IO::Pb10, IO::Pd1>, NonTypeTemplateArray<0, 5, 1>>;
