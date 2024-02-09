@@ -1,0 +1,2 @@
+add_subdirectory(AdcInjectedCdc)
+add_subdirectory(AdcRegularCdc)
