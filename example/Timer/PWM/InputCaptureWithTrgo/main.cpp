@@ -1,7 +1,6 @@
 #include <zhele/clock.h>
 #include <zhele/iopins.h>
 #include <zhele/timer.h>
-#include <zhele/usart.h>
 
 using namespace Zhele;
 using namespace Zhele::IO;
@@ -13,8 +12,6 @@ void ConfigureInputCapture();
 using InputTimer = Timer3;
 using InputCaptureRising = InputTimer::InputCapture<0>;
 using InputCaptureFalling = InputTimer::InputCapture<1>;
-
-using UsartConnection = Usart1;
 
 int main()
 {    
