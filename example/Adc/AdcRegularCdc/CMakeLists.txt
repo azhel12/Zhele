@@ -6,8 +6,8 @@ set (CMAKE_CXX_STANDARD 23)
 project(adc_regular_cdc CXX C ASM)
 
 # Populate CMSIS using stm32-cmake project (Commented for use in github actions, uncomment if you want to build example alone)
-#stm32_fetch_cmsis(F0 F1 F4)
-#find_package(CMSIS COMPONENTS STM32F0 STM32F1 STM32F4 REQUIRED)
+#stm32_fetch_cmsis(F0 F1 F4 G0)
+#find_package(CMSIS COMPONENTS STM32F0 STM32F1 STM32F4 STM32G0 REQUIRED)
 
 
 # Add zhele as include directory
@@ -33,3 +33,10 @@ stm32_print_size_of_target(adc_regular_cdc_f1)
 #target_compile_definitions(adc_regular_cdc_f4 PRIVATE F_CPU=16000000) # Need for delay
 #target_compile_options(adc_regular_cdc_f4 PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
 #stm32_print_size_of_target(adc_regular_cdc_f4)
+
+# G0 build (ADC not supported yet)
+#add_executable(adc_regular_cdc_g0 main.cpp)
+#target_link_libraries(adc_regular_cdc_g0 CMSIS::STM32::G030F6 STM32::NoSys STM32::Nano)
+#target_compile_definitions(adc_regular_cdc_g0 PRIVATE F_CPU=16000000) # Need for delay
+#target_compile_options(adc_regular_cdc_g0 PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
+#stm32_print_size_of_target(adc_regular_cdc_g0)
