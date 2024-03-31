@@ -36,5 +36,6 @@ stm32_print_size_of_target(rc522_f4)
 # G0 build
 add_executable(rc522_g0 main.cpp)
 target_link_libraries(rc522_g0 CMSIS::STM32::G030F6 STM32::NoSys STM32::Nano)
+target_compile_definitions(rc522_g0 PRIVATE F_CPU=8000000) # Need for delay
 target_compile_options(rc522_g0 PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
 stm32_print_size_of_target(rc522_g0)
