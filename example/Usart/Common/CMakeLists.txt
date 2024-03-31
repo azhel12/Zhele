@@ -30,8 +30,8 @@ target_link_libraries(usart_common_f4 CMSIS::STM32::F401CC STM32::NoSys STM32::N
 target_compile_options(usart_common_f4 PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
 stm32_print_size_of_target(usart_common_f4)
 
-# G0 build
-add_executable(usart_common_g0 main.cpp)
-target_link_libraries(usart_common_g0 CMSIS::STM32::G030F6 STM32::NoSys STM32::Nano)
-target_compile_options(usart_common_g0 PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
-stm32_print_size_of_target(usart_common_g0)
+# G0 build (TODO:: fix USART for G0)
+#add_executable(usart_common_g0 main.cpp)
+#target_link_libraries(usart_common_g0 CMSIS::STM32::G030F6 STM32::NoSys STM32::Nano)
+#target_compile_options(usart_common_g0 PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
+#stm32_print_size_of_target(usart_common_g0)
