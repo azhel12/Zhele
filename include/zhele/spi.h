@@ -18,3 +18,6 @@
 #if defined(STM32L4)
     #include "l4/spi.h"
 #endif
+#if defined(STM32G0)
+    #include "g0/spi.h"
+#endif
