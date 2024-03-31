@@ -36,5 +36,6 @@ stm32_print_size_of_target(aht10_f4)
 # G0 build
 add_executable(aht10_g0 main.cpp)
 target_link_libraries(aht10_g0 CMSIS::STM32::G030F6 STM32::NoSys STM32::Nano)
+target_compile_definitions(aht10_g0 PRIVATE F_CPU=8000000) # Need for delay
 target_compile_options(aht10_g0 PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
 stm32_print_size_of_target(aht10_g0)
