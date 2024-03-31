@@ -35,15 +35,16 @@ namespace Zhele
 
     using Dma1 = DmaModule<Private::Dma1, Clock::Dma1Clock, 7>;
     using Dma1Channel1 = DmaChannel<Dma1, Private::Dma1Channel1, 1, DMA1_Channel1_IRQn>;
-    using Dma1Channel2 = DmaChannel<Dma1, Private::Dma1Channel2, 2, DMA1_Ch2_3_DMA2_Ch1_2_IRQn>;
-    using Dma1Channel3 = DmaChannel<Dma1, Private::Dma1Channel3, 3, DMA1_Ch2_3_DMA2_Ch1_2_IRQn>;
-    using Dma1Channel4 = DmaChannel<Dma1, Private::Dma1Channel4, 4, DMA1_Channel4_5_6_7_IRQn>;
-    using Dma1Channel5 = DmaChannel<Dma1, Private::Dma1Channel5, 5, DMA1_Channel4_5_6_7_IRQn>;
-#if defined (DMA1_Channel6)
-    using Dma1Channel6 = DmaChannel<Dma1, Private::Dma1Channel6, 6, DMA1_Channel4_5_6_7_IRQn>;
-#endif
+    using Dma1Channel2 = DmaChannel<Dma1, Private::Dma1Channel2, 2, DMA1_Channel2_3_IRQn>;
+    using Dma1Channel3 = DmaChannel<Dma1, Private::Dma1Channel3, 3, DMA1_Channel2_3_IRQn>;
 #if defined (DMA1_Channel7)
-    using Dma1Channel7 = DmaChannel<Dma1, Private::Dma1Channel7, 7, DMA1_Channel4_5_6_7_IRQn>;
+    using Dma1Channel4 = DmaChannel<Dma1, Private::Dma1Channel4, 4, DMA1_Ch4_7_DMAMUX1_OVR_IRQn>;
+    using Dma1Channel5 = DmaChannel<Dma1, Private::Dma1Channel5, 5, DMA1_Ch4_7_DMAMUX1_OVR_IRQn>;
+    using Dma1Channel6 = DmaChannel<Dma1, Private::Dma1Channel6, 6, DMA1_Ch4_7_DMAMUX1_OVR_IRQn>;
+    using Dma1Channel7 = DmaChannel<Dma1, Private::Dma1Channel7, 7, DMA1_Ch4_7_DMAMUX1_OVR_IRQn>;
+#else
+    using Dma1Channel4 = DmaChannel<Dma1, Private::Dma1Channel4, 4, DMA1_Ch4_5_DMAMUX1_OVR_IRQn>;
+    using Dma1Channel5 = DmaChannel<Dma1, Private::Dma1Channel5, 5, DMA1_Ch4_5_DMAMUX1_OVR_IRQn>;
 #endif
 
 #if defined (RCC_AHBENR_DMA2EN)
