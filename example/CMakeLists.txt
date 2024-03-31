@@ -5,8 +5,8 @@ set (CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/../stm32-cmake/cmake/stm32
 project(zhele_example CXX C ASM)
 
 # Populate CMSIS using stm32-cmake project for all nested examples
-stm32_fetch_cmsis(F0 F1 F4)
-find_package(CMSIS COMPONENTS STM32F0 STM32F1 STM32F4 REQUIRED)
+stm32_fetch_cmsis(F0 F1 F4 G0)
+find_package(CMSIS COMPONENTS STM32F0 STM32F1 STM32F4 STM32G0 REQUIRED)
 
 add_subdirectory(Adc)
 add_subdirectory(Clock)
