@@ -152,6 +152,8 @@ namespace Zhele
 		using Spi2MisoPins = Pair<IO::PinList<IO::Pa3, IO::Pa9, IO::Pb2, IO::Pb6, IO::Pb14, IO::Pc2, IO::Pd3>, NonTypeTemplateArray<0, 4, 1, 4, 0, 1, 1>>;
 		using Spi2MosiPins = Pair<IO::PinList<IO::Pa4, IO::Pa10, IO::Pb7, IO::Pb11, IO::Pb15, IO::Pc3, IO::Pd4>, NonTypeTemplateArray<1, 0, 1, 0, 0, 1, 1>>;
     }
+
+    template<typename _DmaTx = void, typename _DmaRx = void>
     using Spi1 = Private::Spi<
         Private::Spi1Regs, 
         Clock::Spi1Clock, 
@@ -159,9 +161,11 @@ namespace Zhele
         Private::Spi1MisoPins,
         Private::Spi1ClockPins,
         Private::Spi1SsPins,
-        void,
-        void>;
+        _DmaTx,
+        _DmaRx>;
+    using Spi1NoDma = Spi1<>;
 
+    template<typename _DmaTx = void, typename _DmaRx = void>
     using Spi2 = Private::Spi<
         Private::Spi2Regs, 
         Clock::Spi2Clock, 
@@ -169,8 +173,9 @@ namespace Zhele
         Private::Spi2MisoPins,
         Private::Spi2ClockPins,
         Private::Spi2SsPins,
-        void,
-        void>;
+        _DmaTx,
+        _DmaRx>;
+    using Spi2NoDma = Spi2<>;
 
 #if defined(SPI3)
     using Spi3 = void;

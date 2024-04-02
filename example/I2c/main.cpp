@@ -2,7 +2,11 @@
 
 using namespace Zhele;
 
-using Interface = I2c1;
+#if defined (STM32G0)
+    using Interface = I2c1NoDma;
+#else
+    using Interface = I2c1;
+#endif
 
 // 0xD0 - it's ds107 RTC.
 int main()
@@ -21,8 +25,14 @@ int main()
     uint8_t data[555];
     Interface::Read(0xD0 >> 1, 0x06, data, 555);
     Interface::Write(0xD0 >> 1, 0x06, data, 555);
-    Interface::EnableAsyncRead(0xD0 >> 1, 0x06, data, 555);
-    Interface::WriteAsync(0xD0 >> 1, 0x06, data, 555);
+
+    if constexpr (!std::is_same_v<Interface::DmaRx, void>) {
+        Interface::EnableAsyncRead(0xD0 >> 1, 0x06, data, 555);
+    }
+
+    if constexpr (!std::is_same_v<Interface::DmaTx, void>) {
+        Interface::WriteAsync(0xD0 >> 1, 0x06, data, 555);
+    }
 
     for (;;)
     {

@@ -30,8 +30,8 @@ target_link_libraries(i2c_f4 CMSIS::STM32::F401CC STM32::NoSys STM32::Nano)
 target_compile_options(i2c_f4 PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
 stm32_print_size_of_target(i2c_f4)
 
-# G0 build (DMA not implemented)
-#add_executable(i2c_g0 main.cpp)
-#target_link_libraries(i2c_g0 CMSIS::STM32::G030F6 STM32::NoSys STM32::Nano)
-#target_compile_options(i2c_g0 PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
-#stm32_print_size_of_target(i2c_g0)
+# G0 build
+add_executable(i2c_g0 main.cpp)
+target_link_libraries(i2c_g0 CMSIS::STM32::G030F6 STM32::NoSys STM32::Nano)
+target_compile_options(i2c_g0 PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
+stm32_print_size_of_target(i2c_g0)

@@ -4,7 +4,11 @@
 using namespace Zhele;
 using namespace Zhele::IO;
 
-using SpiInterface = Spi1;
+#if defined (STM32G0)
+    using SpiInterface = Spi1NoDma;
+#else
+    using SpiInterface = Spi1;
+#endif
 
 // It's hard to write spi example :)
 // I'll write data to nothing, you can check it with logic analyzer.
@@ -29,7 +33,9 @@ int main()
 
     // Or use stream write with DMA
     uint8_t data[] = {0xde, 0xad, 0xbe, 0xef};
-    SpiInterface::WriteAsync(data, 4);
+    if constexpr (!std::is_same_v<SpiInterface::DmaTx, void>) {
+        SpiInterface::WriteAsync(data, 4);
+    }
 
     for (;;)
     {

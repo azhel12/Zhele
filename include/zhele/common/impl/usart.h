@@ -128,8 +128,13 @@ namespace Zhele
         USART_TEMPLATE_ARGS
         bool USART_TEMPLATE_QUALIFIER::WriteReady()
         {
-            bool dmaActive = (_Regs()->CR3 & USART_CR3_DMAT) && _DmaTx::Enabled();
-            return (!dmaActive || _DmaTx::TransferComplete()) && (_Regs()->STATUS_REG & TxEmptyInt);
+            if constexpr (!std::is_same_v<_DmaTx, void>) {
+                bool dmaActive = (_Regs()->CR3 & USART_CR3_DMAT) && _DmaTx::Enabled();
+                return (!dmaActive || _DmaTx::TransferComplete()) && (_Regs()->STATUS_REG & TxEmptyInt);
+            } else {
+                return _Regs()->STATUS_REG & TxEmptyInt;
+            }
+            
         }
 
         USART_TEMPLATE_ARGS
