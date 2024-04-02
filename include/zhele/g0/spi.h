@@ -154,7 +154,7 @@ namespace Zhele
     }
 
     template<typename _DmaTx = void, typename _DmaRx = void>
-    using Spi1Dma = Private::Spi<
+    using Spi1 = Private::Spi<
         Private::Spi1Regs, 
         Clock::Spi1Clock, 
         Private::Spi1MosiPins, 
@@ -163,10 +163,10 @@ namespace Zhele
         Private::Spi1SsPins,
         _DmaTx,
         _DmaRx>;
-    using Spi1 = Spi1Dma<>;
+    using Spi1NoDma = Spi1<>;
 
     template<typename _DmaTx = void, typename _DmaRx = void>
-    using Spi2Dma = Private::Spi<
+    using Spi2 = Private::Spi<
         Private::Spi2Regs, 
         Clock::Spi2Clock, 
         Private::Spi2MosiPins, 
@@ -175,7 +175,7 @@ namespace Zhele
         Private::Spi2SsPins,
         _DmaTx,
         _DmaRx>;
-    using Spi2 = Spi2Dma<>;
+    using Spi2NoDma = Spi2<>;
 
 #if defined(SPI3)
     using Spi3 = void;

@@ -30,8 +30,8 @@ target_link_libraries(dma_mem2mem_f4 CMSIS::STM32::F401CC STM32::NoSys STM32::Na
 target_compile_options(dma_mem2mem_f4 PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
 stm32_print_size_of_target(dma_mem2mem_f4)
 
-# G0 build (DMA not supported yet)
-#add_executable(dma_mem2mem_g0 main.cpp)
-#target_link_libraries(dma_mem2mem_g0 CMSIS::STM32::G030F6 STM32::NoSys STM32::Nano)
-#target_compile_options(dma_mem2mem_g0 PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
-#stm32_print_size_of_target(dma_mem2mem_g0)
+# G0 build
+add_executable(dma_mem2mem_g0 main.cpp)
+target_link_libraries(dma_mem2mem_g0 CMSIS::STM32::G030F6 STM32::NoSys STM32::Nano)
+target_compile_options(dma_mem2mem_g0 PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
+stm32_print_size_of_target(dma_mem2mem_g0)

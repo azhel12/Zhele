@@ -9,7 +9,13 @@
 using namespace Zhele;
 using namespace Zhele::IO;
 
-using NfcReader = Drivers::Rc522<Spi1, IO::Pa4>;
+#if defined (STM32G0)
+using Interface = Spi1<>;
+#else
+using Interface = Spi1;
+#endif
+
+using NfcReader = Drivers::Rc522<Interface, IO::Pa4>;
 using CheckTimer = Timers::Timer3;
 
 void ConfigureNfcReader();
@@ -29,11 +35,11 @@ int main()
 
 void ConfigureNfcReader()
 {
-    Spi1::Init(Spi1::ClockDivider::Fast);
+    Interface::Init(Interface::ClockDivider::Fast);
     // Disable JTAG for use Pa15/Pb3/Pb4 on Stm32F1
     //SwjRemap::Set(2);
 
-    Spi1::SelectPins<Pa7, Pa6, Pa5, NullPin>();
+    Interface::SelectPins<Pa7, Pa6, Pa5, NullPin>();
     NfcReader::Init();
 }
 

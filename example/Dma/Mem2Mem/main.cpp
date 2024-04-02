@@ -6,7 +6,7 @@ using namespace Zhele;
 /// So Zhele contains channels and streams.
 /// There is no difference between channel and stream for some tasks.
 /// In this case you can use "typedef" or "using" as in this example.
-#if defined (STM32F0) || defined (STM32F1) // F072RB and F103C8
+#if defined (STM32F0) || defined (STM32F1) || defined (STM32G0)// F072RB and F103C8
     using MyDma = Dma1Channel1;
 #elif defined (STM32F4)
     using MyDma = Dma2Stream1; // See RM for f4 series. "Only the DMA2 controller is able to perform memory-to-memory transfers."
@@ -33,7 +33,7 @@ int main()
         RxBuffer, TxBuffer, 12);
 
     // We have 4-bytes-aligned buffer and could transfer 3x4 bytes:
-    /*
+    /*3rdparty/Zhele/example/Dma/Mem2Mem/main.cpp
     Dma1Channel1::Transfer(
         Dma1Channel1::Mem2Mem
         | Dma1Channel1::MSize32Bits // Set memory (destination) size as 32 bits
@@ -52,4 +52,11 @@ void DmaTransferCallback(void* data, unsigned size, bool success)
 {
     // Set breakpoint on this dummy code and check RxBuffer in debugger. It contains "Hello,world"
     volatile int dummy = 42;
+}
+
+extern "C" {
+    void DMA1_Channel1_IRQHandler()
+    {
+        Dma1Channel1::IrqHandler();
+    }
 }

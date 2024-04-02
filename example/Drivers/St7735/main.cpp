@@ -8,7 +8,14 @@ using namespace Zhele::Clock;
 using namespace Zhele::IO;
 using namespace Zhele::Drivers;
 
-using Lcd = St7735<Spi1, IO::Pa4, IO::Pa3, IO::Pa2, 160, 128>;
+
+#if defined (STM32G0)
+using Interface = Spi1<Dma1Channel1, Dma1Channel2>;
+#else
+using Interface = Spi1;
+#endif
+
+using Lcd = St7735<Interface, IO::Pa4, IO::Pa3, IO::Pa2, 160, 128>;
 
 void ConfigurePins();
 void ConfigureSpi();
@@ -58,8 +65,8 @@ void ConfigurePins()
 
 void ConfigureSpi()
 {
-    Spi1::Init(Spi1::ClockDivider::Fastest);
-    Spi1::SetClockPolarity(Spi1::ClockPolarity::ClockPolarityHigh);
-    Spi1::SetClockPhase(Spi1::ClockPhase::ClockPhaseFallingEdge);
-    Spi1::SelectPins<IO::Pa7, IO::Pa6, IO::Pa5, IO::NullPin>();
+    Interface::Init(Interface::ClockDivider::Fastest);
+    Interface::SetClockPolarity(Interface::ClockPolarity::ClockPolarityHigh);
+    Interface::SetClockPhase(Interface::ClockPhase::ClockPhaseFallingEdge);
+    Interface::SelectPins<IO::Pa7, IO::Pa6, IO::Pa5, IO::NullPin>();
 }

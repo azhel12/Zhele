@@ -33,9 +33,9 @@ target_compile_definitions(st7735_f4 PRIVATE F_CPU=8000000) # Need for delay
 target_compile_options(st7735_f4 PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
 stm32_print_size_of_target(st7735_f4)
 
-# G0 build (DMA not supported yet)
-#add_executable(st7735_g0 main.cpp)
-#target_link_libraries(st7735_g0 CMSIS::STM32::G030F6 STM32::NoSys STM32::Nano)
-#target_compile_definitions(st7735_g0 PRIVATE F_CPU=8000000) # Need for delay
-#target_compile_options(st7735_g0 PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
-#stm32_print_size_of_target(st7735_g0)
+# G0 build
+add_executable(st7735_g0 main.cpp)
+target_link_libraries(st7735_g0 CMSIS::STM32::G030F6 STM32::NoSys STM32::Nano)
+target_compile_definitions(st7735_g0 PRIVATE F_CPU=8000000) # Need for delay
+target_compile_options(st7735_g0 PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
+stm32_print_size_of_target(st7735_g0)
