@@ -58,10 +58,10 @@ namespace Zhele
                 _SsPins::SetConfiguration(_SsPins::AltFunc, maskSs);
                 _SsPins::SetDriverType(_SsPins::DriverType::PushPull, maskSs);
             }
-
-            Clock::AfioClock::Enable();
+  
             if(clockPinNumber == 1)
             {
+                Clock::AfioClock::Enable();
                 Zhele::IO::Private::PeriphRemap<_Clock>::Set(1);
             }
         }
@@ -103,11 +103,10 @@ namespace Zhele
                 SsPin::template SetConfiguration<SsPin::Configuration::AltFunc>();
                 SsPin::template SetDriverType<SsPin::DriverType::PushPull>();
             }
-
-            Clock::AfioClock::Enable();
             
-            if constexpr (ssPinNumber == 1)
+            if constexpr (clockPinNumber == 1)
             {
+                Clock::AfioClock::Enable();
                 Zhele::IO::Private::PeriphRemap<_Clock>::Set(1);
             }
         }
