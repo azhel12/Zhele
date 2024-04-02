@@ -1,5 +1,3 @@
-#include <zhele/dmamux.h>
-#include <zhele/dma.h>
 #include <zhele/iopins.h>
 #include <zhele/spi.h>
 
@@ -7,6 +5,8 @@ using namespace Zhele;
 using namespace Zhele::IO;
 
 #if defined (STM32G0)
+#include <zhele/dma.h>
+#include <zhele/dmamux.h>
 using SpiInterface = Spi1<Dma1Channel1, Dma1Channel2>;
 #else
 using SpiInterface = Spi1;

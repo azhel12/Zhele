@@ -1,11 +1,11 @@
-#include <zhele/dma.h>
-#include <zhele/dmamux.h>
 #include <zhele/i2c.h>
 
 using namespace Zhele;
 
 
 #if defined (STM32G0)
+#include <zhele/dma.h>
+#include <zhele/dmamux.h>
 using Interface = I2c1<Dma1Channel1, Dma1Channel2>;
 #else
 using Interface = I2c1;
