@@ -4,11 +4,7 @@
 using namespace Zhele;
 using namespace Zhele::IO;
 
-#if defined (STM32G0)
-    using SpiInterface = Spi1NoDma;
-#else
-    using SpiInterface = Spi1;
-#endif
+using SpiInterface = Spi1;
 
 // It's hard to write spi example :)
 // I'll write data to nothing, you can check it with logic analyzer.

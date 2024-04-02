@@ -98,12 +98,12 @@ namespace Zhele
 
 // TODO:: Implement DMAMUX for use DMA
     template<typename _DmaTx = void, typename _DmaRx = void>
-    using I2c1 = Private::I2cBase<Private::I2c1Regs, I2C1_IRQn, I2C1_IRQn, Clock::I2c1Clock, Private::I2c1SclPins, Private::I2c1SdaPins, _DmaTx, _DmaRx>;
-    using I2c1NoDma = I2c1<>;
+    using I2c1Dma = Private::I2cBase<Private::I2c1Regs, I2C1_IRQn, I2C1_IRQn, Clock::I2c1Clock, Private::I2c1SclPins, Private::I2c1SdaPins, _DmaTx, _DmaRx>;
+    using I2c1 = I2c1Dma<>;
 
     template<typename _DmaTx = void, typename _DmaRx = void>
-    using I2c2 = Private::I2cBase<Private::I2c2Regs, I2C2_IRQn, I2C2_IRQn, Clock::I2c2Clock, Private::I2c2SclPins, Private::I2c2SdaPins, _DmaTx, _DmaRx>;
-    using I2c2NoDma = I2c2<>;
+    using I2c2Dma = Private::I2cBase<Private::I2c2Regs, I2C2_IRQn, I2C2_IRQn, Clock::I2c2Clock, Private::I2c2SclPins, Private::I2c2SdaPins, _DmaTx, _DmaRx>;
+    using I2c2 = I2c2Dma<>;
 }
 
 #endif //! ZHELE_I2C_H

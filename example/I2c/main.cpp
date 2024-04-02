@@ -2,11 +2,7 @@
 
 using namespace Zhele;
 
-#if defined (STM32G0)
-    using Interface = I2c1NoDma;
-#else
-    using Interface = I2c1;
-#endif
+using Interface = I2c1;
 
 // 0xD0 - it's ds107 RTC.
 int main()
