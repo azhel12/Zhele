@@ -59,7 +59,7 @@ extern "C" {
 #if defined (STM32F0) || defined (STM32F1) || defined (STM32G0)// F072RB and F103C8
     void DMA1_Channel1_IRQHandler()
 #elif defined (STM32F4)
-    void DMA2_Stream1_IRQHandler
+    void DMA2_Stream1_IRQHandler()
 #else
     #error "No example"
 #endif
