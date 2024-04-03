@@ -184,6 +184,20 @@ namespace Zhele
         }
 
         USART_TEMPLATE_ARGS
+        inline void USART_TEMPLATE_QUALIFIER::EnableReceiverTimeout(uint32_t bitCount)
+        {
+            _Regs()->CR2 |= USART_CR2_RTOEN;
+            SetReceiverTimeout(bitCount);
+        }
+
+        USART_TEMPLATE_ARGS
+        inline void USART_TEMPLATE_QUALIFIER::SetReceiverTimeout(uint32_t bitCount)
+        {
+            _Regs()->RTOR = (_Regs()->RTOR & ~USART_RTOR_RTO_Msk)
+                | (bitCount << USART_RTOR_RTO_Pos);
+        }
+
+        USART_TEMPLATE_ARGS
         void USART_TEMPLATE_QUALIFIER::EnableInterrupt(InterruptFlags interruptFlags)
         {
             uint32_t cr1Mask = 0;
@@ -193,12 +207,17 @@ namespace Zhele
             if(interruptFlags & ParityErrorInt)
                 cr1Mask |= USART_CR1_PEIE;
 
+        #if defined (USART_CR2_RTOEN)
+            if(interruptFlags & ReceiveTimeout)
+                cr1Mask |= USART_CR1_RTOIE;
+        #endif
+
             static_assert(
-                    USART_CR1_TXEIE  == TxEmptyInt &&
-                    USART_CR1_TCIE   == TxCompleteInt &&
-                    USART_CR1_RXNEIE == RxNotEmptyInt &&
-                    USART_CR1_IDLEIE == IdleInt
-                    );
+                USART_CR1_TXEIE  == TxEmptyInt &&
+                USART_CR1_TCIE   == TxCompleteInt &&
+                USART_CR1_RXNEIE == RxNotEmptyInt &&
+                USART_CR1_IDLEIE == IdleInt
+            );
 
             cr1Mask |= interruptFlags & (USART_CR1_TXEIE | USART_CR1_TCIE | USART_CR1_RXNEIE | USART_CR1_IDLEIE);
 
@@ -230,6 +249,11 @@ namespace Zhele
 
             if(interruptFlags & ParityErrorInt)
                 cr1Mask |= USART_CR1_PEIE;
+
+        #if defined (USART_CR2_RTOEN)
+            if(interruptFlags & ReceiveTimeout)
+                cr1Mask |= USART_CR1_RTOIE;
+        #endif
 
             static_assert(
                     USART_CR1_TXEIE  == TxEmptyInt &&
