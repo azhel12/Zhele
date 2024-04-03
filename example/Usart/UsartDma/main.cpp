@@ -84,11 +84,11 @@ extern "C" {
         UsartConnection::DmaRx::IrqHandler();
     }
 #elif defined (STM32F4)
-    void DMA2_Stream7_IRQn()
+    void DMA2_Stream7_IRQHandler()
     {
         UsartConnection::DmaTx::IrqHandler();
     }
-    void DMA2_Stream2_IRQn()
+    void DMA2_Stream2_IRQHandler()
     {
         UsartConnection::DmaRx::IrqHandler();
     }
