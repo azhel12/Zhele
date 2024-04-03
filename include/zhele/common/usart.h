@@ -324,7 +324,7 @@ namespace Zhele
              *	Nothing
              */
             static void Write(uint8_t data);
-           
+
             /**
              * @brief Enables RTOR feature with given timeout value
              * 

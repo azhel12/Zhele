@@ -183,6 +183,7 @@ namespace Zhele
             _Regs()->TRANSMIT_DATA_REG = data;  
         }
 
+#if defined (USART_CR2_RTOEN)
         USART_TEMPLATE_ARGS
         inline void USART_TEMPLATE_QUALIFIER::EnableReceiverTimeout(uint32_t bitCount)
         {
@@ -196,7 +197,7 @@ namespace Zhele
             _Regs()->RTOR = (_Regs()->RTOR & ~USART_RTOR_RTO_Msk)
                 | (bitCount << USART_RTOR_RTO_Pos);
         }
-
+#endif
         USART_TEMPLATE_ARGS
         void USART_TEMPLATE_QUALIFIER::EnableInterrupt(InterruptFlags interruptFlags)
         {
