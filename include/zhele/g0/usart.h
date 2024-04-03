@@ -11,6 +11,12 @@
 
 #include <stm32g0xx.h>
 
+// For compatibility with "default" CMSIS (F0/F1/F4) map G0 constants for Fx constants
+#define USART_ISR_TXE USART_ISR_TXE_TXFNF
+#define USART_ISR_RXNE USART_ISR_RXNE_RXFNE
+#define USART_CR1_RXNEIE USART_CR1_RXNEIE_RXFNEIE
+#define USART_CR1_TXEIE USART_CR1_TXEIE_TXFNFIE
+
 #include "../common/usart.h"
 
 #include "clock.h"
@@ -131,10 +137,16 @@ namespace Zhele
         IO_STRUCT_WRAPPER(USART3, Usart3Regs, USART_TypeDef);
     #endif
     }
-    using Usart1 = Private::Usart<Private::Usart1Regs, USART1_IRQn, Clock::Usart1Clock, Private::Usart1TxPins, Private::Usart1RxPins, void, void>;
-    using Usart2 = Private::Usart<Private::Usart2Regs, USART2_IRQn, Clock::Usart2Clock, Private::Usart2TxPins, Private::Usart2RxPins, void, void>;
+
+    template<typename _DmaTx = void, typename _DmaRx = void>
+    using Usart1 = Private::Usart<Private::Usart1Regs, USART1_IRQn, Clock::Usart1Clock, Private::Usart1TxPins, Private::Usart1RxPins, _DmaTx, _DmaRx>;
+    
+    template<typename _DmaTx = void, typename _DmaRx = void>
+    using Usart2 = Private::Usart<Private::Usart2Regs, USART2_IRQn, Clock::Usart2Clock, Private::Usart2TxPins, Private::Usart2RxPins, _DmaTx, _DmaRx>;
+
 #if defined (USART3)
-    using Usart3 = Private::Usart<Private::Usart3Regs, USART3_IRQn, Clock::Usart3Clock, Private::Usart3TxPins, Private::Usart3RxPins, void, void>;
+    template<typename _DmaTx = void, typename _DmaRx = void>
+    using Usart3 = Private::Usart<Private::Usart3Regs, USART3_IRQn, Clock::Usart3Clock, Private::Usart3TxPins, Private::Usart3RxPins, _DmaTx, _DmaRx>;
 #endif
 }
 
