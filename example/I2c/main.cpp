@@ -32,6 +32,7 @@ int main()
 
     // Or use stream write with DMA
 #if defined (STM32G0)
+    Dma1::Enable();
     DmaMux1Channel1::SelectRequestInput(DmaMux1::RequestInput::I2c1Tx);
     DmaMux1Channel2::SelectRequestInput(DmaMux1::RequestInput::I2c1Rx);
 #endif
