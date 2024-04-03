@@ -5,12 +5,26 @@
 using namespace Zhele;
 using namespace Zhele::Drivers;
 
-using Lcd = Ssd1306<I2c1>;
+#if defined (STM32G0)
+#include <zhele/dma.h>
+#include <zhele/dmamux.h>
+using Interface = I2c1<Dma1Channel1, Dma1Channel2>;
+#else
+using Interface = I2c1;
+#endif
+
+using Lcd = Ssd1306<Interface>;
 
 int main()
 {
-    I2c1::Init(400000);
-    I2c1::SelectPins<IO::Pb6, IO::Pb7>();
+    Interface::Init(400000);
+    Interface::SelectPins<IO::Pb6, IO::Pb7>();
+
+    // ssd1306 requires DMA
+#if defined (STM32G0)
+    DmaMux1Channel1::SelectRequestInput(DmaMux1::RequestInput::I2c1Tx);
+    DmaMux1Channel2::SelectRequestInput(DmaMux1::RequestInput::I2c1Rx);
+#endif
 
     Lcd::Init();
     Lcd::Puts<TimesNewRoman13>("Abcdefghijklmnopqrstu");

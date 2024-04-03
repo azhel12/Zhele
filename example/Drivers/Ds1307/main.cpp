@@ -4,12 +4,18 @@
 using namespace Zhele;
 using namespace Zhele::Drivers;
 
-using Rtc = Ds1307<I2c1>;
+#if defined (STM32G0)
+using Interface = I2c1<>;
+#else
+using Interface = I2c1;
+#endif
+
+using Rtc = Ds1307<Interface>;
 
 int main()
 {
-    I2c1::Init();
-    I2c1::SelectPins<IO::Pb6, IO::Pb7>();
+    Interface::Init();
+    Interface::SelectPins<IO::Pb6, IO::Pb7>();
 
     // Write date
     Rtc::SetDay(23);

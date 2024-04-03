@@ -17,3 +17,6 @@
 #if defined(STM32L4)
     #include "l4/usb.h"
 #endif
+#if defined(STM32G0)
+    #include "g0/usb.h"
+#endif

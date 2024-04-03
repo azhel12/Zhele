@@ -15,6 +15,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../../include)
 
 # F0 (not support DAC yet)
 # F1 (not support DAC yet)
+# G0 (not support DAC yet)
 
 # F4 build
 add_executable(dac_common_f4 main.cpp)

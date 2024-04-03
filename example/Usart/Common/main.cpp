@@ -1,8 +1,5 @@
-// Define target cpu frequence.
-#define F_CPU 8000000
-
 // !!!! For USART its important to define correct frequence values.
-// For example, I use STM32F401cc for tests and it has 16MHz HSI value.
+// For example, STM32F401CC and STM32G030 have 16MHz HSI, use HSI_VALUE here or in CMakeLists
 
 #include <zhele/iopins.h>
 #include <zhele/usart.h>
@@ -10,7 +7,11 @@
 using namespace Zhele;
 using namespace Zhele::IO;
 
-using UsartConnection = Usart1;
+#if defined (STM32G0)
+    using UsartConnection = Usart1<>;
+#else
+    using UsartConnection = Usart1;
+#endif
 using Led = Pa7;
 
 // This program enables LED and USART. After initial setings sends "Hello\r\n" to USART.

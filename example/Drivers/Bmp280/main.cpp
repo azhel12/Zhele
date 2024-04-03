@@ -4,13 +4,19 @@
 using namespace Zhele;
 using namespace Zhele::Drivers;
 
-using BmpSensor = Bmp280<I2c1>;
+#if defined (STM32G0)
+using Interface = I2c1<>;
+#else
+using Interface = I2c1;
+#endif
+
+using BmpSensor = Bmp280<Interface>;
 
 int main()
 {
     
-    I2c1::Init();
-    I2c1::SelectPins<IO::Pb6, IO::Pb7>();
+    Interface::Init();
+    Interface::SelectPins<IO::Pb6, IO::Pb7>();
 
     volatile bool initResult = BmpSensor::Init();
     volatile auto temp = BmpSensor::ReadTemperature();

@@ -4,13 +4,20 @@
 using namespace Zhele;
 using namespace Zhele::Drivers;
 
-using Sensor = Aht10<I2c1>;
+
+#if defined (STM32G0)
+using Interface = I2c1<>;
+#else
+using Interface = I2c1;
+#endif
+
+using Sensor = Aht10<Interface>;
 
 int main()
 {
     
-    I2c1::Init();
-    I2c1::SelectPins<IO::Pb8, IO::Pb9>();
+    Interface::Init();
+    Interface::SelectPins<IO::Pb8, IO::Pb9>();
 
     volatile bool initResult = Sensor::Init();
     volatile auto temp = Sensor::ReadTemperatureAndHumidity();

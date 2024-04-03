@@ -1,12 +1,10 @@
-#define F_CPU 72000000
+#include <zhele/clock.h>
+#include <zhele/iopins.h>
+#include <zhele/spi.h>
+#include <zhele/usart.h>
 
-#include <clock.h>
-#include <iopins.h>
-#include <spi.h>
-#include <usart.h>
-
-#include <drivers/sdcard.h>
-#include <drivers/filesystem/fatfs/ff.h>
+#include <zhele/drivers/sdcard.h>
+#include <zhele/drivers/filesystem/fatfs/ff.h>
 
 #include <cstring>
 
@@ -14,8 +12,13 @@ using namespace Zhele;
 using namespace Zhele::Clock;
 using namespace Zhele::IO;
 
+#if defined (STM32G0)
+using SpiInterface = Spi1<>;
+#else
 using SpiInterface = Spi1;
-using SdCardReader = Drivers::SdCard<Spi1, IO::Pa4>;
+#endif
+
+using SdCardReader = Drivers::SdCard<SpiInterface, IO::Pa4>;
 using UsartConnection = Usart1;
 
 void ConfigureClock();

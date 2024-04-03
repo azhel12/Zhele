@@ -16,3 +16,6 @@
 #if defined(STM32F4)
     #include "f4/adc.h"
 #endif
+#if defined(STM32G0)
+    #include "g0/adc.h"
+#endif
