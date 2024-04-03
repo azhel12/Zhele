@@ -12,7 +12,7 @@
 
 #include <stm32g0xx.h>
 
-// For compatibility with old CMSIS (F0/F1/F4)
+// For compatibility with "default" CMSIS (F0/F1/F4)
 #define RTSR RTSR1
 #define FTSR FTSR1
 #define IMR IMR1

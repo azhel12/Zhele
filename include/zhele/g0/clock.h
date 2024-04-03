@@ -12,7 +12,7 @@
 
 #include <stm32g0xx.h>
 
-// For compatibility with old CMSIS (F0/F1/F4)
+// For compatibility with "default" CMSIS (F0/F1/F4)
 #define RCC_CFGR_SW_HSI                    0x00000000U                         /*!< HSI selected as system clock */
 #define RCC_CFGR_SW_HSE                    0x00000001U                         /*!< HSE selected as system clock */
 #define RCC_CFGR_SW_PLL                    0x00000002U                         /*!< PLL selected as system clock */
