@@ -295,6 +295,19 @@ namespace Zhele::TemplateUtils
         }
 
         /**
+         * @brief Apply function for each type in typelist while function not returns true
+         * 
+         * @param func Function
+         * 
+         * @retval true Func returns true on one type
+         * @retval false Func not returns true
+        */
+        static constexpr bool any(auto func)
+        {
+            return (func(TypeBox<Ts> {}) || ...);
+        }
+
+        /**
          * @brief Transform each type in typelist with given function
          * 
          * @param func Type transformer
