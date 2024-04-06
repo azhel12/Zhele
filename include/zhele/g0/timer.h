@@ -112,6 +112,9 @@ namespace Zhele::Timers
         template<> struct Tim3ChPins<3>{ using Pins = Pair<IO::PinList<Pb1, Pc9>, NonTypeTemplateArray<1, 1>>; };
         
         template<unsigned ChannelNumber> struct Tim4ChPins;
+
+        template<unsigned ChannelNumber> struct Tim14ChPins;
+        template<> struct Tim14ChPins<0>{ using Pins = Pair<IO::PinList<Pa4, Pa7, Pb1, Pc12, Pf0>, NonTypeTemplateArray<4, 4, 0, 2, 2>>; };
         
         IO_STRUCT_WRAPPER(TIM1, Tim1Regs, TIM_TypeDef);
     #if defined (TIM2)
@@ -133,7 +136,7 @@ namespace Zhele::Timers
 #if defined (TIM4)
     using Timer4 = Private::GPTimer<Private::Tim4Regs, Clock::Tim4Clock, TIM4_IRQn, Private::Tim4ChPins>;
 #endif
-    using Timer14 = Private::BaseTimer<Private::Tim14Regs, Clock::Tim14Clock, TIM14_IRQn>;
+    using Timer14 = Private::GPTimer<Private::Tim14Regs, Clock::Tim14Clock, TIM14_IRQn, Private::Tim14ChPins>;
     using Timer16 = Private::BaseTimer<Private::Tim16Regs, Clock::Tim16Clock, TIM16_IRQn>;
     using Timer17 = Private::BaseTimer<Private::Tim17Regs, Clock::Tim17Clock, TIM17_IRQn>;
 }
