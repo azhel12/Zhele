@@ -23,4 +23,9 @@
     #include <stm32g0xx.h>
 #endif
 
+#include "clock.h"
 #include "common/crc.h"
+
+namespace Zhele {
+    using Crc = Crc32<Clock::CrcClock>;
+}

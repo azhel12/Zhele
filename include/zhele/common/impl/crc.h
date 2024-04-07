@@ -10,95 +10,126 @@
 #define ZHELE_CRC_IMPL_COMMON_H
 
 #include <stdint.h>
+#include <limits>
 #include <type_traits>
 
 namespace Zhele
 {
+#if defined (CRC_POL_POL)
+    template<typename _Clock>
+    inline void Crc32<_Clock>::SetPolynomSize(PolynomSize polynomSize)
+    {
+        CRC->CR = (CRC->CR & ~CRC_CR_POLYSIZE_Msk) | (static_cast<uint32_t>(polynomSize));
+    }
+
+    template<typename _Clock>
+    inline void Crc32<_Clock>::SetPolynom(auto polynom)
+    {
+        CRC->POL = polynom;
+    }
+
+    template<typename _Clock>
+    inline uint32_t Crc32<_Clock>::CalculateCrc32(uint32_t polynom, const uint8_t* data, unsigned size)
+    {
+        SetPolynom(polynom);
+        return CalculateCrc32(data, size);
+    }
+#else
+
+#endif
+
+#if defined (CRC_INIT_INIT)
+    template<typename _Clock>
+    inline void Crc32<_Clock>::SetInitialValue(uint32_t initialValue)
+    {
+        CRC->INIT = initialValue;
+    }
+#endif
+
+    template<typename _Clock>
+    inline void Zhele::Crc32<_Clock>::Enable()
+    {
+        _Clock::Enable();
+
+    #if defined (CRC_CR_REV_IN) && defined (CRC_CR_REV_OUT)
+        CRC->CR |= (0b11 << CRC_CR_REV_IN_Pos) | CRC_CR_REV_OUT;
+    #endif
+    }
+
+    template<typename _Clock>
+    inline uint32_t Crc32<_Clock>::GetPolynom()
+    {
     #if defined (CRC_POL_POL)
-        inline void Crc::SetPolynomSize(PolynomSize polynomSize)
-        {
-            CRC->CR = (CRC->CR & ~CRC_CR_POLYSIZE_Msk) | (static_cast<uint32_t>(polynomSize));
-        }
-
-        inline void Crc::SetPolynom(auto polynom)
-        {
-            CRC->POL = polynom;
-        }
-
-        inline uint32_t Crc::CalculateCrc32(uint32_t polynom, const uint8_t* data, unsigned size)
-        {
-            SetPolynom(polynom);
-            return CalculateCrc32(data, size);
-        }
+        return CRC->POL;
     #else
-
+        return 0x4c11db7;
     #endif
+    }
 
+    template<typename _Clock>
+    inline uint32_t Crc32<_Clock>::GetInitialValue()
+    {
     #if defined (CRC_INIT_INIT)
-        inline void Crc::SetInitialValue(uint32_t initialValue)
-        {
-            CRC->INIT = initialValue;
-        }
+        return CRC->INIT;
+    #else
+        return 0xffffffff;
     #endif
+    }
 
-        inline uint32_t Crc::GetPolynom()
-        {
-        #if defined (CRC_POL_POL)
-            return CRC->POL;
-        #else
-            return 0x4c11db7;
-        #endif
+    template<typename _Clock>
+    inline uint32_t Crc32<_Clock>::CalculateCrc32(const uint8_t* data, unsigned size)
+    {
+        Reset();
+        const uint32_t* data_aligned = reinterpret_cast<const uint32_t*>(data);
+
+#if defined (CRC_CR_REV_IN) && defined (CRC_CR_REV_OUT)
+        for (int i = 0; i < (size / sizeof(uint32_t)); ++i) {
+            CRC->DR = data_aligned[i];
         }
 
-        inline uint32_t Crc::GetInitialValue()
-        {
-        #if defined (CRC_INIT_INIT)
-            return CRC->INIT;
-        #else
-            return 0xffffffff;
-        #endif
+        uint32_t result = CRC->DR;
+        unsigned bits_remain = (size % sizeof(uint32_t)) * std::numeric_limits<uint8_t>::digits;
+        if (bits_remain) {
+            CRC->DR = CRC->DR;
+            CRC->DR = ((data_aligned[size / sizeof(uint32_t)] & (0xFFFFFFFF >> (32 - bits_remain))) ^ result) << (32 - bits_remain);
+            result = (result >> bits_remain) ^ CRC->DR;
+        }
+#else
+        for (int i = 0; i < (size / sizeof(uint32_t)); ++i) {
+            CRC->DR = __RBIT(data_aligned[i]);
         }
 
-        inline uint32_t Crc::Write(auto chunk)
-        {
-            CRC->DR = chunk;
 
-            return CRC->DR;
+        uint32_t result = __RBIT(CRC->DR);
+        unsigned bits_remain = (size % sizeof(uint32_t)) * std::numeric_limits<uint8_t>::digits;
+        if (bits_remain) {
+            CRC->DR = CRC->DR;
+            CRC->DR = __RBIT((data_aligned[size / sizeof(uint32_t)] & (0xFFFFFFFF >> (32 - bits_remain))) ^ result) >> (32 - bits_remain);
+            result = (result >> bits_remain) ^ __RBIT(CRC->DR);
         }
+#endif
 
-        inline uint32_t Crc::Read()
-        {
-            return CRC->DR;
-        }
+        return ~result;
+    }
 
-        inline uint32_t Crc::CalculateCrc32(const uint8_t* data, unsigned size)
-        {
-            Reset();
-            for(int i = 0; i < size / sizeof(uint32_t); ++i) {
-                CRC->DR = *reinterpret_cast<const uint32_t*>(data);
-                data += sizeof(uint32_t);
-            }
+    template<typename _Clock>
+    inline void Crc32<_Clock>::Reset()
+    {
+        CRC->CR |= CRC_CR_RESET;
+        while(CRC->CR & CRC_CR_RESET) continue;
+    }
 
-            for(int i = 0; i < size % sizeof(uint32_t); ++i) {
-                CRC->DR = data[i];
-            }
-        }
+    template<typename _Clock>
+    inline void Crc32<_Clock>::SetIDR(std::remove_cv_t<decltype(CRC_TypeDef::IDR)> data)
+    {
+        CRC->IDR = data;
+    }
 
-        inline void Crc::Reset()
-        {
-            CRC->CR |= CRC_CR_RESET;
-            while(CRC->CR & CRC_CR_RESET) continue;
-        }
-
-        inline void Crc::SetIDR(std::remove_cv_t<decltype(CRC_TypeDef::IDR)> data)
-        {
-            CRC->IDR = data;
-        }
-
-        inline std::remove_cv_t<decltype(CRC_TypeDef::IDR)> Crc::GetIDR()
-        {
-            return CRC->IDR;
-        }
+    template<typename _Clock>
+    inline std::remove_cv_t<decltype(CRC_TypeDef::IDR)> Crc32<_Clock>::GetIDR()
+    {
+        return CRC->IDR;
+    }
 }
 
 #endif //! ZHELE_CRC_IMPL_COMMON_H

@@ -14,7 +14,15 @@
 
 namespace Zhele
 {
-    class Crc {
+    template<typename _Clock>
+    class Crc32 {
+        /**
+         * @brief Reset CRC unit to initial value
+         * 
+         * @par Returns
+         *  Nothing
+        */
+        static void Reset();
     public:
     #if defined (CRC_POL_POL)
         enum class PolynomSize {
@@ -69,6 +77,14 @@ namespace Zhele
     #endif
 
         /**
+         * @brief Enables CRC module clocking
+         * 
+         * @par Returns
+         *  Nothing
+        */
+        static void Enable();
+
+        /**
          * @brief Returns polynom value
          * 
          * @returns Polynom value
@@ -83,22 +99,6 @@ namespace Zhele
         static uint32_t GetInitialValue();
 
         /**
-         * @brief Writes nex data chunk to register
-         * 
-         * @param [in] chunk Data chunk (8, 16 or 32 bits)
-         * 
-         * @returns Calculated CRC32 checksum
-        */
-        static uint32_t Write(auto chunk);
-
-        /**
-         * @brief Returns current data register value (current calculated CRC32 checksum)
-         * 
-         * @returns Calculated CRC32 checksum
-        */
-        static uint32_t Read();
-
-        /**
          * @brief Calculates CRC32 checksum for given data
          * 
          * @param [in] data Data pointer
@@ -107,14 +107,6 @@ namespace Zhele
          * @returns CRC32
         */
         static uint32_t CalculateCrc32(const uint8_t* data, unsigned size);
-
-        /**
-         * @brief Reset CRC unit to initial value
-         * 
-         * @par Returns
-         *  Nothing
-        */
-        static void Reset();
 
         /**
          * @brief Store data to independet register
