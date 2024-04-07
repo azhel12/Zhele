@@ -10,6 +10,7 @@ find_package(CMSIS COMPONENTS STM32F0 STM32F1 STM32F4 STM32G0 REQUIRED)
 
 add_subdirectory(Adc)
 add_subdirectory(Clock)
+add_subdirectory(Crc)
 add_subdirectory(Dac)
 add_subdirectory(Dma)
 add_subdirectory(Drivers)
