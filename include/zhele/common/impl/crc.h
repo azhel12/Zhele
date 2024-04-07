@@ -13,7 +13,7 @@
 #include <limits>
 #include <type_traits>
 
-namespace Zhele
+namespace Zhele::Private
 {
 #if defined (CRC_POL_POL)
     template<typename _Clock>
@@ -47,7 +47,7 @@ namespace Zhele
 #endif
 
     template<typename _Clock>
-    inline void Zhele::Crc32<_Clock>::Enable()
+    inline void Crc32<_Clock>::Enable()
     {
         _Clock::Enable();
 

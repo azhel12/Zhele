@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <type_traits>
 
-namespace Zhele
+namespace Zhele::Private
 {
     template<typename _Clock>
     class Crc32 {

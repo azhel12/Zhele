@@ -27,5 +27,5 @@
 #include "common/crc.h"
 
 namespace Zhele {
-    using Crc = Crc32<Clock::CrcClock>;
+    using Crc = Private::Crc32<Clock::CrcClock>;
 }
