@@ -302,6 +302,17 @@ namespace Zhele
             _Regs()->SR &= ~interruptFlags;
         #endif
         }
+
+        USART_TEMPLATE_ARGS
+        inline void USART_TEMPLATE_QUALIFIER::ClearAllInterruptFlags()
+        {
+        #if defined(USART_TYPE_1)
+            _Regs()->ICR |= 0xffffffff;
+        #endif
+        #if defined(USART_TYPE_2)
+            _Regs()->SR = 0x00000000;
+        #endif
+        }
     }
 }
 #endif

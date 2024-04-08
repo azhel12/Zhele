@@ -149,7 +149,13 @@ namespace Zhele
             ReceiveTimeout = USART_ISR_RTOF,
         #endif
 
-            AllInterrupts  = ParityErrorInt | TxEmptyInt | TxCompleteInt | RxNotEmptyInt | IdleInt | LineBreakInt | ErrorInt | CtsInt
+            AllInterrupts  =  ParityErrorInt | TxEmptyInt | TxCompleteInt | RxNotEmptyInt | IdleInt | LineBreakInt | ErrorInt | CtsInt
+        #if defined (USART_CR1_FIFOEN)
+             | RxFifoFull | TxFifoEmpty | RxFifoThreshold | TxFifoThreshold
+        #endif
+        #if defined (USART_CR2_RTOEN)
+            | ReceiveTimeout
+        #endif
         };
 
         enum Error
@@ -388,6 +394,14 @@ namespace Zhele
              *	Nothing
              */
             static void ClearInterruptFlag(InterruptFlags interruptFlags);
+
+            /**
+             * @brief Clears all interrupts
+             * 
+             * @par Returns
+             *	Nothing
+             */
+            static void ClearAllInterruptFlags();
 
             /**
              * @brief Select RX and TX pins (set settings)
