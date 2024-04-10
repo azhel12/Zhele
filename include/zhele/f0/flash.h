@@ -3,7 +3,7 @@
  * Implements FLASH for stm32f0 series
  * 
  * @author Alexey Zhelonkin
- * @date 2020
+ * @date 2024
  * @license FreeBSD
  */
 
@@ -13,6 +13,8 @@
 #include <stm32f0xx.h>
 
 #include "../common/flash.h"
+
+#include <algorithm>
 
 namespace Zhele
 {    
@@ -72,29 +74,53 @@ namespace Zhele
         return true;
     }
 
-    inline bool Flash::WritePage(unsigned page, const void* data, unsigned size, unsigned offset)
+    inline bool Flash::WriteFlash(void* dst, const void* src, unsigned size)
     {
-        if(page > PageCount())
-            return false;
-        
-        if(offset + size > PageSize(page))
-            return false;
-
         if (IsLock())
             Unlock();
 
-        const uint16_t* src = reinterpret_cast<const uint16_t*>(data);
-        uint16_t* dst = reinterpret_cast<uint16_t*>(PageAddress(page) + offset);
+        const uint16_t* aligned_src = reinterpret_cast<const uint16_t*>(src);
+        uint16_t* aligned_dst = reinterpret_cast<uint16_t*>(dst);
 
         FLASH->CR |= FLASH_CR_PG;
 
-        for(int i = 0; i < size / 2; ++i)
-        {
-            dst[i] = src[i];
-            WaitWhileBusy();
+        if ((reinterpret_cast<uint32_t>(aligned_src) & 0x1) == 0) {
+            while (size >= sizeof(uint16_t)) {
+                *aligned_dst++ = *aligned_src++;
+                size -= sizeof(uint16_t);
+                WaitWhileBusy();
 
-            if ((FLASH->SR & FLASH_SR_EOP) == 0)
-                break;
+                if ((FLASH->SR & FLASH_SR_EOP) == 0)
+                    break;
+
+                FLASH->SR = FLASH_SR_EOP;
+            }
+        } else {
+            alignas(sizeof(uint16_t)) uint16_t buffer;
+            while (size >= sizeof(uint16_t)) {
+                std::copy_n(reinterpret_cast<const uint8_t*>(aligned_src), sizeof(buffer), reinterpret_cast<uint8_t*>(&buffer));
+
+                *aligned_dst++ = buffer;
+                ++aligned_src;
+                size -= sizeof(uint16_t);
+
+                WaitWhileBusy();
+
+                if ((FLASH->SR & FLASH_SR_EOP) == 0)
+                    break;
+
+                FLASH->SR = FLASH_SR_EOP;
+            }
+        }
+
+        if (size > 0) {
+            alignas(sizeof(uint16_t)) uint16_t buffer;
+
+            std::copy_n(reinterpret_cast<const uint8_t*>(aligned_src), size, reinterpret_cast<uint8_t*>(&buffer));
+            std::copy_n(reinterpret_cast<const uint8_t*>(aligned_dst) + size, sizeof(buffer) - size, reinterpret_cast<uint8_t*>(&buffer) + size);
+
+            *aligned_dst++ = buffer;
+            WaitWhileBusy();
 
             FLASH->SR = FLASH_SR_EOP;
         }

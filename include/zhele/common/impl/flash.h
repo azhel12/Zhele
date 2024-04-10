@@ -11,12 +11,26 @@
 
 #include <cstdint>
 
-
 namespace Zhele
 {
+    inline constexpr unsigned Flash::SqrtOfPowerOfTwo(uint32_t value)
+    {
+        unsigned result = 0;
+
+        if (value & (value - 1))
+            return 0xffffffff;
+
+        while (value != (1 << result))
+            ++result;
+
+        return result;
+    }
+
     inline constexpr uint32_t Flash::FlashSize()
     {
-    #if defined (FLASH_END)
+    #if defined (FLASH_SIZE)
+        return FLASH_SIZE;
+    #elif defined (FLASH_END)
         return FLASH_END - FLASH_BASE;
     #elif defined (FLASH_BANK2_END)
         return FLASH_BANK2_END - FLASH_BASE;
@@ -59,12 +73,34 @@ namespace Zhele
     {
         unsigned page = AddressToPage(dst);
 		uint32_t offset = reinterpret_cast<uint32_t>(dst) - PageAddress(page);
-		return WritePage(page, src, size, offset);
+
+        if(page > PageCount())
+            return false;
+        
+        if(offset + size > PageSize(page))
+            return false;
+
+		return WriteFlash(dst, src, size);
+    }
+
+    inline bool Flash::WritePage(unsigned page, const void* src, unsigned size, unsigned offset)
+    {
+        if(page > PageCount())
+            return false;
+        
+        if(offset + size > PageSize(page))
+            return false;
+
+		return WriteFlash(reinterpret_cast<uint8_t*>(PageAddress(page)) + offset, src, size);
     }
 
     inline void Flash::WaitWhileBusy()
     {
+    #if defined (FLASH_SR_BSY1)
+        while(FLASH->SR & FLASH_SR_BSY1 ) continue;
+    #else
         while(FLASH->SR & FLASH_SR_BSY) continue;
+    #endif
     }
 }
 

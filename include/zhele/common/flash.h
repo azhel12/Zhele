@@ -15,6 +15,14 @@ namespace Zhele
 {
     class Flash
 	{
+        /**
+         * @brief Returns sqrt of given value where value should be 2^x
+         * 
+         * @param [in] value Value
+         * 
+         * @returns X, where 2^X = valye
+        */
+        static constexpr unsigned SqrtOfPowerOfTwo(uint32_t value);
     public:
         /**
          * @brief Configure flash for target system frequency
@@ -102,15 +110,27 @@ namespace Zhele
         /**
          * @brief Writes data to flash
          * 
-         * @param page Page number
-         * @param data Data to write
+         * @param dst Destination address
+         * @param src Data to write
          * @param size Data size
-         * @param offset Offset
          * 
          * @retval true Write success
          * @retval false Write failed
         */
-        static bool WritePage(unsigned page, const void* data, unsigned size, unsigned offset = 0);
+        static bool WritePage(void* dst, const void* src, unsigned size);
+
+        /**
+         * @brief Writes data to flash
+         * 
+         * @param page Page number
+         * @param src Data to write
+         * @param size Data size
+         * @param offset Offset for dst
+         * 
+         * @retval true Write success
+         * @retval false Write failed
+        */
+        static bool WritePage(unsigned page, const void* src, unsigned size, unsigned offset);
 
         /**
          * @brief Writes data to flash
@@ -122,7 +142,7 @@ namespace Zhele
          * @retval true Write success
          * @retval false Write failed
         */
-        static bool WritePage(void* dst, const void* src, unsigned size);
+        static bool WriteFlash(void* dst, const void* src, unsigned size);
 
     private:
         /**
