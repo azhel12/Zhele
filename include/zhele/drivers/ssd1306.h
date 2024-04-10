@@ -15,12 +15,10 @@
 
 namespace Zhele::Drivers
 {
-    template <typename I2CBus>
+    template <typename I2CBus, unsigned Width = 128, unsigned Height = 64>
     class Ssd1306
     {
         static const uint8_t I2cAddress = (0x78 >> 1);
-        static const uint8_t Width = 128;
-        static const uint8_t Height = 64;
 
         // Ssd1306 commands
         enum Commands : uint8_t
@@ -130,10 +128,10 @@ namespace Zhele::Drivers
         static uint16_t _y;
     };
 
-    template <typename I2CBus>
-    bool Ssd1306<I2CBus>::Init()
+    template <typename I2CBus, unsigned Width, unsigned Height>
+    bool Ssd1306<I2CBus, Width, Height>::Init()
     {
-        const uint8_t initSequence[] = {
+        constexpr uint8_t initSequence[] = {
             Commands::Off,
             Commands::SetMemoryMode,
             0x00, // Horizontal Addressing Mode.
@@ -168,20 +166,20 @@ namespace Zhele::Drivers
         return true;
     }
 
-    template <typename I2CBus>
-    void Ssd1306<I2CBus>::Fill(Pixel state)
+    template <typename I2CBus, unsigned Width, unsigned Height>
+    void Ssd1306<I2CBus, Width, Height>::Fill(Pixel state)
     {
         memset(_buffer, state == Pixel::Off ? 0x00 : 0xff, sizeof(_buffer));
     }
 
-    template <typename I2CBus>
-    void Ssd1306<I2CBus>::Update()
+    template <typename I2CBus, unsigned Width, unsigned Height>
+    void Ssd1306<I2CBus, Width, Height>::Update()
     {
-        I2CBus::WriteAsync(I2cAddress, 0x40, _buffer, Ssd1306<I2CBus>::Width * Ssd1306<I2CBus>::Height / 8);
+        I2CBus::WriteAsync(I2cAddress, 0x40, _buffer, Width * Height / 8);
     }
 
-    template <typename I2CBus>
-    void Ssd1306<I2CBus>::DrawPixel(uint16_t x, uint16_t y, Pixel state)
+    template <typename I2CBus, unsigned Width, unsigned Height>
+    void Ssd1306<I2CBus, Width, Height>::DrawPixel(uint16_t x, uint16_t y, Pixel state)
     {
         if(x >= Width || y >= Height)
             return;
@@ -195,16 +193,16 @@ namespace Zhele::Drivers
         }
     }
 
-    template <typename I2CBus>
-    void Ssd1306<I2CBus>::Goto(uint16_t x, uint16_t y)
+    template <typename I2CBus, unsigned Width, unsigned Height>
+    void Ssd1306<I2CBus, Width, Height>::Goto(uint16_t x, uint16_t y)
     {
         _x = x;
         _y = y;
     }
 
-    template <typename I2CBus>
+    template <typename I2CBus, unsigned Width, unsigned Height>
     template <typename Font>
-    std::enable_if_t<Font::MonoSpace, bool> Ssd1306<I2CBus>::Putc(char symbol)
+    std::enable_if_t<Font::MonoSpace, bool> Ssd1306<I2CBus, Width, Height>::Putc(char symbol)
     {            
         if (Width <= (_x + Font::Width) || Height <= (_y + Font::Height))
         {
@@ -235,9 +233,9 @@ namespace Zhele::Drivers
         return true;
     }
 
-    template <typename I2CBus>
+    template <typename I2CBus, unsigned Width, unsigned Height>
     template <typename Font>
-    std::enable_if_t<!Font::MonoSpace, bool> Ssd1306<I2CBus>::Putc(char symbol)
+    std::enable_if_t<!Font::MonoSpace, bool> Ssd1306<I2CBus, Width, Height>::Putc(char symbol)
     {            
         volatile uint8_t width = Font::GetWidth(symbol);
         if (Width <= (_x + width) || Height <= (_y + Font::Height))
@@ -269,9 +267,9 @@ namespace Zhele::Drivers
         return true;
     }
 
-    template <typename I2CBus>
+    template <typename I2CBus, unsigned Width, unsigned Height>
     template <typename Font>
-    bool Ssd1306<I2CBus>::Puts(const char* str)
+    bool Ssd1306<I2CBus, Width, Height>::Puts(const char* str)
     {
         while (*str)
         {
@@ -284,18 +282,18 @@ namespace Zhele::Drivers
         return true;
     }
 
-    template <typename I2CBus>
-    void Ssd1306<I2CBus>::WriteCommand(uint8_t command)
+    template <typename I2CBus, unsigned Width, unsigned Height>
+    void Ssd1306<I2CBus, Width, Height>::WriteCommand(uint8_t command)
     {
         I2CBus::WriteU8(I2cAddress, 0x00, command);
     }
 
-    template <typename I2CBus>
-    uint8_t Ssd1306<I2CBus>::_buffer[Ssd1306<I2CBus>::Width * Ssd1306<I2CBus>::Height / 8];
-    template <typename I2CBus>
-    uint16_t Ssd1306<I2CBus>::_x = 0;
-    template <typename I2CBus>
-    uint16_t Ssd1306<I2CBus>::_y = 0;
+    template <typename I2CBus, unsigned Width, unsigned Height>
+    uint8_t Ssd1306<I2CBus, Width, Height>::_buffer[Width * Height / 8];
+    template <typename I2CBus, unsigned Width, unsigned Height>
+    uint16_t Ssd1306<I2CBus, Width, Height>::_x = 0;
+    template <typename I2CBus, unsigned Width, unsigned Height>
+    uint16_t Ssd1306<I2CBus, Width, Height>::_y = 0;
 }
 
 #endif //! ZHELE_DRIVERS_SSD1306_H

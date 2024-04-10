@@ -155,6 +155,8 @@ namespace Zhele
         class Spi : public SpiBase
         {
         public:
+            using DmaTx = _DmaTx;
+            using DmaRx = _DmaRx;
             /**
              * @brief Enable SPI
              * 

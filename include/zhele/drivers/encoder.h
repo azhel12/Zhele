@@ -24,8 +24,8 @@ namespace Zhele::Drivers
      * @tparam _PinB Input pin B (for 2 channel)
      */
     template <typename _Timer,
-            typename _PinA = Zhele::TemplateUtils::GetType_t<0, typename _Timer::InputCapture<0>::Pins>,
-            typename _PinB = Zhele::TemplateUtils::GetType_t<0, typename _Timer::InputCapture<1>::Pins>,
+            typename _PinA = typename _Timer::InputCapture<0>::Pins::template Pin<0>,
+            typename _PinB = typename _Timer::InputCapture<1>::Pins::template Pin<0>,
             uint16_t _MaxValue = 0xffff>
     class Encoder
     {

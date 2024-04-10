@@ -894,7 +894,7 @@ namespace Zhele::Usb
          * 
          * @returns Bytes of descriptor 
          */
-        static uint16_t GetDescriptor()
+        static consteval auto GetDescriptor()
         {
             constexpr unsigned size = Direction == EndpointDirection::Bidirectional
                 ? 2 * sizeof(EndpointDescriptor)

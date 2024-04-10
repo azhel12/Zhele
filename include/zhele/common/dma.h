@@ -163,7 +163,9 @@ namespace Zhele
         static_assert(_Channel <= _Module::Channels);
         static DmaChannelData Data;
     public:
+        using Module = _Module;
         using DmaBase::Mode;
+        static constexpr unsigned Channel = _Channel;
 
         /**
          * @brief Initialize DMA channel and start transfer

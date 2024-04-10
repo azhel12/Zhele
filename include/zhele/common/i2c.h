@@ -180,6 +180,9 @@ namespace Zhele
         public:
             using SclPins = _SclPins;
             using SdaPins = _SdaPins;
+
+            using DmaTx = _DmaTx;
+            using DmaRx = _DmaRx;
             
             /**
              * @brief Initialize I2C

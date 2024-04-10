@@ -136,7 +136,26 @@ namespace Zhele
             ErrorInt       = USART_ISR_FE | USART_ISR_NE | USART_ISR_ORE,	
             CtsInt         = USART_ISR_CTS,
         #endif
-            AllInterrupts  = ParityErrorInt | TxEmptyInt | TxCompleteInt | RxNotEmptyInt | IdleInt | LineBreakInt | ErrorInt | CtsInt
+
+        // USART with FIFO
+        #if defined (USART_CR1_FIFOEN)
+            RxFifoFull = USART_ISR_RXFF,
+            TxFifoEmpty = USART_ISR_TXFE,
+            RxFifoThreshold = USART_ISR_RXFT,
+            TxFifoThreshold = USART_ISR_TXFT,
+        #endif
+
+        #if defined (USART_CR2_RTOEN)
+            ReceiveTimeout = USART_ISR_RTOF,
+        #endif
+
+            AllInterrupts  =  ParityErrorInt | TxEmptyInt | TxCompleteInt | RxNotEmptyInt | IdleInt | LineBreakInt | ErrorInt | CtsInt
+        #if defined (USART_CR1_FIFOEN)
+             | RxFifoFull | TxFifoEmpty | RxFifoThreshold | TxFifoThreshold
+        #endif
+        #if defined (USART_CR2_RTOEN)
+            | ReceiveTimeout
+        #endif
         };
 
         enum Error
@@ -161,7 +180,11 @@ namespace Zhele
 
         static const unsigned InterruptMask = ParityErrorInt | TxEmptyInt |
                 TxCompleteInt | RxNotEmptyInt | IdleInt | LineBreakInt |
-                ErrorInt | CtsInt;
+                ErrorInt | CtsInt
+        #if defined (USART_CR2_RTOEN)
+                | ReceiveTimeout
+        #endif
+        ;
     };
     
     static const UsartBase::UsartMode DefaultUsartMode = UsartBase::UsartMode::RxTxEnable;
@@ -307,7 +330,27 @@ namespace Zhele
              *	Nothing
              */
             static void Write(uint8_t data);
-           
+
+            /**
+             * @brief Enables RTOR feature with given timeout value
+             * 
+             * @param [in] bitCount Timeout in bits
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            static void EnableReceiverTimeout(uint32_t bitCount);
+
+            /**
+             * @brief Set RTOR feature with given timeout value
+             * 
+             * @param [in] bitCount Timeout in bits
+             * 
+             * @par Returns
+             *  Nothing
+            */
+            static void SetReceiverTimeout(uint32_t bitCount);
+
             /**
              * @brief Enables one or more interrupts
              * 
@@ -317,7 +360,6 @@ namespace Zhele
              *	Nothing
              */
             static void EnableInterrupt(InterruptFlags interruptFlags);
-            
 
             /**
              * @brief Disables one or more interrupts
@@ -328,7 +370,6 @@ namespace Zhele
              *	Nothing
              */
             static void DisableInterrupt(InterruptFlags interruptFlags);
-            
 
             /**
              * @brief Returns caused interrupts
@@ -336,7 +377,6 @@ namespace Zhele
              * @returns Mask of interrupts
              */
             static InterruptFlags InterruptSource();
-           
 
             /**
              * @brief Returns caused errors
@@ -344,7 +384,6 @@ namespace Zhele
              * @returns Mask of errors
              */
             static Error GetError();
-           
 
             /**
              * @brief Clears interrupts
@@ -355,7 +394,15 @@ namespace Zhele
              *	Nothing
              */
             static void ClearInterruptFlag(InterruptFlags interruptFlags);
-           
+
+            /**
+             * @brief Clears all interrupts
+             * 
+             * @par Returns
+             *	Nothing
+             */
+            static void ClearAllInterruptFlags();
+
             /**
              * @brief Select RX and TX pins (set settings)
              * 

@@ -12,7 +12,7 @@
 
 #include <stm32f1xx.h>
 
-#include <common/exti.h>
+#include "../common/exti.h"
 
 namespace Zhele
 {

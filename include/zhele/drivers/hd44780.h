@@ -12,6 +12,7 @@
 #define ZHELE_DRIVERS_HD44780_H
 
 #include <zhele/delay.h>
+#include <zhele/i2c.h>
 #include <zhele/pinlist.h>
 
 namespace Zhele::Drivers
@@ -547,7 +548,7 @@ namespace Zhele::Drivers
 
         static void Write(uint8_t data)
         {
-            DataBus::WriteU8(_Address, 0x00, data | BackLight, I2cOpts::RegAddrNone);
+            DataBus::WriteU8(_Address, 0x00, data | BackLight, Zhele::I2cOpts::RegAddrNone);
         }
     };
 }

@@ -13,7 +13,7 @@
 #define ZHELE_DRIVERS_AHT10_H
 
 #include <zhele/delay.h>
-#include <zhele/limits.h>
+#include <limits.h>
 
 namespace Zhele::Drivers
 {

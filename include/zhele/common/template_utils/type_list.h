@@ -125,12 +125,14 @@ namespace Zhele::TemplateUtils
          * 
          * @returns Boxed required type
         */
-        template<unsigned index>
+        template<int index>
         static consteval auto get()
         {
-            static_assert(index < size());
+            static_assert(index < static_cast<int>(size()));
 
-            if constexpr (index == 0)
+            if constexpr (index < 0)
+                return TypeBox<void>();
+            else if constexpr (index == 0)
                 return head();
             else
                 return tail().template get<index - 1>();
@@ -290,6 +292,19 @@ namespace Zhele::TemplateUtils
         static constexpr void foreach(auto func)
         {
             (func(TypeBox<Ts> {}), ...);
+        }
+
+        /**
+         * @brief Apply function for each type in typelist while function not returns true
+         * 
+         * @param func Function
+         * 
+         * @retval true Func returns true on one type
+         * @retval false Func not returns true
+        */
+        static constexpr bool any(auto func)
+        {
+            return (func(TypeBox<Ts> {}) || ...);
         }
 
         /**

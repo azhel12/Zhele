@@ -9,8 +9,8 @@
 #ifndef ZHELE_EXTI_IMPL_COMMON_H
 #define ZHELE_EXTI_IMPL_COMMON_H
 
-#include <clock.h>
-#include <ioports.h>
+#include <zhele/clock.h>
+#include <zhele/ioports.h>
 
 namespace Zhele
 {

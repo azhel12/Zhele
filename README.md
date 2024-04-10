@@ -1,3 +1,5 @@
+[![Build all examples](https://github.com/azhel12/Zhele/actions/workflows/build_examples.yml/badge.svg)](https://github.com/azhel12/Zhele/actions/workflows/build_examples.yml)
+
 # Zhele
 Framework for Stm32 MCU on C++ templates. Project based on "mcucpp" by Konstantin Chizhov.
 

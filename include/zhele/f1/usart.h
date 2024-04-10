@@ -83,7 +83,7 @@ namespace Zhele
             TxPin::Port::Enable();
             TxPin::SetConfiguration(TxPin::Port::AltFunc);
             
-            if constexpr(RxPin != -1)
+            if constexpr(RxPinNumber != -1)
             {
                 using RxPin = typename _RxPins::Key::template Pin<RxPinNumber>;
 
