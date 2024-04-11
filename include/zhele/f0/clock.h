@@ -64,6 +64,11 @@ namespace Zhele::Clock
             : ClockSource::Internal;
     }
 
+    inline unsigned PllClock::GetSystemOutputDivider()
+    {
+        return 1;
+    }
+
     #if defined(RCC_HSI48_SUPPORT)
         /**
          * @brief Implements Hsi48 clock source

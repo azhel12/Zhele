@@ -81,6 +81,11 @@ namespace Zhele::Clock
             : ClockSource::Internal;
     }
 
+    inline unsigned PllClock::GetSystemOutputDivider()
+    {
+        return 1;
+    }
+
     DECLARE_IO_BITFIELD_WRAPPER(RCC->CFGR, AhbPrescalerBitField, RCC_CFGR_HPRE);
 
     class AhbClock : public BusClock<SysClock, AhbPrescalerBitField>
