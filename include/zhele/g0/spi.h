@@ -144,8 +144,8 @@ namespace Zhele
 
         using Spi1SsPins = Pair<IO::PinList<IO::Pa4, IO::Pa15, IO::Pb0, IO::Pd9>, NonTypeTemplateArray<0, 0, 0, 1>>;
 		using Spi1ClockPins = Pair<IO::PinList<IO::Pa1, IO::Pa5, IO::Pb3, IO::Pd8>, NonTypeTemplateArray<0, 0, 0, 1>>;
-		using Spi1MisoPins = Pair<IO::PinList<IO::Pa2, IO::Pa6, IO::Pb4, IO::Pd5>, NonTypeTemplateArray<0, 0, 0, 1>>;
-		using Spi1MosiPins = Pair<IO::PinList<IO::Pa3, IO::Pa7, IO::Pb5, IO::Pd6>, NonTypeTemplateArray<0, 0, 0, 1>>;
+		using Spi1MisoPins = Pair<IO::PinList<IO::Pa6, IO::Pa11, IO::Pb4, IO::Pd5>, NonTypeTemplateArray<0, 0, 0, 1>>;
+		using Spi1MosiPins = Pair<IO::PinList<IO::Pa2, IO::Pa7, IO::Pa12, IO::Pb5, IO::Pd6>, NonTypeTemplateArray<0, 0, 0, 0, 1>>;
 		
 		using Spi2SsPins = Pair<IO::PinList<IO::Pa8, IO::Pb9, IO::Pb12, IO::Pd0>, NonTypeTemplateArray<1, 5, 0, 1>>;
 		using Spi2ClockPins = Pair<IO::PinList<IO::Pa0, IO::Pb8, IO::Pb10, IO::Pb13, IO::Pd1>, NonTypeTemplateArray<0, 1, 5, 0, 1>>;
