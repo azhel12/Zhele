@@ -73,13 +73,14 @@ namespace Zhele
                 FullDuplex = 0,
                 HalfDuplex = USART_CR3_HDSEL,
             
+            #if defined (USART_CR3_ONEBIT)
                 OneSampleBitDisable = 0,
-                OneSampleBitEnable =
-                #if defined (USART_CR3_ONEBIT)
-                    USART_CR3_ONEBIT
-                #else
-                    0
-                #endif
+                OneSampleBitEnable = USART_CR3_ONEBIT,
+            #endif
+            #if defined (USART_CR3_DEM)
+                Rs485DEControl = USART_CR3_DEM,
+            #endif
+            
             } CR3;
 
             constexpr UsartMode(UsartMode::_CR1 cr1) : CR1(cr1) {}
