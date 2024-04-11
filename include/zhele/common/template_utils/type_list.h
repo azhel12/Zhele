@@ -421,6 +421,12 @@ namespace Zhele::TemplateUtils
     {
         return first.filter([second](auto type) { return !second.contains(type); });
     }
+
+    template <typename T>
+    struct IsTypeList : public std::false_type { };
+
+    template <typename... T>
+    struct IsTypeList<TypeList<T...>> : public std::true_type { };
 }
 
 #endif //! ZHELE_TYPELIST_H
