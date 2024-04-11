@@ -17,8 +17,8 @@
 #define RCC_CFGR_SW_HSE                    0x00000001U                         /*!< HSE selected as system clock */
 #define RCC_CFGR_SW_PLL                    0x00000002U                         /*!< PLL selected as system clock */
 #define RCC_CFGR_SWS_HSI                   0x00000000U                         /*!< HSI oscillator used as system clock        */
-#define RCC_CFGR_SWS_HSE                   0x00000004U                         /*!< HSE oscillator used as system clock        */
-#define RCC_CFGR_SWS_PLL                   0x00000008U                         /*!< PLL used as system clock                   */
+#define RCC_CFGR_SWS_HSE                   0x00000008U                         /*!< HSE oscillator used as system clock        */
+#define RCC_CFGR_SWS_PLL                   0x00000010U                         /*!< PLL used as system clock                   */
 
 #include "../common/clock.h"
 
@@ -85,6 +85,7 @@ namespace Zhele::Clock
     inline void PllClock::SetSystemOutputDivider()
     {
         static_assert(2 <= divider && divider <= (PllR::MaxValue + 1), "Invalid divider value!");
+        RCC->PLLCFGR |= RCC_PLLCFGR_PLLREN;
         PllR::Set(divider - 1);
     }
 
@@ -112,6 +113,7 @@ namespace Zhele::Clock
     inline void PllClock::SetI2SOutputDivider()
     {
         static_assert(2 <= divider && divider <= (PllP::MaxValue + 1), "Invalid divider value!");
+        RCC->PLLCFGR |= RCC_PLLCFGR_PLLPEN;
         PllP::Set(divider - 1);
     }
 #endif
