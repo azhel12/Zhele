@@ -155,8 +155,8 @@ namespace Zhele::Usb
          * @par Returns
          *  Nothing
          */
-        template<typename T>
-        static void SelectClockSource(T clockSource);
+        template<auto clockSource>
+        static void SelectClockSource();
 
         /**
          * @brief Enables device

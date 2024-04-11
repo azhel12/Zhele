@@ -24,7 +24,8 @@ namespace Zhele::Private
     #define ADC_TEMPLATE_QUALIFIER AdcBase<_Regs, _ClockCtrl, _InputPins, _DmaChannel>
     
     ADC_TEMPLATE_ARGS
-    void ADC_TEMPLATE_QUALIFIER::SelectClockSource(ClockSource clockSource)
+    template<ADC_TEMPLATE_QUALIFIER::ClockSource clockSource>
+    void ADC_TEMPLATE_QUALIFIER::SelectClockSource()
     {
     }
 
@@ -79,9 +80,10 @@ namespace Zhele::Private
     }
 
     ADC_TEMPLATE_ARGS
-    void ADC_TEMPLATE_QUALIFIER::SetDivider(AdcDivider divider)
+    template<ADC_TEMPLATE_QUALIFIER::AdcDivider divider>
+    void ADC_TEMPLATE_QUALIFIER::SetDivider()
     {
-        _ClockCtrl::SetPrescaler(divider);
+        _ClockCtrl::template SetPrescaler<divider>();
     }
 
     ADC_TEMPLATE_ARGS
@@ -144,11 +146,12 @@ namespace Zhele::Private
     }
 
     ADC_TEMPLATE_ARGS
-    void ADC_TEMPLATE_QUALIFIER::Init(AdcDivider divider, ClockSource clockSource, Reference reference)
+    template<ADC_TEMPLATE_QUALIFIER::AdcDivider divider, ADC_TEMPLATE_QUALIFIER::ClockSource clockSource>
+    void ADC_TEMPLATE_QUALIFIER::Init(ADC_TEMPLATE_QUALIFIER::Reference reference)
     {
         _ClockCtrl::Enable();
-        SelectClockSource(clockSource);
-        SetDivider(divider);
+        SelectClockSource<clockSource>();
+        SetDivider<divider>();
         _Regs()->CR1 = 0;
         _Regs()->SQR1 = 0;
         _Regs()->SQR2 = 0;
