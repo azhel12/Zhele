@@ -38,7 +38,7 @@ namespace Zhele::Clock
 
     inline unsigned PllClock::GetDivider()
     {
-        return PllM::Get();
+        return PllM::Get() + 1;
     }
 
     template<unsigned divider>
@@ -78,7 +78,7 @@ namespace Zhele::Clock
 
     inline unsigned PllClock::GetSystemOutputDivider()
     {
-        return (PllR::Get());
+        return (PllR::Get()) + 1;
     }
 
     template<unsigned divider>
@@ -106,7 +106,7 @@ namespace Zhele::Clock
 #if defined (RCC_PLLCFGR_PLLR_Pos)
     inline unsigned PllClock::GetI2SOutputDivider()
     {
-        return PllP::Get();
+        return PllP::Get() + 1;
     }
 
     template<unsigned divider>
