@@ -71,14 +71,14 @@ namespace Zhele
              * 
              * @returns Hse divider
              */
-            static constexpr ClockFrequenceT GetDivider();
+            static constexpr unsigned GetDivider();
 
             /**
              * @brief Returns HSE multiplier
              * 
              * @returns Hse multiplier
              */
-            static constexpr ClockFrequenceT GetMultipler();
+            static constexpr unsigned GetMultipler();
 
             /**
              * @brief Returns final clock frequence
@@ -125,14 +125,14 @@ namespace Zhele
              * 
              * @returns Hsi divider
              */
-            static constexpr ClockFrequenceT GetDivider();
+            static constexpr unsigned GetDivider();
 
             /**
              * @brief Returns HSI multiplier
              * 
              * @returns Hsi multiplier
              */
-            static constexpr ClockFrequenceT GetMultipler();
+            static constexpr unsigned GetMultipler();
 
             /**
              * @brief Returns final clock frequence
@@ -177,15 +177,6 @@ namespace Zhele
             };
 
             /**
-             * @brief Set PLL frequence the most close to given
-             * 
-             * @param [in] freq Needed frequence
-             * 
-             * @returns Actual frequence 
-             */
-            static ClockFrequenceT SetClockFreq(ClockFrequenceT freq);
-            
-            /**
              * @brief Returns PLL source clock frequence (HSI or HSE)
              * 
              * @returns PLL source frequence
@@ -197,112 +188,101 @@ namespace Zhele
              * 
              * @returns Pll divider
              */
-            static ClockFrequenceT GetDivider();
+            static unsigned GetDivider();
 
             /**
              * @brief Set PLL divider
              *
-             * @param [in] divider Pll divider value
+             * @param divider Pll divider value
              * 
              * @par Returns
              *	Nothing
              */
-            static void SetDivider(ClockFrequenceT divider);
+            template<unsigned divider>
+            static void SetDivider();
 
             /**
              * @brief Returns PLL multiplier
              * 
              * @returns Pll multiplier
              */
-            static ClockFrequenceT GetMultipler();
+            static unsigned GetMultipler();
 
             /**
              * @brief Set PLL multiplier
              * 
-             * @param [in] multiplier Pll Multiplier value
+             * @tparam multiplier Pll multiplier value
              * 
              * @par Returns
              *	Nothing
              */
-            static void SetMultiplier(ClockFrequenceT multiplier);		
-
-        #if defined(RCC_PLLCFGR_PLLP)
-
-            /**
-             * @brief PllP values
-             */
-            enum class SystemOutputDivider : uint8_t
-            {
-                Div2 = 0b00,
-                Div4 = 0b01,
-                Div6 = 0b10,
-                Div8 = 0b11
-            };
+            template<unsigned multiplier>
+            static void SetMultiplier();
 
             /**
              * @brief Return PLLP value
              * 
              * @returns PLLP value
              */
-            static SystemOutputDivider GetSystemOutputDivider();
+            static unsigned GetSystemOutputDivider();
 
             /**
              * @brief Set PLLP
              * 
-             * @param [in] divider PLLP value
+             * @tparam divider Divider for sysclock output
              * 
              * @par Returns
              *	Nothing
              */
-            static void SetSystemOutputDivider(SystemOutputDivider divider);
+            template<unsigned divider>
+            static void SetSystemOutputDivider();
 
             /**
-             * @brief Return PLLQ value
+             * @brief Return USB divider value
              * 
-             * @returns PLLQ value
+             * @returns USB divider value
              */
-            static ClockFrequenceT GetUsbOutputDivider();
+            static unsigned GetUsbOutputDivider();
 
             /**
-             * @brief Set PLLQ
+             * @brief Set USB divider value
              * 
-             * @param [in] divider PLLQ value
+             * @tparam divider USB divider value
              * 
              * @par Returns
              *	Nothing
              */
-            static void SetUsbOutputDivider(ClockFrequenceT divider);
-        #endif
-
-        #if defined(RCC_PLLCFGR_PLLR)
+            template<unsigned divider>
+            static void SetUsbOutputDivider();
 
             /**
-             * @brief Return PLLR value
+             * @brief Return I2S divider value
              *
-             * @returns PLLR value
+             * @returns I2S divider value
              */
-            static ClockFrequenceT GetI2SOutputDivider();
+            static unsigned GetI2SOutputDivider();
 
             /**
-             * @brief Set PLLR
+             * @brief Set I2S divider value
              *
-             * @param [in] divider PLLR value
+             * @tparam divider I2S divider value
              *
              * @par Returns
              *	Nothing
              */
-            static void SetI2SOutputDivider(ClockFrequenceT divider);
-        #endif
+            template<unsigned divider>
+            static void SetI2SOutputDivider();
 
             /**
              * @brief Set PLL clock source
              * 
-             * @param [in] clockSource Source for Pll (HSE or HSI)
+             * @tparam clockSource Source for Pll (HSE or HSI)
              * 
              * @par Returns
              *	Nothing
              */
-            static void SelectClockSource(ClockSource clockSource);
+            template<ClockSource clockSource>
+            static void SelectClockSource();
 
             /**
              * @brief Return current PLL source
@@ -318,7 +298,6 @@ namespace Zhele
              * @returns Pll result frequence
              */
             static ClockFrequenceT ClockFreq();
-           
 
             /**
              * @brief Enables PLL
@@ -327,7 +306,6 @@ namespace Zhele
              * @retval false Fail
              */
             static bool Enable();
-           
 
             /**
              * @brief Disables PLL
@@ -336,7 +314,6 @@ namespace Zhele
              * @retval false Fail
              */
             static void Disable();
-            
         };
 
     #if defined (RCC_CSR_LSION)
@@ -359,14 +336,14 @@ namespace Zhele
              * 
              * @returns Lse divider
              */
-            static constexpr ClockFrequenceT GetDivider();
+            static constexpr unsigned GetDivider();
 
             /**
              * @brief Returns LSI multiplier
              * 
              * @returns Hsi multiplier
              */
-            static constexpr ClockFrequenceT GetMultipler();
+            static constexpr unsigned GetMultipler();
 
 
             /**
@@ -384,7 +361,6 @@ namespace Zhele
              * @retval false Fail enable
              */
             static bool Enable();
-            
 
             /**
              * @brief Disables LSI source
@@ -430,12 +406,13 @@ namespace Zhele
             /**
              * Select source for system clock
              * 
-             * @param [in] clockSource Clock source (Internal, external or PLL)
+             * @tparam clockSource Clock source (Internal, external or PLL)
              * 
              * @returns Select result
              */
-            
-            static ErrorCode SelectClockSource(ClockSource clockSource);
+            template<ClockSource clockSource>
+            static ErrorCode SelectClockSource();
+
             /**
              * @brief Returns system clock frequence
              * 
@@ -452,16 +429,6 @@ namespace Zhele
              * @returns Source clock frequence
              */
             static ClockFrequenceT SrcClockFreq();
-           
-            /**
-             * @brief Set clock frequence
-             * 
-             * @param [in] freq New frequence
-             * 
-             * @returns New clock frequence
-             */
-            static ClockFrequenceT SetClockFreq(ClockFrequenceT freq);
-          
         };
 
         /**
@@ -521,7 +488,8 @@ namespace Zhele
              * @retval true Success select source
              * @retval false Fail select source
              */
-            static bool SelectClockSource(ClockSource source);
+            template<ClockSource source>
+            static bool SelectClockSource();
             
             /**
              * @brief Set prescaler for ADC
@@ -529,7 +497,8 @@ namespace Zhele
              * @par Returns
              *	Nothing
              */
-            static void SetPrescaler(Prescaler prescaller);
+            template<Prescaler prescaler>
+            static void SetPrescaler();
             
             /**
              * @brief Returns source clock frequence of ADC

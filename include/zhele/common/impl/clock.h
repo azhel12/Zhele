@@ -92,14 +92,14 @@ namespace Zhele::Clock
     }
 
     constexpr ClockFrequenceT HseClock::SrcClockFreq() { return HSE_VALUE; }
-    constexpr ClockFrequenceT HseClock::GetDivider() { return 1; }
-    constexpr ClockFrequenceT HseClock::GetMultipler() { return 1; }
+    constexpr unsigned HseClock::GetDivider() { return 1; }
+    constexpr unsigned HseClock::GetMultipler() { return 1; }
     constexpr ClockFrequenceT HseClock::ClockFreq() { return SrcClockFreq(); }
 
 
     constexpr ClockFrequenceT HsiClock::SrcClockFreq() { return HSI_VALUE; }
-    constexpr ClockFrequenceT HsiClock::GetDivider() { return 1; }
-    constexpr ClockFrequenceT HsiClock::GetMultipler() { return 1; }
+    constexpr unsigned HsiClock::GetDivider() { return 1; }
+    constexpr unsigned HsiClock::GetMultipler() { return 1; }
     constexpr ClockFrequenceT HsiClock::ClockFreq() { return SrcClockFreq(); }
 
     inline ClockFrequenceT PllClock::SrcClockFreq()
@@ -111,18 +111,7 @@ namespace Zhele::Clock
 
     inline ClockFrequenceT PllClock::ClockFreq()
     {
-#if defined (RCC_PLLCFGR_PLLP)
-        uint8_t pllpValue = GetSystemOutputDivider() == SystemOutputDivider::Div2
-            ? 2
-            : GetSystemOutputDivider() == SystemOutputDivider::Div4
-                ? 4
-                : GetSystemOutputDivider() == SystemOutputDivider::Div6
-                    ? 6
-                    : 8;
-        return SrcClockFreq() / GetDivider() * GetMultipler() / pllpValue;
-#else
         return SrcClockFreq() / GetDivider() * GetMultipler();
-#endif
     }
 
     inline bool PllClock::Enable()
@@ -157,13 +146,14 @@ namespace Zhele::Clock
     }
 #endif
 
-    inline SysClock::ErrorCode SysClock::SelectClockSource(ClockSource clockSource)
+    template<SysClock::ClockSource clockSource>
+    inline SysClock::ErrorCode SysClock::SelectClockSource()
     {
         uint32_t clockStatusValue;
         uint32_t clockSelectMask;
         uint32_t sourceFrequence;
 
-        if(clockSource == Internal)
+        if constexpr(clockSource == Internal)
         {
             clockStatusValue = RCC_CFGR_SWS_HSI;
             clockSelectMask = RCC_CFGR_SW_HSI;
@@ -171,7 +161,7 @@ namespace Zhele::Clock
                 return ClockSourceFailed;
             sourceFrequence = HsiClock::ClockFreq();
         }
-        else if(clockSource == External)
+        else if constexpr(clockSource == External)
         {
             clockStatusValue = RCC_CFGR_SWS_HSE;
             clockSelectMask = RCC_CFGR_SW_HSE;
@@ -179,7 +169,7 @@ namespace Zhele::Clock
                 return ClockSourceFailed;
             sourceFrequence = HseClock::ClockFreq();
         }
-        else if(clockSource == Pll)
+        else if constexpr(clockSource == Pll)
         {
             clockStatusValue = RCC_CFGR_SWS_PLL;
             clockSelectMask = RCC_CFGR_SW_PLL;
@@ -187,8 +177,8 @@ namespace Zhele::Clock
                 return ClockSourceFailed;
             sourceFrequence = PllClock::ClockFreq();
         }
-        else
-        {
+        else {
+            static_assert(false, "Invalid clock source");
             return InvalidClockSource;
         }
 
@@ -211,9 +201,9 @@ namespace Zhele::Clock
         uint32_t clockSrc = RCC->CFGR & RCC_CFGR_SWS;
         switch (clockSrc)
         {
-            case 0:              return HsiClock::ClockFreq();
-            case RCC_CFGR_SWS_0: return HseClock::ClockFreq();
-            case RCC_CFGR_SWS_1: return PllClock::ClockFreq();
+            case RCC_CFGR_SWS_HSI: return HsiClock::ClockFreq();
+            case RCC_CFGR_SWS_HSE: return HseClock::ClockFreq();
+            case RCC_CFGR_SWS_PLL: return PllClock::ClockFreq() / PllClock::GetSystemOutputDivider();
         }
         return 0;
     }
@@ -223,25 +213,15 @@ namespace Zhele::Clock
         return ClockFreq();
     }
 
-    inline ClockFrequenceT SysClock::SetClockFreq(ClockFrequenceT freq)
-    {
-        SelectClockSource(Internal);
-        PllClock::Disable();
-        PllClock::SelectClockSource(PllClock::External);
-        PllClock::SetClockFreq(freq);
-        SelectClockSource(Pll);
-        return ClockFreq();
-    }
-
 #if defined (RCC_CSR_LSION)
     constexpr ClockFrequenceT LsiClock::SrcClockFreq()
     {
         return 32768;
     }
 
-    constexpr ClockFrequenceT LsiClock::GetDivider() { return 1; }
+    constexpr unsigned LsiClock::GetDivider() { return 1; }
 
-    constexpr ClockFrequenceT LsiClock::GetMultipler() { return 1; }
+    constexpr unsigned LsiClock::GetMultipler() { return 1; }
 
     constexpr ClockFrequenceT LsiClock::ClockFreq()
     {

@@ -17,57 +17,57 @@ int main()
 void ConfigureClock()
 {
     // Select HSE as PLL source	
-    PllClock::SelectClockSource(PllClock::External);
+    PllClock::SelectClockSource<PllClock::ClockSource::External>();
     // Set PLL multiplier
-    PllClock::SetMultiplier(6);
+    PllClock::SetMultiplier<6>();
     // Set Apb1 prescaler
-    Apb1Clock::SetPrescaler(Apb1Clock::Div2);
+    Apb1Clock::SetPrescaler<Apb1Clock::Div2>();
     // Try select PLL as sysclock source
-    SysClock::SelectClockSource(SysClock::Pll);
+    SysClock::SelectClockSource<SysClock::Pll>();
 }
 #elif defined (STM32F1) // F103C8
 void ConfigureClock()
 {
     // Select HSE as PLL source	
-    PllClock::SelectClockSource(PllClock::External);
+    PllClock::SelectClockSource<PllClock::ClockSource::External>();
     // Set PLL multiplier
-    PllClock::SetMultiplier(9);
+    PllClock::SetMultiplier<9>();
     // Set Apb1 prescaler
-    Apb1Clock::SetPrescaler(Apb1Clock::Div2);
+    Apb1Clock::SetPrescaler<Apb1Clock::Div2>();
     // Try select PLL as sysclock source
-    SysClock::SelectClockSource(SysClock::Pll);
+    SysClock::SelectClockSource<SysClock::Pll>();
 }
 #elif defined (STM32F4) // F401CC
 void ConfigureClock()
 {
     // Select HSE as PLL source	
-    PllClock::SelectClockSource(PllClock::External);
+    PllClock::SelectClockSource<PllClock::External>();
     // Set PLLM value
-    PllClock::SetDivider(25);
+    PllClock::SetDivider<25>();
     // Set PllN value
-    PllClock::SetMultiplier(336);
+    PllClock::SetMultiplier<336>();
     // Set PLLP
-    PllClock::SetSystemOutputDivider(PllClock::SystemOutputDivider::Div4);
+    PllClock::SetSystemOutputDivider<4>();
     // Set Apb1 prescaler
-    Apb1Clock::SetPrescaler(Apb1Clock::Div2);
+    Apb1Clock::SetPrescaler<Apb1Clock::Div2>();
     // Try select PLL as sysclock source
-    SysClock::SelectClockSource(SysClock::Pll);
+    SysClock::SelectClockSource<SysClock::Pll>();
 }
 #elif defined (STM32G0) // G030F6
 void ConfigureClock()
 {
     // Select HSE as PLL source	
-    PllClock::SelectClockSource(PllClock::External);
+    PllClock::SelectClockSource<PllClock::Internal>();
     // Set PLLM value
-    PllClock::SetDivider(25);
+    PllClock::SetDivider<2>();
     // Set PllN value
-    PllClock::SetMultiplier(336);
+    PllClock::SetMultiplier<32>();
     // Set PLLP
-    PllClock::SetSystemOutputDivider(PllClock::SystemOutputDivider::Div4);
+    PllClock::SetSystemOutputDivider<4>();
     // Set Apb1 prescaler
-    Apb1Clock::SetPrescaler(Apb1Clock::Div2);
+    Apb1Clock::SetPrescaler<Apb1Clock::Div2>();
     // Try select PLL as sysclock source
-    SysClock::SelectClockSource(SysClock::Pll);
+    SysClock::SelectClockSource<SysClock::Pll>();
 }
 #else
     #error "No example"

@@ -15,12 +15,8 @@
 
 namespace Zhele::Clock
 {
-    inline ClockFrequenceT PllClock::SetClockFreq(ClockFrequenceT freq)
-    {
-        return 0;
-    }
 
-    inline ClockFrequenceT PllClock::GetDivider()
+    inline unsigned PllClock::GetDivider()
     {
         if(GetClockSource() == Internal)
             return 2;
@@ -30,30 +26,31 @@ namespace Zhele::Clock
             : 1;
     }
 
-    inline void PllClock::SetDivider(ClockFrequenceT divider)
+    template<unsigned divider>
+    inline void PllClock::SetDivider()
     {
-        if(divider > 2)
-            divider = 2;
+        static_assert(1 <= divider && divider <= 2, "Divider can be 1 or 2 only!");
+            
         RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_PLLXTPRE) | (divider == 2
             ? RCC_CFGR_PLLXTPRE_HSE_PREDIV_DIV2
             : RCC_CFGR_PLLXTPRE_HSE_PREDIV_DIV1);
     
     }
 
-    inline ClockFrequenceT PllClock::GetMultipler()
+    inline unsigned PllClock::GetMultipler()
     {
         return ((RCC->CFGR & RCC_CFGR_PLLMUL) >> RCC_CFGR_PLLMUL_Pos) + 2;
     }
 
-    inline void PllClock::SetMultiplier(ClockFrequenceT multiplier)
+    template<unsigned multiplier>
+    inline void PllClock::SetMultiplier()
     {
-        if(multiplier > 16)
-            multiplier = 16;
-        multiplier-=2;
-        RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_PLLMUL) | (multiplier << RCC_CFGR_PLLMUL_Pos);
+        static_assert(2 <= multiplier && multiplier <= 16, "Invalud multiplier value!");
+        RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_PLLMUL) | ((multiplier - 2) << RCC_CFGR_PLLMUL_Pos);
     }    
 
-    inline void PllClock::SelectClockSource(ClockSource clockSource)
+    template<PllClock::ClockSource clockSource>
+    inline void PllClock::SelectClockSource()
     {
         RCC->CFGR = clockSource == External
             ? RCC->CFGR  | RCC_CFGR_PLLSRC
@@ -79,8 +76,8 @@ namespace Zhele::Clock
             {
                 return 48000000;
             }
-            static ClockFrequenceT GetDivider() { return 1; }
-            static ClockFrequenceT GetMultipler() { return 1; }
+            static unsigned GetDivider() { return 1; }
+            static unsigned GetMultipler() { return 1; }
             static ClockFrequenceT ClockFreq()
             {
                 return SrcClockFreq();
@@ -96,9 +93,7 @@ namespace Zhele::Clock
         };
     #endif
 
-    const static unsigned AhbPrescalerBitFieldOffset = RCC_CFGR_HPRE_Pos;
-    const static unsigned AhbPrescalerBitFieldLength = GetBitFieldLength<(RCC_CFGR_HPRE_Msk >> RCC_CFGR_HPRE_Pos)>;
-    IO_BITFIELD_WRAPPER(RCC->CFGR, AhbPrescalerBitField, uint32_t, AhbPrescalerBitFieldOffset, AhbPrescalerBitFieldLength);
+    DECLARE_IO_BITFIELD_WRAPPER(RCC->CFGR, AhbPrescalerBitField, RCC_CFGR_HPRE);
 
     class AhbClock : public BusClock<SysClock, AhbPrescalerBitField>
     {
@@ -127,15 +122,15 @@ namespace Zhele::Clock
             return clock;
         }
 
-        static void SetPrescaler(Prescaler prescaler)
+        template<Prescaler prescaler>
+        static void SetPrescaler()
         {
             Base::SetPrescaler(prescaler);
         }
     };
 
-    const static unsigned ApbPrescalerBitFieldOffset = RCC_CFGR_PPRE_Pos;
-    const static unsigned ApbPrescalerBitFieldLength = GetBitFieldLength<(RCC_CFGR_PPRE_Msk >> RCC_CFGR_PPRE_Pos)>;
-    IO_BITFIELD_WRAPPER(RCC->CFGR, ApbPrescalerBitField, uint32_t, ApbPrescalerBitFieldOffset, ApbPrescalerBitFieldLength);
+    DECLARE_IO_BITFIELD_WRAPPER(RCC->CFGR, ApbPrescalerBitField, RCC_CFGR_PPRE);
+
     /**
      * @brief Implements APB clock
      */
@@ -164,7 +159,8 @@ namespace Zhele::Clock
             return clock;
         }
 
-        static void SetPrescaler(Prescaler prescaler)
+        template<Prescaler prescaler>
+        static void SetPrescaler()
         {
             Base::SetPrescaler(prescaler);
         }
@@ -172,9 +168,7 @@ namespace Zhele::Clock
     using Apb1Clock = ApbClock;
     using Apb2Clock = ApbClock;
 
-    const static unsigned AdcPrescalerBitFieldOffset = RCC_CFGR_ADCPRE_Pos;
-    const static unsigned AdcPrescalerBitFieldLength = GetBitFieldLength<(RCC_CFGR_ADCPRE_Msk >> RCC_CFGR_ADCPRE_Pos)>;
-    IO_BITFIELD_WRAPPER(RCC->CFGR, AdcPrescalerBitField, uint32_t, AdcPrescalerBitFieldOffset, AdcPrescalerBitFieldLength);
+    DECLARE_IO_BITFIELD_WRAPPER(RCC->CFGR, AdcPrescalerBitField, RCC_CFGR_ADCPRE);
 
     class AdcClockSource : _AdcClockSource
     {
@@ -201,7 +195,8 @@ namespace Zhele::Clock
          * 
          * @retval true Always
          */
-        static bool SelectClockSource(ClockSource source = ClockSource::Apb2)
+        template<ClockSource source = ClockSource::Apb2>
+        static bool SelectClockSource()
         {
             return true;
         }
@@ -211,8 +206,9 @@ namespace Zhele::Clock
          * 
          * @par Returns
          *	Nothing
-            */
-        static void SetPrescaler(Prescaler prescaller)
+        */
+        template<Prescaler prescaller>
+        static void SetPrescaler()
         {
             AdcPrescalerBitField::Set(static_cast<uint32_t>(prescaller));
         }
