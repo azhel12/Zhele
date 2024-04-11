@@ -15,6 +15,7 @@
 #include "../common/flash.h"
 
 #include <algorithm>
+#include <cstring>
 
 namespace Zhele
 {
@@ -67,7 +68,7 @@ namespace Zhele
             return false;
         }
         
-        FLASH->CR &= ~(FLASH_CR_PER | FLASH_CR_EOPIE);
+        FLASH->CR &= ~(FLASH_CR_PER | FLASH_CR_EOPIE | FLASH_CR_PNB_Msk);
         FLASH->SR = FLASH_SR_EOP;
 
         return true;
@@ -91,14 +92,16 @@ namespace Zhele
                 WaitWhileBusy();
 
                 if ((FLASH->SR & FLASH_SR_EOP) == 0)
-                    break;
+                    return false;
 
                 FLASH->SR = FLASH_SR_EOP;
             }
         } else {
-            alignas(2 * sizeof(uint32_t)) uint32_t buffer[2];
+            alignas(2 * sizeof(uint32_t)) volatile uint32_t buffer[2];
             while (size >= (2 * sizeof(uint32_t))) {
-                std::copy_n(reinterpret_cast<const uint8_t*>(aligned_src), sizeof(buffer), reinterpret_cast<uint8_t*>(&buffer[0]));
+                for(int i = 0; i < 8; ++i) {
+                    reinterpret_cast<volatile uint8_t*>(&buffer[0])[i] = reinterpret_cast<const uint8_t*>(aligned_src)[i];
+                }
 
                 *aligned_dst++ = buffer[0];
                 *aligned_dst++ = buffer[1];
@@ -107,8 +110,9 @@ namespace Zhele
                 size -= (2 * sizeof(uint32_t));
                 WaitWhileBusy();
 
-                if ((FLASH->SR & FLASH_SR_EOP) == 0)
-                    break;
+                if ((FLASH->SR & FLASH_SR_EOP) == 0) {
+                    return false;
+                }
 
                 FLASH->SR = FLASH_SR_EOP;
             }
@@ -117,12 +121,20 @@ namespace Zhele
         if (size > 0) {
             alignas(2 * sizeof(uint32_t)) uint32_t buffer[2];
 
-            std::copy_n(reinterpret_cast<const uint8_t*>(aligned_src), size, reinterpret_cast<uint8_t*>(&buffer[0]));
-            std::copy_n(reinterpret_cast<const uint8_t*>(aligned_dst) + size, sizeof(buffer) - size, reinterpret_cast<uint8_t*>(&buffer[0]) + size);
+            for(int i = 0; i < size; ++i) {
+                reinterpret_cast<volatile uint8_t*>(&buffer[0])[i] = reinterpret_cast<const uint8_t*>(aligned_src)[i];
+            }
+            for(int i = 0; i < sizeof(buffer) - size; ++i) {
+                reinterpret_cast<volatile uint8_t*>(&buffer[0])[size + i] = reinterpret_cast<const uint8_t*>(aligned_dst)[i];
+            }
 
             *aligned_dst++ = buffer[0];
             *aligned_dst++ = buffer[1];
             WaitWhileBusy();
+
+            if ((FLASH->SR & FLASH_SR_EOP) == 0) {
+                return false;
+            }
 
             FLASH->SR = FLASH_SR_EOP;
         }
