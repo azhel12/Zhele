@@ -116,12 +116,13 @@ namespace Zhele
             /**
              * @brief Set adc clock source
              * 
-             * @param [in] clockSource Clock source
+             * @tparam clockSource Clock source
              * 
              * @par Returns
              *  Nothing
              */
-            static void SelectClockSource(ClockSource clockSource);
+            template<ClockSource clockSource>
+            static void SelectClockSource();
 
             /**
              * @brief Set adc referenve voltage source
@@ -136,12 +137,13 @@ namespace Zhele
             /**
              * @brief Set adc clock divider
              * 
-             * @param [in]  divider Clock divider
+             * @tparam divider Clock divider
              * 
              * @par Returns
              *  Nothing
              */
-            static void SetDivider(AdcDivider divider);
+            template<AdcDivider divider>
+            static void SetDivider();
 
             /**
              * @brief Set sample time
@@ -164,7 +166,8 @@ namespace Zhele
              * @par Returns
              *  Nothing
              */
-            static void Init(AdcDivider divider = AdcDivider::Div2, ClockSource clockSource = AdcClock, Reference reference = Reference::External);
+            template<AdcDivider divider = AdcDivider::Div2, ClockSource clockSource = AdcClock>
+            static void Init(Reference reference = Reference::External);
             
             /**
              * @brief Set adc resolution

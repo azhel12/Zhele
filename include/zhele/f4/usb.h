@@ -23,10 +23,10 @@ namespace Zhele::Usb
     };
     
     USB_DEVICE_TEMPLATE_ARGS
-    template<typename T>
-    void USB_DEVICE_TEMPLATE_QUALIFIER::SelectClockSource(T clockSource)
+    template<auto clockSource>
+    void USB_DEVICE_TEMPLATE_QUALIFIER::SelectClockSource()
     {
-        static_assert(std::is_same_v<T, Zhele::Usb::ClockSource>, "Clock source argument must be ClockSource enum value.");
+        static_assert(std::is_same_v<decltype(clockSource), Zhele::Usb::ClockSource>, "Clock source argument must be ClockSource enum value.");
     }
 }
 

@@ -24,21 +24,21 @@ namespace Zhele::Usb
     };
     
     USB_DEVICE_TEMPLATE_ARGS
-    template<typename T>
-    void USB_DEVICE_TEMPLATE_QUALIFIER::SelectClockSource(T clockSource)
+    template<auto clockSource>
+    void USB_DEVICE_TEMPLATE_QUALIFIER::SelectClockSource()
     {
-        static_assert(std::is_same_v<T, Zhele::Usb::ClockSource>, "Clock source argument must be ClockSource enum value.");
-        if(clockSource == Zhele::Usb::ClockSource::Hsi48)
+        static_assert(std::is_same_v<decltype(clockSource), Zhele::Usb::ClockSource>, "Clock source argument must be ClockSource enum value.");
+        if constexpr(clockSource == Zhele::Usb::ClockSource::Hsi48)
         {
             RCC->APB1ENR |= RCC_APB1ENR_CRSEN;
             CRS->CR |= CRS_CR_AUTOTRIMEN;
             CRS->CR |= CRS_CR_CEN;
         }
-        if (clockSource == Zhele::Usb::ClockSource::Pll || clockSource == Zhele::Usb::ClockSource::PllDividedOneAndHalf)
+        if constexpr (clockSource == Zhele::Usb::ClockSource::Pll || clockSource == Zhele::Usb::ClockSource::PllDividedOneAndHalf)
         {
             RCC->CFGR3 |= RCC_CFGR3_USBSW_PLLCLK;
         }
-        if(clockSource == Zhele::Usb::ClockSource::PllDividedOneAndHalf)
+        if constexpr (clockSource == Zhele::Usb::ClockSource::PllDividedOneAndHalf)
         {
             RCC->CFGR |= RCC_CFGR_USBPRE;
         }

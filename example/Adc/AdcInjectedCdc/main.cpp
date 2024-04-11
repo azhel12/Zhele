@@ -43,7 +43,7 @@ int main()
     ConfigureLeds();
     Zhele::IO::Porta::Enable();
 
-    Adc1::Init(Adc1::AdcDivider::Div8);
+    Adc1::Init<Adc1::AdcDivider::Div8>();
 
     MyDevice::Enable();
 
@@ -59,11 +59,11 @@ int main()
 #if defined (STM32F0) // F072RB
 void ConfigureClock()
 {
-    PllClock::SelectClockSource(PllClock::ClockSource::External);
-    PllClock::SetMultiplier(12);
-    PllClock::SetDivider(2);
-    ApbClock::SetPrescaler(ApbClock::Div1);
-    SysClock::SelectClockSource(SysClock::Pll);
+    PllClock::SelectClockSource<PllClock::ClockSource::External>();
+    PllClock::SetMultiplier<12>();
+    PllClock::SetDivider<2>();
+    ApbClock::SetPrescaler<ApbClock::Div1>();
+    SysClock::SelectClockSource<SysClock::Pll>();
 
     Zhele::Clock::Hsi48Clock::Enable();
     Zhele::Clock::SysCfgCompClock::Enable();
@@ -71,22 +71,22 @@ void ConfigureClock()
 #elif defined (STM32F1) // F103C8
 void ConfigureClock()
 {
-    PllClock::SelectClockSource(PllClock::ClockSource::External);
-    PllClock::SetMultiplier(9);
-    Apb1Clock::SetPrescaler(Apb1Clock::Div2);
-    SysClock::SelectClockSource(SysClock::Pll);
-    MyDevice::SelectClockSource(Zhele::Usb::ClockSource::PllDividedOneAndHalf);
+    PllClock::SelectClockSource<PllClock::ClockSource::External>();
+    PllClock::SetMultiplier<9>();
+    Apb1Clock::SetPrescaler<Apb1Clock::Div2>();
+    SysClock::SelectClockSource<SysClock::Pll>();
+    MyDevice::SelectClockSource<Zhele::Usb::ClockSource::PllDividedOneAndHalf>();
 }
 #elif defined (STM32F4) // F401CC
 void ConfigureClock()
 {
-    PllClock::SelectClockSource(PllClock::ClockSource::External);
-    PllClock::SetDivider(25);
-    PllClock::SetMultiplier(336);
-    PllClock::SetSystemOutputDivider(PllClock::SystemOutputDivider::Div4);
-    PllClock::SetUsbOutputDivider(7);
-    Apb1Clock::SetPrescaler(Apb1Clock::Div2);
-    SysClock::SelectClockSource(SysClock::Pll);
+    PllClock::SelectClockSource<PllClock::ClockSource::External>();
+    PllClock::SetDivider<25>();
+    PllClock::SetMultiplier<336>();
+    PllClock::SetSystemOutputDivider<PllClock::SystemOutputDivider::Div4>();
+    PllClock::SetUsbOutputDivider<7>();
+    Apb1Clock::SetPrescaler<Apb1Clock::Div2>();
+    SysClock::SelectClockSource<SysClock::Pll>();
 }
 #else
     #error "No example"

@@ -87,6 +87,7 @@ namespace Zhele
         using DataT = DATA_TYPE;\
         using RegT = decltype(REG_NAME);\
         static constexpr RegT Mask = ((RegT(1u) << BITFIELD_LENGTH) - 1);\
+        static constexpr unsigned MaxValue = (1u << BITFIELD_LENGTH) - 1;\
         static DataT Get(){return static_cast<DataT>((REG_NAME >> BITFIELD_OFFSET) & Mask);}\
         static void Set(DataT value){REG_NAME = (REG_NAME & ~(Mask << BITFIELD_OFFSET)) | (((RegT)value & Mask) << BITFIELD_OFFSET);}\
     }

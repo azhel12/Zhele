@@ -155,7 +155,8 @@ namespace Zhele::Clock
             return clock;
         }
 
-        static void SetPrescaler(Prescaler prescaler)
+        template<Prescaler prescaler>
+        static void SetPrescaler()
         {
             Base::SetPrescaler(prescaler);
         }
