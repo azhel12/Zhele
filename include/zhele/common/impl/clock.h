@@ -151,7 +151,7 @@ namespace Zhele::Clock
     {
         uint32_t clockStatusValue;
         uint32_t clockSelectMask;
-        uint32_t sourceFrequence;
+        uint32_t resultFrequence;
 
         if constexpr(clockSource == Internal)
         {
@@ -159,7 +159,7 @@ namespace Zhele::Clock
             clockSelectMask = RCC_CFGR_SW_HSI;
             if (!HsiClock::Enable())
                 return ClockSourceFailed;
-            sourceFrequence = HsiClock::ClockFreq();
+            resultFrequence = HsiClock::ClockFreq();
         }
         else if constexpr(clockSource == External)
         {
@@ -167,7 +167,7 @@ namespace Zhele::Clock
             clockSelectMask = RCC_CFGR_SW_HSE;
             if (!HseClock::Enable())
                 return ClockSourceFailed;
-            sourceFrequence = HseClock::ClockFreq();
+            resultFrequence = HseClock::ClockFreq();
         }
         else if constexpr(clockSource == Pll)
         {
@@ -175,16 +175,16 @@ namespace Zhele::Clock
             clockSelectMask = RCC_CFGR_SW_PLL;
             if (!PllClock::Enable())
                 return ClockSourceFailed;
-            sourceFrequence = PllClock::ClockFreq();
+            resultFrequence = PllClock::ClockFreq() / PllClock::GetSystemOutputDivider();
         }
         else {
             static_assert(false, "Invalid clock source");
             return InvalidClockSource;
         }
 
-        Flash::ConfigureFrequence(sourceFrequence);
+        Flash::ConfigureFrequence(resultFrequence);
 
-        RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | clockSelectMask;
+        RCC->CFGR = clockSelectMask;
         
         uint32_t timeout = 10000;
         while (((RCC->CFGR & RCC_CFGR_SWS) != clockStatusValue) && --timeout)
