@@ -231,24 +231,24 @@ namespace Zhele
     {
     #if defined(DMA_CCR_EN)
         static_assert(ChannelNum > 0);
-        _DmaRegs()->IFCR |= (static_cast<uint32_t>(FlagMask) << ((ChannelNum - 1) * 4));
+        _DmaRegs()->IFCR = (static_cast<uint32_t>(FlagMask) << ((ChannelNum - 1) * 4));
     #endif
     #if defined(DMA_SxCR_EN)
         if constexpr(ChannelNum <= 1)
         {
-            _DmaRegs()->LIFCR |= (static_cast<uint32_t>(FlagMask) << (ChannelNum * 6));
+            _DmaRegs()->LIFCR = (static_cast<uint32_t>(FlagMask) << (ChannelNum * 6));
         }
         if constexpr(2 <= ChannelNum && ChannelNum <= 3)
         {
-            _DmaRegs()->LIFCR |= (static_cast<uint32_t>(FlagMask) << (4 + ChannelNum * 6));
+            _DmaRegs()->LIFCR = (static_cast<uint32_t>(FlagMask) << (4 + ChannelNum * 6));
         }
         if constexpr(4 <= ChannelNum && ChannelNum <= 5)
         {
-            _DmaRegs()->HIFCR |= (static_cast<uint32_t>(FlagMask) << ((ChannelNum - 4) * 6));
+            _DmaRegs()->HIFCR = (static_cast<uint32_t>(FlagMask) << ((ChannelNum - 4) * 6));
         }
         if constexpr(6 <= ChannelNum && ChannelNum <= 7)
         {
-            _DmaRegs()->HIFCR |= (static_cast<uint32_t>(FlagMask) << (4 + (ChannelNum - 4) * 6));
+            _DmaRegs()->HIFCR = (static_cast<uint32_t>(FlagMask) << (4 + (ChannelNum - 4) * 6));
         }
     #endif
     }
