@@ -178,7 +178,8 @@ namespace Zhele::Clock
             resultFrequence = PllClock::ClockFreq() / PllClock::GetSystemOutputDivider();
         }
         else {
-            static_assert(false, "Invalid clock source");
+            // TODO:: Commented becasuse build failed on GCC 12
+            //static_assert(false, "Invalid clock source");
             return InvalidClockSource;
         }
 
