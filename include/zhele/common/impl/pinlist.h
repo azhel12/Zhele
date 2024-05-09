@@ -38,7 +38,13 @@ namespace Zhele::IO
     template<typename... _Pins>
     typename PinList<_Pins...>::DataType PinList<_Pins...>::Read()
     {
-        return 0xdeadbeef;
+        auto result = DataType();
+
+        _ports.foreach([&result](auto port){
+            result |= ExtractPinlistOutValueFromPort(port);
+        });
+
+        return result;
     }
 
     template<typename... _Pins>
