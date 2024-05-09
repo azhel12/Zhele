@@ -117,6 +117,8 @@ namespace Zhele::IO
         _ports.foreach([&result](auto port){
             result |= ExtractPinlistValueFromPort(port);
         });
+
+        return result;
     }
 
     template<typename... _Pins>
