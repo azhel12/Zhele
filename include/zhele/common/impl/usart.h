@@ -167,7 +167,7 @@ namespace Zhele
             _DmaTx::SetTransferCallback(callback);
             _Regs()->CR3 |= USART_CR3_DMAT;
         #if defined (USART_TYPE_1)
-            _Regs()->ICR |= TxCompleteInt;
+            _Regs()->ICR = TxCompleteInt;
         #endif
         #if defined (USART_TYPE_2)
             _Regs()->SR &= ~TxCompleteInt;
@@ -296,7 +296,7 @@ namespace Zhele
         void USART_TEMPLATE_QUALIFIER::ClearInterruptFlag(InterruptFlags interruptFlags)
         {
         #if defined(USART_TYPE_1)
-            _Regs()->ICR |= interruptFlags;
+            _Regs()->ICR = interruptFlags;
         #endif
         #if defined(USART_TYPE_2)
             _Regs()->SR &= ~interruptFlags;
@@ -307,7 +307,7 @@ namespace Zhele
         inline void USART_TEMPLATE_QUALIFIER::ClearAllInterruptFlags()
         {
         #if defined(USART_TYPE_1)
-            _Regs()->ICR |= 0xffffffff;
+            _Regs()->ICR = 0xffffffffUL;
         #endif
         #if defined(USART_TYPE_2)
             _Regs()->SR = 0x00000000;
