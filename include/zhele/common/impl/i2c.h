@@ -155,9 +155,6 @@ namespace Zhele
         _Regs()->TXDR = *data;
         ++data;
 
-        if(!WaitEvent(TransfertComplete))
-            GetErorFromEvent(GetLastEvent());
-
         return I2cStatus::Success;
     }
 
