@@ -15,48 +15,41 @@
 
 namespace Zhele::Clock
 {
-    const static unsigned PllmBitFieldOffset = RCC_PLLCFGR_PLLM_Pos;
-    const static unsigned PllmBitFieldLength = GetBitFieldLength<(RCC_PLLCFGR_PLLM_Msk >> RCC_PLLCFGR_PLLM_Pos)>;
-    IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllM, uint32_t, PllmBitFieldOffset, PllmBitFieldLength);
+    DECLARE_IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllM, RCC_PLLCFGR_PLLM);
+    DECLARE_IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllN, RCC_PLLCFGR_PLLN);
+    DECLARE_IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllP, RCC_PLLCFGR_PLLP);
+    DECLARE_IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllQ, RCC_PLLCFGR_PLLQ);
 
-    const static unsigned PllnBitFieldOffset = RCC_PLLCFGR_PLLN_Pos;
-    const static unsigned PllnBitFieldLength = GetBitFieldLength<(RCC_PLLCFGR_PLLN_Msk >> RCC_PLLCFGR_PLLN_Pos)>;
-    IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllN, uint32_t, PllnBitFieldOffset, PllnBitFieldLength);
+#if defined (RCC_PLLCFGR_PLLR_Pos)
+    DECLARE_IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllR, RCC_PLLCFGR_PLLR);
+#endif
 
-    const static unsigned PllpBitFieldOffset = RCC_PLLCFGR_PLLP_Pos;
-    const static unsigned PllpBitFieldLength = GetBitFieldLength<(RCC_PLLCFGR_PLLP_Msk >> RCC_PLLCFGR_PLLP_Pos)>;
-    IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllP, uint32_t, PllpBitFieldOffset, PllpBitFieldLength);
-
-    const static unsigned PllqBitFieldOffset = RCC_PLLCFGR_PLLQ_Pos;
-    const static unsigned PllqBitFieldLength = GetBitFieldLength<(RCC_PLLCFGR_PLLQ_Msk >> RCC_PLLCFGR_PLLQ_Pos)>;
-    IO_BITFIELD_WRAPPER(RCC->PLLCFGR, PllQ, uint32_t, PllqBitFieldOffset, PllqBitFieldLength);
-
-    inline ClockFrequenceT PllClock::SetClockFreq(ClockFrequenceT freq)
-    {
-        return 0;
-    }
-
-    inline ClockFrequenceT PllClock::GetDivider()
+    inline unsigned PllClock::GetDivider()
     {
         return PllM::Get();
     }
 
-    inline void PllClock::SetDivider(ClockFrequenceT divider)
+    template<unsigned divider>
+    inline void PllClock::SetDivider()
     {
+        static_assert(2 <= divider && divider <= PllM::MaxValue, "Invalide divider value");
         PllM::Set(divider);
     }
 
-    inline ClockFrequenceT PllClock::GetMultipler()
+    inline unsigned PllClock::GetMultipler()
     {
         return PllN::Get();
     }
 
-    inline void PllClock::SetMultiplier(ClockFrequenceT multiplier)
+    template<unsigned multiplier>
+    inline void PllClock::SetMultiplier()
     {
+        static_assert(2 <= multiplier && multiplier <= 432, "Invalide multiplier value");
         PllN::Set(multiplier);
     }  
 
-    inline void PllClock::SelectClockSource(ClockSource clockSource)
+    template<PllClock::ClockSource clockSource>
+    inline void PllClock::SelectClockSource()
     {
         RCC->PLLCFGR = clockSource == External
             ? RCC->PLLCFGR  | RCC_PLLCFGR_PLLSRC_HSE
@@ -70,26 +63,52 @@ namespace Zhele::Clock
             : ClockSource::Internal;
     }
 
-    inline PllClock::SystemOutputDivider PllClock::GetSystemOutputDivider()
+    inline unsigned PllClock::GetSystemOutputDivider()
     {
-        return static_cast<PllClock::SystemOutputDivider>(PllP::Get());
+        return PllP::Get();
     }
-    inline void PllClock::SetSystemOutputDivider(PllClock::SystemOutputDivider divider)
+
+    
+    template<unsigned divider>
+    inline void PllClock::SetSystemOutputDivider()
     {
-        PllP::Set(static_cast<uint8_t>(divider));
+        static_assert(divider == 2 || divider == 4 || divider == 6 || divider == 8, "Divider can be one of 2, 4, 6, 8");
+        static constexpr uint8_t pllpValue =
+            divider == 2
+                ? 0b00
+                : (divider == 4
+                    ? 0b01
+                    : (divider == 6
+                        ? 0b10
+                        : 0b11));
+        PllP::Set(pllpValue);
     }
-    inline ClockFrequenceT PllClock::GetUsbOutputDivider()
+    inline unsigned PllClock::GetUsbOutputDivider()
     {
         return PllQ::Get();
     }
-    inline void PllClock::SetUsbOutputDivider(ClockFrequenceT divider)
+
+    template<unsigned divider>
+    inline void PllClock::SetUsbOutputDivider()
     {
+        static_assert(2 <= divider && divider <= PllQ::MaxValue, "Invalide divider value");
         PllQ::Set(divider);
     }
 
-    const static unsigned AhbPrescalerBitFieldOffset = RCC_CFGR_HPRE_Pos;
-    const static unsigned AhbPrescalerBitFieldLength = GetBitFieldLength<(RCC_CFGR_HPRE_Msk >> RCC_CFGR_HPRE_Pos)>;
-    IO_BITFIELD_WRAPPER(RCC->CFGR, AhbPrescalerBitField, uint32_t, AhbPrescalerBitFieldOffset, AhbPrescalerBitFieldLength);
+#if defined (RCC_PLLCFGR_PLLR_Pos)
+    inline unsigned PllClock::GetI2SOutputDivider()
+    {
+        return PllR::Get();
+    }
+    template<unsigned divider>
+    inline void PllClock::SetI2SOutputDivider()
+    {
+        static_assert(2 <= divider && divider <= PllR::MaxValue, "Invalide divider value");
+        PllR::Set(divider);
+    }
+#endif
+
+    DECLARE_IO_BITFIELD_WRAPPER(RCC->CFGR, AhbPrescalerBitField, RCC_CFGR_HPRE);
 
     class AhbClock : public BusClock<SysClock, AhbPrescalerBitField>
     {
@@ -112,21 +131,21 @@ namespace Zhele::Clock
         static ClockFrequenceT ClockFreq()
         {
             ClockFrequenceT clock = SysClock::ClockFreq();
-            uint8_t clockPrescShift[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
+            static const uint8_t clockPrescShift[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
             uint8_t shiftBits = clockPrescShift[AhbPrescalerBitField::Get()];
             clock >>= shiftBits;
             return clock;
         }
 
-        static void SetPrescaler(Prescaler prescaler)
+        template<Prescaler prescaler>
+        static void SetPrescaler()
         {
             Base::SetPrescaler(prescaler);
         }
     };
 
-    const static unsigned Apb1PrescalerBitFieldOffset = RCC_CFGR_PPRE1_Pos;
-    const static unsigned Apb1PrescalerBitFieldLength = GetBitFieldLength<(RCC_CFGR_PPRE1_Msk >> RCC_CFGR_PPRE1_Pos)>;
-    IO_BITFIELD_WRAPPER(RCC->CFGR, Apb1PrescalerBitField, uint32_t, Apb1PrescalerBitFieldOffset, Apb1PrescalerBitFieldLength);
+    DECLARE_IO_BITFIELD_WRAPPER(RCC->CFGR, Apb1PrescalerBitField, RCC_CFGR_PPRE1);
+
     /**
      * @brief Implements APB clock
      */
@@ -162,9 +181,8 @@ namespace Zhele::Clock
         }
     };
 
-    const static unsigned Apb2PrescalerBitFieldOffset = RCC_CFGR_PPRE2_Pos;
-    const static unsigned Apb2PrescalerBitFieldLength = GetBitFieldLength<(RCC_CFGR_PPRE2_Msk >> RCC_CFGR_PPRE2_Pos)>;
-    IO_BITFIELD_WRAPPER(RCC->CFGR, Apb2PrescalerBitField, uint32_t, Apb2PrescalerBitFieldOffset, Apb2PrescalerBitFieldLength);
+    DECLARE_IO_BITFIELD_WRAPPER(RCC->CFGR, Apb2PrescalerBitField, RCC_CFGR_PPRE2);
+
     /**
      * @brief Implements APB clock
      */
@@ -187,13 +205,14 @@ namespace Zhele::Clock
         static ClockFrequenceT ClockFreq()
         {
             ClockFrequenceT clock = AhbClock::ClockFreq();
-            uint8_t clockPrescShift[] = {0, 0, 0, 0, 1, 2, 3, 4};
+            static const uint8_t clockPrescShift[] = {0, 0, 0, 0, 1, 2, 3, 4};
             uint8_t shiftBits = clockPrescShift[Apb2PrescalerBitField::Get()];
             clock >>= shiftBits;
             return clock;
         }
 
-        static void SetPrescaler(Prescaler prescaler)
+        template<Prescaler prescaler>
+        static void SetPrescaler()
         {
             Base::SetPrescaler(prescaler);
         }
