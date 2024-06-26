@@ -103,8 +103,6 @@ namespace Zhele
 
         SetTransferSize(1);
         _Regs()->TXDR = data;
-        if(!WaitEvent(TransfertComplete))
-            GetErorFromEvent(GetLastEvent());
 
         return I2cStatus::Success;
     }
