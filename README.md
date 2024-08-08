@@ -54,7 +54,7 @@ find_package(CMSIS COMPONENTS STM32F1 REQUIRED)
 include(FetchContent)
 FetchContent_Declare(Zhele
     GIT_REPOSITORY https://github.com/azhel12/Zhele.git
-    GIT_TAG        zhele_v0.1.1
+    GIT_TAG        master
 )
 FetchContent_MakeAvailable(Zhele)
 
