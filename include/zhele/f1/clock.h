@@ -108,8 +108,9 @@ namespace Zhele::Clock
 
         static ClockFrequenceT ClockFreq()
         {
+            constexpr clockPrescShift[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
+
             ClockFrequenceT clock = SysClock::ClockFreq();
-            uint8_t clockPrescShift[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
             uint8_t shiftBits = clockPrescShift[AhbPrescalerBitField::Get()];
             clock >>= shiftBits;
             return clock;
@@ -145,8 +146,9 @@ namespace Zhele::Clock
 
         static ClockFrequenceT ClockFreq()
         {
+            static constexpr uint8_t clockPrescShift[] = {0, 0, 0, 0, 1, 2, 3, 4};
+
             ClockFrequenceT clock = AhbClock::ClockFreq();
-            uint8_t clockPrescShift[] = {0, 0, 0, 0, 1, 2, 3, 4};
             uint8_t shiftBits = clockPrescShift[Apb1PrescalerBitField::Get()];
             clock >>= shiftBits;
             return clock;
@@ -182,8 +184,9 @@ namespace Zhele::Clock
         
         static ClockFrequenceT ClockFreq()
         {
+            static constexpr uint8_t clockPrescShift[] = {0, 0, 0, 0, 1, 2, 3, 4};
+
             ClockFrequenceT clock = AhbClock::ClockFreq();
-            const uint8_t clockPrescShift[] = {0, 0, 0, 0, 1, 2, 3, 4};
             uint8_t shiftBits = clockPrescShift[Apb2PrescalerBitField::Get()];
             clock >>= shiftBits;
             return clock;

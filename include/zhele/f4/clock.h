@@ -65,24 +65,17 @@ namespace Zhele::Clock
 
     inline unsigned PllClock::GetSystemOutputDivider()
     {
-        return PllP::Get();
+        return (PllP::Get() >> 2) + 2;
     }
-
     
     template<unsigned divider>
     inline void PllClock::SetSystemOutputDivider()
     {
         static_assert(divider == 2 || divider == 4 || divider == 6 || divider == 8, "Divider can be one of 2, 4, 6, 8");
-        static constexpr uint8_t pllpValue =
-            divider == 2
-                ? 0b00
-                : (divider == 4
-                    ? 0b01
-                    : (divider == 6
-                        ? 0b10
-                        : 0b11));
+        static constexpr uint8_t pllpValue = (divider - 2) << 2;
         PllP::Set(pllpValue);
     }
+
     inline unsigned PllClock::GetUsbOutputDivider()
     {
         return PllQ::Get();
@@ -130,8 +123,9 @@ namespace Zhele::Clock
 
         static ClockFrequenceT ClockFreq()
         {
+            static constexpr uint8_t clockPrescShift[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
+
             ClockFrequenceT clock = SysClock::ClockFreq();
-            static const uint8_t clockPrescShift[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
             uint8_t shiftBits = clockPrescShift[AhbPrescalerBitField::Get()];
             clock >>= shiftBits;
             return clock;
@@ -167,8 +161,9 @@ namespace Zhele::Clock
 
         static ClockFrequenceT ClockFreq()
         {
+            static constexpr uint8_t clockPrescShift[] = {0, 0, 0, 0, 1, 2, 3, 4};
+
             ClockFrequenceT clock = AhbClock::ClockFreq();
-            uint8_t clockPrescShift[] = {0, 0, 0, 0, 1, 2, 3, 4};
             uint8_t shiftBits = clockPrescShift[Apb1PrescalerBitField::Get()];
             clock >>= shiftBits;
             return clock;
@@ -204,8 +199,9 @@ namespace Zhele::Clock
 
         static ClockFrequenceT ClockFreq()
         {
+            static constexpr uint8_t clockPrescShift[] = {0, 0, 0, 0, 1, 2, 3, 4};
+
             ClockFrequenceT clock = AhbClock::ClockFreq();
-            static const uint8_t clockPrescShift[] = {0, 0, 0, 0, 1, 2, 3, 4};
             uint8_t shiftBits = clockPrescShift[Apb2PrescalerBitField::Get()];
             clock >>= shiftBits;
             return clock;

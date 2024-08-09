@@ -120,8 +120,9 @@ namespace Zhele::Clock
 
         static ClockFrequenceT ClockFreq()
         {
+            static constexpr uint8_t clockPrescShift[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
+
             ClockFrequenceT clock = SysClock::ClockFreq();
-            uint8_t clockPrescShift[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
             uint8_t shiftBits = clockPrescShift[AhbPrescalerBitField::Get()];
             clock >>= shiftBits;
             return clock;
@@ -157,8 +158,9 @@ namespace Zhele::Clock
 
         static ClockFrequenceT ClockFreq()
         {
+            static constexpr uint8_t clockPrescShift[] = {0, 0, 0, 0, 1, 2, 3, 4};
+
             ClockFrequenceT clock = AhbClock::ClockFreq();
-            uint8_t clockPrescShift[] = {0, 0, 0, 0, 1, 2, 3, 4};
             uint8_t shiftBits = clockPrescShift[ApbPrescalerBitField::Get()];
             clock >>= shiftBits;
             return clock;
