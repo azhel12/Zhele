@@ -108,7 +108,7 @@ namespace Zhele::Clock
 
         static ClockFrequenceT ClockFreq()
         {
-            constexpr clockPrescShift[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
+            static constexpr uint8_t clockPrescShift[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
 
             ClockFrequenceT clock = SysClock::ClockFreq();
             uint8_t shiftBits = clockPrescShift[AhbPrescalerBitField::Get()];
