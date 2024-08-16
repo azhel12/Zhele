@@ -198,6 +198,7 @@ namespace Zhele
         public:
             using DmaTx = _DmaTx;
             using DmaRx = _DmaRx;
+            using Regs = _Regs;
 
             /**
              * @brief Initialize USART
