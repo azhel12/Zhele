@@ -93,7 +93,7 @@ namespace Zhele::Drivers {
     /**
      * @brief Implements stepper motor control over TMC2226 (2209) driver by UART
     */
-    template<typename _uart, typename _tx_pin, uint8_t _serial_address = 0, typename _en_pin = Zhele::IO::NullPin>
+    template<typename _uart, typename _tx_pin, uint8_t _serial_address = 0, typename _rx_pin = Zhele::IO::NullPin, typename _en_pin = Zhele::IO::NullPin>
     class tmc2209
     {
         /// @brief StandStill mode
@@ -458,8 +458,12 @@ namespace Zhele::Drivers {
          *  Nothing
         */
         static void init(unsigned baud = 115200) {
-            _uart::Init(baud, _uart::UsartMode::Default | _uart::UsartMode::HalfDuplex);
-            _uart::template SelectTxRxPins<_tx_pin, Zhele::IO::NullPin>();
+            if constexpr(std::is_same_v<_rx_pin, Zhele::IO::NullPin>) {
+                _uart::Init(baud, _uart::UsartMode::Default | _uart::UsartMode::HalfDuplex);
+            } else {
+                _uart::Init(baud);
+            }
+            _uart::template SelectTxRxPins<_tx_pin, _rx_pin>();
 
             if constexpr(!std::is_same_v<_en_pin, Zhele::IO::NullPin>) {
                 _en_pin::Port::Enable();
@@ -1403,25 +1407,25 @@ namespace Zhele::Drivers {
         }
     };
 
-    template<typename _uart, typename _tx_pin, uint8_t _serial_address, typename _en_pin>
-    inline tmc2209<_uart, _tx_pin, _serial_address, _en_pin>::GlobalConfig tmc2209<_uart, _tx_pin, _serial_address, _en_pin>::global_config_;
+    template<typename _uart, typename _tx_pin, uint8_t _serial_address, typename _rx_pin, typename _en_pin>
+    inline tmc2209<_uart, _tx_pin, _serial_address, _rx_pin, _en_pin>::GlobalConfig tmc2209<_uart, _tx_pin, _serial_address, _rx_pin, _en_pin>::global_config_;
 
-    template<typename _uart, typename _tx_pin, uint8_t _serial_address, typename _en_pin>
-    inline tmc2209<_uart, _tx_pin, _serial_address, _en_pin>::DriverCurrent tmc2209<_uart, _tx_pin, _serial_address, _en_pin>::driver_current_;
+    template<typename _uart, typename _tx_pin, uint8_t _serial_address, typename _rx_pin, typename _en_pin>
+    inline tmc2209<_uart, _tx_pin, _serial_address, _rx_pin, _en_pin>::DriverCurrent tmc2209<_uart, _tx_pin, _serial_address, _rx_pin, _en_pin>::driver_current_;
 
-    template<typename _uart, typename _tx_pin, uint8_t _serial_address, typename _en_pin>
-    inline tmc2209<_uart, _tx_pin, _serial_address, _en_pin>::CoolConfig tmc2209<_uart, _tx_pin, _serial_address, _en_pin>::cool_config_;
+    template<typename _uart, typename _tx_pin, uint8_t _serial_address, typename _rx_pin, typename _en_pin>
+    inline tmc2209<_uart, _tx_pin, _serial_address, _rx_pin, _en_pin>::CoolConfig tmc2209<_uart, _tx_pin, _serial_address, _rx_pin, _en_pin>::cool_config_;
 
-    template<typename _uart, typename _tx_pin, uint8_t _serial_address, typename _en_pin>
-    inline bool tmc2209<_uart, _tx_pin, _serial_address, _en_pin>::cool_step_enabled_;
+    template<typename _uart, typename _tx_pin, uint8_t _serial_address, typename _rx_pin, typename _en_pin>
+    inline bool tmc2209<_uart, _tx_pin, _serial_address, _rx_pin, _en_pin>::cool_step_enabled_;
 
-    template<typename _uart, typename _tx_pin, uint8_t _serial_address, typename _en_pin>
-    inline tmc2209<_uart, _tx_pin, _serial_address, _en_pin>::ChopperConfig tmc2209<_uart, _tx_pin, _serial_address, _en_pin>::chopper_config_;
+    template<typename _uart, typename _tx_pin, uint8_t _serial_address, typename _rx_pin, typename _en_pin>
+    inline tmc2209<_uart, _tx_pin, _serial_address, _rx_pin, _en_pin>::ChopperConfig tmc2209<_uart, _tx_pin, _serial_address, _rx_pin, _en_pin>::chopper_config_;
 
-    template<typename _uart, typename _tx_pin, uint8_t _serial_address, typename _en_pin>
-    inline uint8_t tmc2209<_uart, _tx_pin, _serial_address, _en_pin>::toff_ = tmc2209<_uart, _tx_pin, _serial_address, _en_pin>::TOFF_DEFAULT;
+    template<typename _uart, typename _tx_pin, uint8_t _serial_address, typename _rx_pin, typename _en_pin>
+    inline uint8_t tmc2209<_uart, _tx_pin, _serial_address, _rx_pin, _en_pin>::toff_ = tmc2209<_uart, _tx_pin, _serial_address, _rx_pin, _en_pin>::TOFF_DEFAULT;
 
-    template<typename _uart, typename _tx_pin, uint8_t _serial_address, typename _en_pin>
-    inline tmc2209<_uart, _tx_pin, _serial_address, _en_pin>::PwmConfig tmc2209<_uart, _tx_pin, _serial_address, _en_pin>::pwm_config_;
+    template<typename _uart, typename _tx_pin, uint8_t _serial_address, typename _rx_pin, typename _en_pin>
+    inline tmc2209<_uart, _tx_pin, _serial_address, _rx_pin, _en_pin>::PwmConfig tmc2209<_uart, _tx_pin, _serial_address, _rx_pin, _en_pin>::pwm_config_;
 }
 #endif //! ZHELE_DRIVERS_TMC2209_H_
