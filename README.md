@@ -10,7 +10,7 @@ Also I write small [lessons](https://github.com/azhel12/ZheleLessons) about appl
 I'm using following stack:
 - **VSCode IDE**
 - **CMake**
-- **GNU Arm Embedded Toolchain Version** (latest is 13.2.1)
+- **GNU Arm Embedded Toolchain Version** (latest is 14.2.1)
 - **stm32-cmake** project for CMSIS/HAL access
 - **openocd** and cmsis-dap/stlink for flash and debug
 
@@ -24,13 +24,13 @@ If you use *nix system download appropriate linux hosted cross toolchains.
 There is no latest version in official repo (I tried on ubuntu), so unpack toolchain manually
 and add to path. [Tutorial post](https://askubuntu.com/questions/1243252/how-to-install-arm-none-eabi-gdb-on-ubuntu-20-04-lts-focal-fossa).\
 Check that compiler available from terminal.
-![gcc](https://github.com/azhel12/Zhele/assets/8615986/46a1962a-ba24-4c97-81ac-3d86d02c023f)
+![gcc](https://github.com/user-attachments/assets/8d162f35-19af-4798-93eb-7710a02f7956)
 
 3. Download and install [Cmake](https://cmake.org/download/).
 Check that cmake is available from terminal.
 ![cmake](https://github.com/azhel12/Zhele/assets/8615986/d6f8e1b3-3d85-45da-84ab-c773fc8a3b8e)
 
-4. Install C++ extension pack and Cmake Tools in VSCode (it's not requires but useful).
+4. Install C++ extension pack and Cmake Tools in VSCode (it's not requires but useful). Or use any another extension for C++ development (such as clangd).
 ![Extensions](https://github.com/azhel12/Zhele/assets/8615986/29a2506d-275c-4cce-bdec-a377adad46cc)
 
 5. Create project folder or [download](https://github.com/azhel12/Zhele-template) template.\
@@ -39,7 +39,10 @@ You can download [stm32-cmake](https://github.com/ObKo/stm32-cmake) manually. Re
 6. Add **CMakeLists** to project root
 ```cmake
 cmake_minimum_required(VERSION 3.16)
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/stm32_gcc.cmake)
+# Uncomment if stm32-cmake used manually (not as submodule)
+#set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/stm32_gcc.cmake)
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/stm32-cmake/cmake/stm32_gcc.cmake)
+
 set (CMAKE_CXX_STANDARD 23)
 
 project(zhele_template CXX C ASM)
@@ -70,6 +73,8 @@ add_executable(zhele_template ${PROJECT_SOURCES})
 target_link_libraries(zhele_template zhele::zhele CMSIS::STM32::F103C8 STM32::NoSys STM32::Nano)
 # Recommended options for stm32 dev
 target_compile_options(zhele_template PRIVATE -fno-exceptions -fno-rtti -ffunction-sections -fdata-sections)
+# Preprocessor options
+target_compile_definitions(zhele_template PRIVATE FCPU=80000000)
 
 # Print size
 stm32_print_size_of_target(zhele_template)
@@ -79,9 +84,6 @@ stm32_generate_binary_file(zhele_template)
 
 6. Write code in source file.
 ```c++
-// Define target cpu frequence.
-#define F_CPU 8000000
-
 #include <zhele/iopins.h>
 
 using namespace Zhele::IO;
@@ -102,8 +104,9 @@ int main()
 
 7. Press **Build** button in CMake extension.
 First time you need choose toolchain.
-![build](https://github.com/azhel12/Zhele/assets/8615986/a0859086-cf28-43a5-9f8a-3840fd425858)
+![build](https://github.com/user-attachments/assets/ce1ea738-a10c-441d-99fa-035d540a05b9)
 
 8. Profit! You can flash files i
-![output](https://github.com/azhel12/Zhele/assets/8615986/a75ba712-248b-4643-aa7a-5f8351a02b22)
+![output](https://github.com/user-attachments/assets/5ef52eb8-79bb-4419-9280-7257b33dba3a)
+
 ![files](https://github.com/azhel12/Zhele/assets/8615986/ad4364ac-d2b8-4d44-983d-2ca029144e17)
