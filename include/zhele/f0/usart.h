@@ -116,8 +116,8 @@ namespace Zhele
             SelectTxRxPins<txPinIndex, rxPinIndex>();
         }
 
-        using Usart1TxPins = Pair<IO::PinList<IO::Pa9, IO::Pb6>, NonTypeTemplateArray<1, 0>>;
-        using Usart1RxPins = Pair<IO::PinList<IO::Pa10, IO::Pb7>, NonTypeTemplateArray<1, 0>>;
+        using Usart1TxPins = Pair<IO::PinList<IO::Pa2, IO::Pa9, IO::Pb6>, NonTypeTemplateArray<1, 1, 0>>;
+        using Usart1RxPins = Pair<IO::PinList<IO::Pa10, IO::Pa15, IO::Pb7>, NonTypeTemplateArray<1, 1, 0>>;
 
         using Usart2TxPins = Pair<IO::PinList<IO::Pa2, IO::Pd5>, NonTypeTemplateArray<1, 1>>;
         using Usart2RxPins = Pair<IO::PinList<IO::Pa3, IO::Pd6>, NonTypeTemplateArray<1, 1>>;
