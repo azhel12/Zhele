@@ -9,12 +9,12 @@
 #ifndef ZHELE_TIMER_H
 #define ZHELE_TIMER_H
 
-#include "iopins.h"
-#include "../common/template_utils/pair.h"
 #include "../common/template_utils/static_array.h"
-
 #include "../common/timer.h"
 
+#include "iopins.h"
+
+#include <utility>
 
 using namespace Zhele::IO;
 
@@ -104,10 +104,10 @@ namespace Zhele::Timers
 
 
         template<unsigned ChannelNumber> struct Tim3ChPins;
-        template<> struct Tim3ChPins<0>{ using Pins = Pair<IO::PinList<Pa6, Pb4>, NonTypeTemplateArray<1, 1>>; };
-        template<> struct Tim3ChPins<1>{ using Pins = Pair<IO::PinList<Pa7, Pb5>, NonTypeTemplateArray<1, 1>>; };
-        template<> struct Tim3ChPins<2>{ using Pins = Pair<IO::PinList<Pb0, Pb10>, NonTypeTemplateArray<1, 1>>; };
-        template<> struct Tim3ChPins<3>{ using Pins = Pair<IO::PinList<Pb1, Pb11>, NonTypeTemplateArray<1, 1>>; };
+        template<> struct Tim3ChPins<0>{ using Pins = std::pair<IO::PinList<Pa6, Pb4>, NonTypeTemplateArray<1, 1>>; };
+        template<> struct Tim3ChPins<1>{ using Pins = std::pair<IO::PinList<Pa7, Pb5>, NonTypeTemplateArray<1, 1>>; };
+        template<> struct Tim3ChPins<2>{ using Pins = std::pair<IO::PinList<Pb0, Pb10>, NonTypeTemplateArray<1, 1>>; };
+        template<> struct Tim3ChPins<3>{ using Pins = std::pair<IO::PinList<Pb1, Pb11>, NonTypeTemplateArray<1, 1>>; };
         
     #if defined (TIM1)
         IO_STRUCT_WRAPPER(TIM1, Tim1Regs, TIM_TypeDef);

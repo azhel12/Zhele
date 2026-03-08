@@ -11,6 +11,7 @@
 
 #include "template_utils/enum.h"
 #include "template_utils/type_list.h"
+#include "template_utils/static_array.h"
 #include "ioreg.h"
 
 #include <zhele/clock.h>
@@ -353,8 +354,8 @@ namespace Zhele::Timers
 
             public:
                 static_assert(_ChannelNumber < 4);
-                using Pins = typename _ChPins<_ChannelNumber>::Pins::Key;
-                using PinsAltFuncNumber = typename _ChPins<_ChannelNumber>::Pins::Value;
+                using Pins = typename _ChPins<_ChannelNumber>::Pins::first_type;
+                using PinsAltFuncNumber = typename _ChPins<_ChannelNumber>::Pins::second_type;
 
                 /**
                  * @brief Enable interrupt

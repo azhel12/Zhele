@@ -9,18 +9,16 @@
 #ifndef ZHELE_USART_H
 #define ZHELE_USART_H
 
-#include <stm32f1xx.h>
-
+#include "../common/template_utils/static_array.h"
 #include "../common/usart.h"
 
 #include "clock.h"
 #include "dma.h"
 #include "iopins.h"
 #include "remap.h"
-#include "../common/template_utils/pair.h"
-#include "../common/template_utils/static_array.h"
 
 #include <type_traits>
+#include <utility>
 
 namespace Zhele
 {
@@ -39,12 +37,12 @@ namespace Zhele
         template<typename _Regs, IRQn_Type _IRQNumber, typename _ClockCtrl, typename _TxPins, typename _RxPins, typename _DmaTx, typename _DmaRx>
         void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins, _DmaTx, _DmaRx>::SelectTxRxPins(int8_t txPinNumber, int8_t rxPinNumber)
         {
-            using AltFuncNumbers = typename _TxPins::Value;
+            using AltFuncNumbers = typename _TxPins::second_type;
 
-            using TxPins = typename _TxPins::Key;
-            using RxPins = typename _RxPins::Key;
+            using TxPins = typename _TxPins::first_type;
+            using RxPins = typename _RxPins::first_type;
 
-            using Type = typename _TxPins::Key::DataType;
+            using Type = typename _TxPins::first_type::DataType;
 
             TxPins::Enable();
             Type maskTx(1 << txPinNumber);
@@ -76,16 +74,16 @@ namespace Zhele
         {
             static_assert(TxPinNumber == RxPinNumber || RxPinNumber == -1);
 
-            using TxAltFuncNumbers = typename _TxPins::Value;
-            using RxAltFuncNumbers = typename _RxPins::Value;
+            using TxAltFuncNumbers = typename _TxPins::second_type;
+            using RxAltFuncNumbers = typename _RxPins::second_type;
 
-            using TxPin = typename _TxPins::Key:: template Pin<TxPinNumber>;
+            using TxPin = typename _TxPins::first_type:: template Pin<TxPinNumber>;
             TxPin::Port::Enable();
             TxPin::SetConfiguration(TxPin::Port::AltFunc);
             
             if constexpr(RxPinNumber != -1)
             {
-                using RxPin = typename _RxPins::Key::template Pin<RxPinNumber>;
+                using RxPin = typename _RxPins::first_type::template Pin<RxPinNumber>;
 
                 if constexpr (!std::is_same_v<typename RxPin::Port, typename TxPin::Port>)
                 {
@@ -111,9 +109,9 @@ namespace Zhele
         template<typename TxPin, typename RxPin>
         void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins, _DmaTx, _DmaRx>::SelectTxRxPins()
         {
-            const int8_t txPinIndex = _TxPins::Key:: template IndexOf<TxPin>;
+            const int8_t txPinIndex = _TxPins::first_type:: template IndexOf<TxPin>;
             const int8_t rxPinIndex = !std::is_same_v<RxPin, IO::NullPin>
-                                ? _RxPins::Key:: template IndexOf<RxPin>
+                                ? _RxPins::first_type:: template IndexOf<RxPin>
                                 : -1;
             static_assert(txPinIndex >= 0);
             static_assert(rxPinIndex >= -1);
@@ -121,14 +119,14 @@ namespace Zhele
          }
 
 
-        using Usart1TxPins = Pair<IO::PinList<IO::Pa9, IO::Pb6>, NonTypeTemplateArray<0, 1>>;
-        using Usart1RxPins = Pair<IO::PinList<IO::Pa10, IO::Pb7>, NonTypeTemplateArray<0, 1>>;
+        using Usart1TxPins = std::pair<IO::PinList<IO::Pa9, IO::Pb6>, NonTypeTemplateArray<0, 1>>;
+        using Usart1RxPins = std::pair<IO::PinList<IO::Pa10, IO::Pb7>, NonTypeTemplateArray<0, 1>>;
 
-        using Usart2TxPins = Pair<IO::PinList<IO::Pa2, IO::Pd5>, NonTypeTemplateArray<0, 1>>;
-        using Usart2RxPins = Pair<IO::PinList<IO::Pa3, IO::Pd6>, NonTypeTemplateArray<0, 1>>;
+        using Usart2TxPins = std::pair<IO::PinList<IO::Pa2, IO::Pd5>, NonTypeTemplateArray<0, 1>>;
+        using Usart2RxPins = std::pair<IO::PinList<IO::Pa3, IO::Pd6>, NonTypeTemplateArray<0, 1>>;
 
-        using Usart3TxPins = Pair<IO::PinList<IO::Pb10, IO::Pc10, IO::Pd8>, NonTypeTemplateArray<0, 1, 3>>;
-        using Usart3RxPins = Pair<IO::PinList<IO::Pb11, IO::Pc11, IO::Pd9>, NonTypeTemplateArray<0, 1, 3>>;
+        using Usart3TxPins = std::pair<IO::PinList<IO::Pb10, IO::Pc10, IO::Pd8>, NonTypeTemplateArray<0, 1, 3>>;
+        using Usart3RxPins = std::pair<IO::PinList<IO::Pb11, IO::Pc11, IO::Pd9>, NonTypeTemplateArray<0, 1, 3>>;
 
         IO_STRUCT_WRAPPER(USART1, Usart1Regs, USART_TypeDef);
         IO_STRUCT_WRAPPER(USART2, Usart2Regs, USART_TypeDef);

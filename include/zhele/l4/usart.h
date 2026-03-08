@@ -9,15 +9,13 @@
 #ifndef ZHELE_USART_H
 #define ZHELE_USART_H
 
-#include <stm32l4xx.h>
-
+#include "../common/template_utils/static_array.h"
 #include "../common/usart.h"
 
 #include "afio_bind.h"
 #include "clock.h"
 #include "dma.h"
 #include "iopins.h"
-#include "../common/template_utils/static_array.h"
 
 namespace Zhele
 {
@@ -71,7 +69,7 @@ namespace Zhele
 
             if constexpr(RxPinNumber != -1)
             {
-                using RxPin = typename _RxPins::Key::template Pin<RxPinNumber>;
+                using RxPin = typename _RxPins::first_type::template Pin<RxPinNumber>;
 
                 if constexpr (!std::is_same_v<typename RxPin::Port, typename TxPin::Port>) {
                     RxPin::Port::Enable();

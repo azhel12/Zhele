@@ -1,7 +1,7 @@
 /**
  * @file
  * Implements static array.
- * 
+ *
  * @author Alexey Zhelonkin
  * @date 2020
  * @license FreeBSD
@@ -13,14 +13,15 @@
 #include "type_list.h"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace Zhele::TemplateUtils
 {
     template<auto... Numbers>
-    class NonTypeTemplateArray;
+    class NonTypeTemplateArray{};
 
     template<typename...>
-    class Length{};
+    class Length {};
     template<auto... Numbers>
     class Length<NonTypeTemplateArray<Numbers...>>
     {
@@ -45,7 +46,7 @@ namespace Zhele::TemplateUtils
         static const auto value = Head;
     };
     template<int Index, auto Head, auto... Tail>
-    class GetNonTypeValueByIndex<Index, NonTypeTemplateArray<Head , Tail...>>
+    class GetNonTypeValueByIndex<Index, NonTypeTemplateArray<Head, Tail...>>
     {
         static_assert(Index < Length<NonTypeTemplateArray<Head, Tail...>>::value);
     public:
@@ -60,24 +61,24 @@ namespace Zhele::TemplateUtils
     public:
         /**
          * @brief Returns value in array.
-         * 
+         *
          * @param [in] index Index
-         * 
+         *
          * @returns Value with given index.
          */
         static uint8_t Get(uint8_t index);
     };
 
     template<auto... Numbers>
-    class GetNumberRuntime<NonTypeTemplateArray<Numbers ...>>
+    class GetNumberRuntime<NonTypeTemplateArray<Numbers...>>
     {
         const static uint8_t _numbers[sizeof...(Numbers)];
     public:
-        static uint8_t Get(uint8_t index) {return _numbers[index];};
+        static uint8_t Get(uint8_t index) { return _numbers[index]; }
     };
 
     template<auto... Numbers>
-    const uint8_t GetNumberRuntime<NonTypeTemplateArray<Numbers ...>>::_numbers[sizeof... (Numbers)] = {Numbers ...};
+    const uint8_t GetNumberRuntime<NonTypeTemplateArray<Numbers...>>::_numbers[sizeof...(Numbers)] = {Numbers...};
 
     /**
      * @brief Static array of int8_t.
@@ -95,8 +96,6 @@ namespace Zhele::TemplateUtils
     public:
         using type = Int8_tArray<Numbers..., Value>;
     };
-
-    
 }
 
 #endif //!ZHELE_STATICARRAY_H

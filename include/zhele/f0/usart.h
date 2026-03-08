@@ -9,16 +9,14 @@
 #ifndef ZHELE_USART_H
 #define ZHELE_USART_H
 
-#include <stm32f0xx.h>
-
+#include "../common/template_utils/static_array.h"
 #include "../common/usart.h"
 
 #include "clock.h"
 #include "dma.h"
 #include "iopins.h"
 
-#include "../common/template_utils/pair.h"
-#include "../common/template_utils/static_array.h"
+#include <utility>
 
 namespace Zhele
 {
@@ -36,11 +34,11 @@ namespace Zhele
         template<typename _Regs, IRQn_Type _IRQNumber, typename _ClockCtrl, typename _TxPins, typename _RxPins, typename _DmaTx, typename _DmaRx>
         void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins, _DmaTx, _DmaRx>::SelectTxRxPins(int8_t txPinNumber, int8_t rxPinNumber)
         {
-            using TxAltFuncNumbers = typename _TxPins::Value;
-            using RxAltFuncNumbers = typename _RxPins::Value;
+            using TxAltFuncNumbers = typename _TxPins::second_type;
+            using RxAltFuncNumbers = typename _RxPins::second_type;
 
-            using TxPins = typename _TxPins::Key;
-            using RxPins = typename _RxPins::Key;
+            using TxPins = typename _TxPins::first_type;
+            using RxPins = typename _RxPins::first_type;
 
             using Type = typename TxPins::DataType;
 
@@ -71,10 +69,10 @@ namespace Zhele
         template<int8_t TxPinNumber, int8_t RxPinNumber>
         void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins, _DmaTx, _DmaRx>::SelectTxRxPins()
         {
-            using TxAltFuncNumbers = typename _TxPins::Value;
-            using RxAltFuncNumbers = typename _RxPins::Value;
+            using TxAltFuncNumbers = typename _TxPins::second_type;
+            using RxAltFuncNumbers = typename _RxPins::second_type;
 
-            using TxPin = typename _TxPins::Key::template Pin<TxPinNumber>;
+            using TxPin = typename _TxPins::first_type::template Pin<TxPinNumber>;
 
             TxPin::Port::Enable();
 
@@ -83,7 +81,7 @@ namespace Zhele
 
             if constexpr(RxPinNumber != -1)
             {
-                using RxPin = typename _RxPins::Key::template Pin<RxPinNumber>;
+                using RxPin = typename _RxPins::first_type::template Pin<RxPinNumber>;
 
                 if constexpr (!std::is_same_v<typename RxPin::Port, typename TxPin::Port>) {
                     RxPin::Port::Enable();
@@ -107,20 +105,20 @@ namespace Zhele
         template<typename TxPin, typename RxPin>
         void Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins, _DmaTx, _DmaRx>::SelectTxRxPins()
         {
-            const int8_t txPinIndex = _TxPins::Key:: template IndexOf<TxPin>;
+            const int8_t txPinIndex = _TxPins::first_type:: template IndexOf<TxPin>;
             const int8_t rxPinIndex = !std::is_same_v<RxPin, IO::NullPin>
-                                ? _RxPins::Key:: template IndexOf<RxPin>
+                                ? _RxPins::first_type:: template IndexOf<RxPin>
                                 : -1;
             static_assert(txPinIndex >= 0);
             static_assert(rxPinIndex >= -1);
             SelectTxRxPins<txPinIndex, rxPinIndex>();
         }
 
-        using Usart1TxPins = Pair<IO::PinList<IO::Pa2, IO::Pa9, IO::Pb6>, NonTypeTemplateArray<1, 1, 0>>;
-        using Usart1RxPins = Pair<IO::PinList<IO::Pa10, IO::Pa15, IO::Pb7>, NonTypeTemplateArray<1, 1, 0>>;
+        using Usart1TxPins = std::pair<IO::PinList<IO::Pa2, IO::Pa9, IO::Pb6>, NonTypeTemplateArray<1, 1, 0>>;
+        using Usart1RxPins = std::pair<IO::PinList<IO::Pa10, IO::Pa15, IO::Pb7>, NonTypeTemplateArray<1, 1, 0>>;
 
-        using Usart2TxPins = Pair<IO::PinList<IO::Pa2, IO::Pd5>, NonTypeTemplateArray<1, 1>>;
-        using Usart2RxPins = Pair<IO::PinList<IO::Pa3, IO::Pd6>, NonTypeTemplateArray<1, 1>>;
+        using Usart2TxPins = std::pair<IO::PinList<IO::Pa2, IO::Pd5>, NonTypeTemplateArray<1, 1>>;
+        using Usart2RxPins = std::pair<IO::PinList<IO::Pa3, IO::Pd6>, NonTypeTemplateArray<1, 1>>;
 
         IO_STRUCT_WRAPPER(USART1, Usart1Regs, USART_TypeDef);
     #if defined(USART2)

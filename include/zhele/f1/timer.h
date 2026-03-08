@@ -9,13 +9,13 @@
 #ifndef ZHELE_TIMER_H
 #define ZHELE_TIMER_H
 
-
-#include "../common/timer.h"
-#include "../common/template_utils/pair.h"
 #include "../common/template_utils/static_array.h"
+#include "../common/timer.h"
 
 #include "iopins.h"
 #include "remap.h"
+
+#include <utility>
 
 namespace Zhele::Timers
 {
@@ -123,29 +123,29 @@ namespace Zhele::Timers
         using namespace Zhele::IO;
 
         template<unsigned ChannelNumber> struct Tim1ChPins;
-        template<> struct Tim1ChPins<0>{ using Pins = Pair<IO::PinList<Pa8, Pe9>, NonTypeTemplateArray<0, 3>>; };
-        template<> struct Tim1ChPins<1>{ using Pins = Pair<IO::PinList<Pa9, Pe11>, NonTypeTemplateArray<0, 3>>; };
-        template<> struct Tim1ChPins<2>{ using Pins = Pair<IO::PinList<Pa10, Pe13>, NonTypeTemplateArray<0, 3>>; };
-        template<> struct Tim1ChPins<3>{ using Pins = Pair<IO::PinList<Pa11, Pe14>, NonTypeTemplateArray<0, 3>>; };		
+        template<> struct Tim1ChPins<0>{ using Pins = std::pair<IO::PinList<Pa8, Pe9>, NonTypeTemplateArray<0, 3>>; };
+        template<> struct Tim1ChPins<1>{ using Pins = std::pair<IO::PinList<Pa9, Pe11>, NonTypeTemplateArray<0, 3>>; };
+        template<> struct Tim1ChPins<2>{ using Pins = std::pair<IO::PinList<Pa10, Pe13>, NonTypeTemplateArray<0, 3>>; };
+        template<> struct Tim1ChPins<3>{ using Pins = std::pair<IO::PinList<Pa11, Pe14>, NonTypeTemplateArray<0, 3>>; };		
 
         template<unsigned ChannelNumber> struct Tim2ChPins;
-        template<> struct Tim2ChPins<0>{ using Pins = Pair<IO::PinList<Pa0, Pa15, Pa0, Pa15>, NonTypeTemplateArray<0, 1, 2, 3>>; };
-        template<> struct Tim2ChPins<1>{ using Pins = Pair<IO::PinList<Pa1, Pb3, Pa1, Pb3>, NonTypeTemplateArray<0, 1, 2, 3>>; };
-        template<> struct Tim2ChPins<2>{ using Pins = Pair<IO::PinList<Pa2, Pb10>, NonTypeTemplateArray<0, 2>>; };
-        template<> struct Tim2ChPins<3>{ using Pins = Pair<IO::PinList<Pa3, Pb11>, NonTypeTemplateArray<0, 2>>; };		
+        template<> struct Tim2ChPins<0>{ using Pins = std::pair<IO::PinList<Pa0, Pa15, Pa0, Pa15>, NonTypeTemplateArray<0, 1, 2, 3>>; };
+        template<> struct Tim2ChPins<1>{ using Pins = std::pair<IO::PinList<Pa1, Pb3, Pa1, Pb3>, NonTypeTemplateArray<0, 1, 2, 3>>; };
+        template<> struct Tim2ChPins<2>{ using Pins = std::pair<IO::PinList<Pa2, Pb10>, NonTypeTemplateArray<0, 2>>; };
+        template<> struct Tim2ChPins<3>{ using Pins = std::pair<IO::PinList<Pa3, Pb11>, NonTypeTemplateArray<0, 2>>; };		
 
         template<unsigned ChannelNumber> struct Tim3ChPins;
-        template<> struct Tim3ChPins<0>{ using Pins = Pair<IO::PinList<Pa6, Pb4, Pc6>, NonTypeTemplateArray<0, 2, 3>>; };
-        template<> struct Tim3ChPins<1>{ using Pins = Pair<IO::PinList<Pa7, Pb5, Pc7>, NonTypeTemplateArray<0, 2, 3>>; };
-        template<> struct Tim3ChPins<2>{ using Pins = Pair<IO::PinList<Pb0, Pc8>, NonTypeTemplateArray<0, 3>>; };
-        template<> struct Tim3ChPins<3>{ using Pins = Pair<IO::PinList<Pb1, Pc9>, NonTypeTemplateArray<0, 3>>; };
+        template<> struct Tim3ChPins<0>{ using Pins = std::pair<IO::PinList<Pa6, Pb4, Pc6>, NonTypeTemplateArray<0, 2, 3>>; };
+        template<> struct Tim3ChPins<1>{ using Pins = std::pair<IO::PinList<Pa7, Pb5, Pc7>, NonTypeTemplateArray<0, 2, 3>>; };
+        template<> struct Tim3ChPins<2>{ using Pins = std::pair<IO::PinList<Pb0, Pc8>, NonTypeTemplateArray<0, 3>>; };
+        template<> struct Tim3ChPins<3>{ using Pins = std::pair<IO::PinList<Pb1, Pc9>, NonTypeTemplateArray<0, 3>>; };
 
 #if defined (TIM4)
         template<unsigned ChannelNumber> struct Tim4ChPins;
-        template<> struct Tim4ChPins<0>{ using Pins = Pair<IO::PinList<Pb6, Pd12>, NonTypeTemplateArray<0, 1>>; };
-        template<> struct Tim4ChPins<1>{ using Pins = Pair<IO::PinList<Pb7, Pd13>, NonTypeTemplateArray<0, 1>>; };
-        template<> struct Tim4ChPins<2>{ using Pins = Pair<IO::PinList<Pb8, Pd14>, NonTypeTemplateArray<0, 1>>; };
-        template<> struct Tim4ChPins<3>{ using Pins = Pair<IO::PinList<Pb9, Pd15>, NonTypeTemplateArray<0, 1>>; };
+        template<> struct Tim4ChPins<0>{ using Pins = std::pair<IO::PinList<Pb6, Pd12>, NonTypeTemplateArray<0, 1>>; };
+        template<> struct Tim4ChPins<1>{ using Pins = std::pair<IO::PinList<Pb7, Pd13>, NonTypeTemplateArray<0, 1>>; };
+        template<> struct Tim4ChPins<2>{ using Pins = std::pair<IO::PinList<Pb8, Pd14>, NonTypeTemplateArray<0, 1>>; };
+        template<> struct Tim4ChPins<3>{ using Pins = std::pair<IO::PinList<Pb9, Pd15>, NonTypeTemplateArray<0, 1>>; };
 #endif
         IO_STRUCT_WRAPPER(TIM1, Tim1Regs, TIM_TypeDef);
         IO_STRUCT_WRAPPER(TIM2, Tim2Regs, TIM_TypeDef);

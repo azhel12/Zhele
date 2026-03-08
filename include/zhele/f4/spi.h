@@ -13,7 +13,6 @@
 #include <stm32f4xx.h>
 
 #include "../common/spi.h"
-#include "../common/template_utils/pair.h"
 #include "../common/template_utils/static_array.h"
 
 #include "afio_bind.h"
