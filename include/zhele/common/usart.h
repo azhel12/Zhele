@@ -10,7 +10,6 @@
 #ifndef ZHELE_UART_COMMON_H
 #define ZHELE_UART_COMMON_H
 
-#include "template_utils/data_transfer.h"
 #include "template_utils/enum.h"
 #include "ioreg.h"
 
@@ -199,6 +198,7 @@ namespace Zhele
         public:
             using DmaTx = _DmaTx;
             using DmaRx = _DmaRx;
+            using TransferCallback = DmaChannelData::TransferCallback;
             using Regs = _Regs;
 
             /**

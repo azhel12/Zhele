@@ -10,7 +10,6 @@
 #ifndef ZHELE_DMA_COMMON_H
 #define ZHELE_DMA_COMMON_H
 
-#include "./template_utils/data_transfer.h"
 #include "./template_utils/enum.h"
 #include "ioreg.h"
 
@@ -115,6 +114,7 @@ namespace Zhele
      */
     struct DmaChannelData
     {
+        using TransferCallback = std::add_pointer_t<void(void* data, unsigned size, bool success)>;
         /**
          * @brief Default constructor
          *
@@ -189,7 +189,7 @@ namespace Zhele
          * @par Returns
          *	Nothing
          */
-        static void SetTransferCallback(TransferCallback callback);
+        static void SetTransferCallback(DmaChannelData::TransferCallback callback);
 
         /**
          * @brief Check that DMA ready to transfer data

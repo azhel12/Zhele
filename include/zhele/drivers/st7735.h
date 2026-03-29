@@ -512,7 +512,7 @@ namespace Zhele::Drivers
          * @param size Size
          * @param callback Complete callback
          */
-        static void WriteDataAsync(const void* data, uint32_t size, TransferCallback callback = [](void* data, unsigned size, bool success){_SsPin::Set(); _busy = false;})
+        static void WriteDataAsync(const void* data, uint32_t size, _SpiBus::TransferCallback callback = +[](void* data, unsigned size, bool success){_SsPin::Set(); _busy = false;})
         {
             _DcPin::Set();
 

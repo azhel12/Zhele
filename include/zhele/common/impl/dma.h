@@ -70,7 +70,7 @@ namespace Zhele
     #endif
     }
     DMACHANNEL_TEMPLATE_ARGS
-    void DMACHANNEL_TEMPLATE_QUALIFIER::SetTransferCallback(TransferCallback callback)
+    void DMACHANNEL_TEMPLATE_QUALIFIER::SetTransferCallback(DmaChannelData::TransferCallback callback)
     {
         Data.transferCallback = callback;
     }

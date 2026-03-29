@@ -10,10 +10,10 @@
 #define ZHELE_SPI_COMMON_H
 
 #include "ioreg.h"
-#include "template_utils/data_transfer.h"
 #include "template_utils/enum.h"
 
 #include <zhele/clock.h>
+#include <zhele/dma.h>
 #include <zhele/iopins.h>
 #include <zhele/pinlist.h>
 
@@ -158,6 +158,7 @@ namespace Zhele
         public:
             using DmaTx = _DmaTx;
             using DmaRx = _DmaRx;
+            using TransferCallback = DmaChannelData::TransferCallback;
             /**
              * @brief Enable SPI
              * 
@@ -296,8 +297,8 @@ namespace Zhele
              * @par Returns
              *  Nothing
              */
-            
             static void SendAsync(void* transmitBuffer, void* receiveBuffer, size_t bufferSize, TransferCallback callback = nullptr);
+
             /**
              * @brief Send data with ignored receive
              * 
