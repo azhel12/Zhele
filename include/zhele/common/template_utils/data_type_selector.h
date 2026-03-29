@@ -1,7 +1,7 @@
 /**
  * @file
  * Implements "type factory" of needed length
- * 
+ *
  * @author Konstantin Chizhov
  * @date 2013
  * @license FreeBSD
@@ -10,45 +10,49 @@
 #ifndef ZHELE_DATA_TYPE_SELECTOR_H
 #define ZHELE_DATA_TYPE_SELECTOR_H
 
-#include "type_list.h"
-#include <stdint.h>
+#include "mp"
+
+#include <cstdint>
+#include <type_traits>
 
 namespace Zhele::TemplateUtils
 {
     /**
-    * @brief Allows to select suitable unsigned integer type to cover necessary bit count
-    * @details
-    * 1..8 - uint_fast8_t
-    * 9..16 - uint_fast16_t
-    * 16..32 - uint_fast32_t
-    * 33..64 - uint_fast64_t
-    */
-    template<uint8_t length> 
-    static consteval auto GetSuitableUnsignedType()
-    {
-        constexpr auto unsignedTypes = TypeList<uint_fast8_t, uint_fast16_t, uint_fast32_t, uint_fast16_t>{};
-
-        return unsignedTypes.template get<(length - 1) / 8>();
+     * @brief Allows to select suitable unsigned integer type to cover necessary bit count
+     * @details
+     * 1..8 - uint_fast8_t
+     * 9..16 - uint_fast16_t
+     * 17..32 - uint_fast32_t
+     * 33..64 - uint_fast64_t
+     */
+    template<uint8_t length>
+    static consteval auto GetSuitableUnsignedType() {
+        constexpr mp::array types = {
+            // 1 - uint_fast8_t
+            mp::meta<uint_fast8_t>,
+            // 2 - uint_fast16_t
+            mp::meta<uint_fast16_t>,
+            // 3-4 - uint_fast32_t
+            mp::meta<uint_fast32_t>,
+            mp::meta<uint_fast32_t>,
+            // 5-8 - uint_fast64_t
+            mp::meta<uint_fast64_t>,
+            mp::meta<uint_fast64_t>,
+            mp::meta<uint_fast64_t>,
+            mp::meta<uint_fast64_t>
+        };
+        constexpr auto idx = (static_cast<std::size_t>(length) - 1u) / 8u;
+        using selected = mp::type_of<types[idx]>;
+        return std::type_identity<selected>{};
     }
 
     /**
-    * @brief Allows to select suitable unsigned integer type to cover necessary length
-    * @details
-    * 1..255 - uint_fast8_t
-    * 256..2^16 - 1 - uint_fast16_t
-    * 2^16... - uint_fast32_t
-    */
-    template<unsigned Size>
-    class SuitableUnsignedTypeForLength
-    {
-        using unsignedTypes = TypeList<uint_fast8_t, uint_fast16_t, uint_fast32_t, uint_fast16_t>;
+     * @brief Allows to select suitable unsigned integer type to cover necessary length
+     */
+    template<unsigned length>
+    class SuitableUnsignedTypeForLength {
     public:
-        using type = std::conditional_t<Size <= 0xff,
-            uint_fast8_t,
-            std::conditional_t<Size <= 0xffff,
-                uint_fast16_t,
-                uint_fast32_t
-            >>;
+        using type = typename decltype(GetSuitableUnsignedType<length>())::type;
     };
 }
 
