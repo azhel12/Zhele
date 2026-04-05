@@ -10,7 +10,6 @@
 #define ZHELE_IOPORTS_COMMON_H
 
 #include "ioreg.h"
-#include "template_utils/type_list.h"
 
 #include <zhele/clock.h>
 
@@ -641,41 +640,6 @@ namespace Zhele
                 static constexpr inline unsigned UnpackConfig4Bit(unsigned mask, unsigned value, unsigned configuration);
             };
         }
-
-        /**
-         * @brief Implements IO ports list class.
-         * 
-         * @tparam _Ports IOPorts types.
-         */
-        template<typename... >
-        class PortList;
-
-        template<typename... _Ports>
-        class PortList<TemplateUtils::TypeList<_Ports...> >
-        {
-        public:
-            /**
-             * @brief Enables all ports.
-             * 
-             * @par Returns
-             *  Nothing
-             */
-            static void Enable()
-            {
-                (_Ports::Enable(), ...);
-            }
-
-            /**
-             * @brief Disables all ports.
-             * 
-             * @par Returns
-             *  Nothing
-             */
-            static void Disable()
-            {
-                (_Ports::Disable(), ...);
-            }
-        };
 
 #define MAKE_PORT(REGS, ClkEnReg, className, ID) \
        namespace Private{\

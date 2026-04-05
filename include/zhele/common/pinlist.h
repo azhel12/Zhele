@@ -9,13 +9,15 @@
 #ifndef ZHELE_PINLIST_COMMON_H
 #define ZHELE_PINLIST_COMMON_H
 
-#include "template_utils/type_list.h"
 #include "template_utils/data_type_selector.h"
+#include "template_utils/mp_utils.h"
 
 #include <zhele/ioports.h>
 
+#include <algorithm>
 #include <type_traits>
-#include <numeric>
+
+// TODO: Remove this later
 using namespace Zhele::TemplateUtils;
 
 namespace Zhele::IO
@@ -30,15 +32,14 @@ namespace Zhele::IO
     template<typename... _Pins>
     class PinList : public IO::NativePortBase
     {
-        static constexpr auto _pins = Zhele::TemplateUtils::TypeList<_Pins...>{};
-        static constexpr auto _ports = Zhele::TemplateUtils::TypeList<typename _Pins::Port ...>::remove_duplicates();
+        static constexpr auto _pins = std::array{mp::meta<_Pins>...};
+        static constexpr auto _ports = mp::unique(std::array{mp::meta<typename _Pins::Port>...});
 
         // static checks
-        static_assert(!_pins.is_empty(), "Pinlist cannot be empty");
-        static_assert(_ports.is_unique(), "Fail to remove port duplicates!");
+        static_assert(sizeof...(_Pins) > 0, "Pinlist cannot be empty");
 
     public:
-        using DataType = Zhele::TemplateUtils::TypeUnbox<GetSuitableUnsignedType<_pins.size()>()>;
+        using DataType = mp::type_of<Zhele::TemplateUtils::template GetSuitableUnsignedType<_pins.size()>()>;
         /**
          * @brief Send value to port
          * 
@@ -299,7 +300,9 @@ namespace Zhele::IO
          * @tparam Pin Pin
          */
         template<typename Pin>
-        const static int IndexOf = _pins.template search<Pin>();
+        static constexpr int IndexOf = std::ranges::find(_pins, mp::meta<Pin>) == std::end(_pins)
+            ? -1
+            : std::ranges::distance(std::begin(_pins), std::ranges::find(_pins, mp::meta<Pin>));
 
         /**
          * @brief Returns pin by index
@@ -307,18 +310,21 @@ namespace Zhele::IO
          * @tparam Index Index
          */
         template<int Index>
-        using Pin = Zhele::TemplateUtils::TypeUnbox<_pins.template get<Index>()>;
+        using Pin = mp::type_of<Index >= 0 ? _pins[Index] : mp::meta<void>>;
 
     private:
-        static constexpr auto GetPinlistValueForPort(auto port, DataType value);
+        template<auto port>
+        static constexpr auto GetPinlistValueForPort(typename PinList<_Pins...>::DataType value);
 
-        static consteval auto GetPinlistMaskForPort(auto port);
+        template<auto port>
+        static consteval auto GetPinlistMaskForPort();
+        template<auto port>
+        static consteval auto GetPinsForPort();
 
-        template<typename Port>
-        static consteval auto GetPinsForPort(TypeBox<Port> port);
-
-        static DataType ExtractPinlistOutValueFromPort(auto port);
-        static DataType ExtractPinlistValueFromPort(auto port);
+        template<auto port>
+        static auto ExtractPinlistOutValueFromPort();
+        template<auto port>
+        static auto ExtractPinlistValueFromPort();
     };
 } // namespace Zhele::IO
 

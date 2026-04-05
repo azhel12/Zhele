@@ -15,8 +15,7 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace Zhele::TemplateUtils
-{
+namespace Zhele::TemplateUtils {
     /**
      * @brief Allows to select suitable unsigned integer type to cover necessary bit count
      * @details
@@ -24,6 +23,8 @@ namespace Zhele::TemplateUtils
      * 9..16 - uint_fast16_t
      * 17..32 - uint_fast32_t
      * 33..64 - uint_fast64_t
+     * 
+     * @returns mp::meta of suitable unsigned integer type 
      */
     template<uint8_t length>
     static consteval auto GetSuitableUnsignedType() {
@@ -42,18 +43,17 @@ namespace Zhele::TemplateUtils
             mp::meta<uint_fast64_t>
         };
         constexpr auto idx = (static_cast<std::size_t>(length) - 1u) / 8u;
-        using selected = mp::type_of<types[idx]>;
-        return std::type_identity<selected>{};
+
+        return types[idx];
     }
 
     /**
-     * @brief Allows to select suitable unsigned integer type to cover necessary length
+     * @brief Smallest fast unsigned type that can represent indices/lengths up to `Size` inclusive.
      */
-    template<unsigned length>
-    class SuitableUnsignedTypeForLength {
-    public:
-        using type = typename decltype(GetSuitableUnsignedType<length>())::type;
+    template<unsigned Size>
+    struct SuitableUnsignedTypeForLength {
+        using type = mp::type_of<GetSuitableUnsignedType<Size>()>;
     };
 }
 
-#endif //! ZHELE_DATA_TYPE_SELECTOR_H
+#endif // ZHELE_DATA_TYPE_SELECTOR_H

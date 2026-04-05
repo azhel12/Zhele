@@ -37,8 +37,8 @@ namespace Zhele
             using DriverType = typename _ConfigPort::DriverType;
             using Configuration = typename _ConfigPort::Configuration;
 
-            static const unsigned Number = _Pin;
-            static const bool Inverted = false;
+            static constexpr unsigned Number = _Pin;
+            static constexpr bool Inverted = false;
 
             /**
              * @brief Set port (in active state)
@@ -232,7 +232,7 @@ namespace Zhele
         class InvertedPin :public TPin<_Port, _Pin, _ConfigPort>
         {
         public:
-            static const bool Inverted = true;
+            static constexpr bool Inverted = true;
 
             static void Set(bool val);
             static void Set();

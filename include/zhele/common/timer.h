@@ -338,7 +338,7 @@ namespace Zhele::Timers
             IO_BITFIELD_WRAPPER(_Regs()->CCMR1, Channel2Mode, uint32_t, 8, 8);
             IO_BITFIELD_WRAPPER(_Regs()->CCMR2, Channel3Mode, uint32_t, 0, 8);
             IO_BITFIELD_WRAPPER(_Regs()->CCMR2, Channel4Mode, uint32_t, 8, 8);
-            using ModeList = TypeList<Channel1Mode, Channel2Mode, Channel3Mode, Channel4Mode>;
+            static constexpr auto ModeList = std::array{mp::meta<Channel1Mode>, mp::meta<Channel2Mode>, mp::meta<Channel3Mode>, mp::meta<Channel4Mode>};
             using Base = BaseTimer<_Regs, _ClockEnReg, _IRQNumber>;
 
             /**
@@ -350,7 +350,7 @@ namespace Zhele::Timers
             class ChannelBase
             {
             protected:
-                using ModeBitField = TypeUnbox<ModeList::template get<_ChannelNumber>()>;
+                using ModeBitField = mp::type_of<ModeList[_ChannelNumber]>;
 
             public:
                 static_assert(_ChannelNumber < 4);
