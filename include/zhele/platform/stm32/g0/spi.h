@@ -7,14 +7,12 @@
  * @licence MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_G0_SPI_H
-#define ZHELE_PLATFORM_STM32_G0_SPI_H
+#pragma once
 
 #include "../common/spi.h"
 
 #include "dma.h"
 
-#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
@@ -133,47 +131,23 @@ namespace Zhele
 		IO_STRUCT_WRAPPER(SPI3, Spi3Regs, SPI_TypeDef);
     #endif
 
-        struct Spi1SsPins
-        {
-            using io_pins = IO::PinList<IO::Pa4, IO::Pa15, IO::Pb0, IO::Pd9>;
-            static constexpr std::array<uint8_t, 4> alt_functions{0, 0, 0, 1};
-        };
-        struct Spi1ClockPins
-        {
-            using io_pins = IO::PinList<IO::Pa1, IO::Pa5, IO::Pb3, IO::Pd8>;
-            static constexpr std::array<uint8_t, 4> alt_functions{0, 0, 0, 1};
-        };
-        struct Spi1MisoPins
-        {
-            using io_pins = IO::PinList<IO::Pa6, IO::Pa11, IO::Pb4, IO::Pd5>;
-            static constexpr std::array<uint8_t, 4> alt_functions{0, 0, 0, 1};
-        };
-        struct Spi1MosiPins
-        {
-            using io_pins = IO::PinList<IO::Pa2, IO::Pa7, IO::Pa12, IO::Pb5, IO::Pd6>;
-            static constexpr std::array<uint8_t, 5> alt_functions{0, 0, 0, 0, 1};
-        };
+        using Spi1SsPins = IO::AltPinList<{0, 0, 0, 1},
+            IO::Pa4, IO::Pa15, IO::Pb0, IO::Pd9>;
+        using Spi1ClockPins = IO::AltPinList<{0, 0, 0, 1},
+            IO::Pa1, IO::Pa5, IO::Pb3, IO::Pd8>;
+        using Spi1MisoPins = IO::AltPinList<{0, 0, 0, 1},
+            IO::Pa6, IO::Pa11, IO::Pb4, IO::Pd5>;
+        using Spi1MosiPins = IO::AltPinList<{0, 0, 0, 0, 1},
+            IO::Pa2, IO::Pa7, IO::Pa12, IO::Pb5, IO::Pd6>;
 		
-        struct Spi2SsPins
-        {
-            using io_pins = IO::PinList<IO::Pa8, IO::Pb9, IO::Pb12, IO::Pd0>;
-            static constexpr std::array<uint8_t, 4> alt_functions{1, 5, 0, 1};
-        };
-        struct Spi2ClockPins
-        {
-            using io_pins = IO::PinList<IO::Pa0, IO::Pb8, IO::Pb10, IO::Pb13, IO::Pd1>;
-            static constexpr std::array<uint8_t, 5> alt_functions{0, 1, 5, 0, 1};
-        };
-        struct Spi2MisoPins
-        {
-            using io_pins = IO::PinList<IO::Pa3, IO::Pa9, IO::Pb2, IO::Pb6, IO::Pb14, IO::Pc2, IO::Pd3>;
-            static constexpr std::array<uint8_t, 7> alt_functions{0, 4, 1, 4, 0, 1, 1};
-        };
-        struct Spi2MosiPins
-        {
-            using io_pins = IO::PinList<IO::Pa4, IO::Pa10, IO::Pb7, IO::Pb11, IO::Pb15, IO::Pc3, IO::Pd4>;
-            static constexpr std::array<uint8_t, 7> alt_functions{1, 0, 1, 0, 0, 1, 1};
-        };
+        using Spi2SsPins = IO::AltPinList<{1, 5, 0, 1},
+            IO::Pa8, IO::Pb9, IO::Pb12, IO::Pd0>;
+        using Spi2ClockPins = IO::AltPinList<{0, 1, 5, 0, 1},
+            IO::Pa0, IO::Pb8, IO::Pb10, IO::Pb13, IO::Pd1>;
+        using Spi2MisoPins = IO::AltPinList<{0, 4, 1, 4, 0, 1, 1},
+            IO::Pa3, IO::Pa9, IO::Pb2, IO::Pb6, IO::Pb14, IO::Pc2, IO::Pd3>;
+        using Spi2MosiPins = IO::AltPinList<{1, 0, 1, 0, 0, 1, 1},
+            IO::Pa4, IO::Pa10, IO::Pb7, IO::Pb11, IO::Pb15, IO::Pc3, IO::Pd4>;
     }
 
     template<typename _DmaTx = void, typename _DmaRx = void>
@@ -205,4 +179,4 @@ namespace Zhele
 #endif
 }
 
-#endif //! ZHELE_PLATFORM_STM32_G0_SPI_H
+

@@ -3,8 +3,7 @@
  * CH32 GPIO: NativePortBase, NullPort, PortImplementation (CFGLR/CFGHR, INDR/OUTDR, BSHR/BCR).
  * Shared by all series where GPIO_TypeDef matches WCH layout. Include after device header.
  */
-#ifndef ZHELE_PLATFORM_CH32_COMMON_IOPORTS_GPIO_H
-#define ZHELE_PLATFORM_CH32_COMMON_IOPORTS_GPIO_H
+#pragma once
 
 #include "../platform_detector.h"
 
@@ -346,4 +345,4 @@ namespace Zhele
   }
 }
 
-#endif // ZHELE_PLATFORM_CH32_COMMON_IOPORTS_GPIO_H
+

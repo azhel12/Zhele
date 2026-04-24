@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_IMPL_TIMER_H
-#define ZHELE_PLATFORM_STM32_COMMON_IMPL_TIMER_H
+#pragma once
 
 namespace Zhele::Timers::Private
 {
@@ -351,4 +350,3 @@ namespace Zhele::Timers::Private
         return _Regs()->RCR & 0xff;
     }
 }
-#endif //! ZHELE_PLATFORM_STM32_COMMON_IMPL_TIMER_H

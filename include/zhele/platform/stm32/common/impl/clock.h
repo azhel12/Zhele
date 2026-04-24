@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_IMPL_CLOCK_H
-#define ZHELE_PLATFORM_STM32_COMMON_IMPL_CLOCK_H
+#pragma once
 
 #if !defined  (HSE_VALUE) 
     #warning HSE_VALUE not defined. Will be used HSE_VALUE equals 8 MHZ.
@@ -229,4 +228,3 @@ namespace Zhele::Clock
 #endif
 }
 
-#endif //! ZHELE_PLATFORM_STM32_COMMON_IMPL_CLOCK_H

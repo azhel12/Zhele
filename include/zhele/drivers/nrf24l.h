@@ -7,8 +7,7 @@
  * @licence MIT
  */
 
-#ifndef ZHELE_DRIVERS_NRF24L_H
-#define ZHELE_DRIVERS_NRF24L_H
+#pragma once
 
 namespace Zhele::Drivers
 {	
@@ -758,4 +757,3 @@ namespace Zhele::Drivers
     template<typename SpiBus, typename SSPin, typename CEPin, typename EXTIPin>
     uint8_t Nrf24l<SpiBus, SSPin, CEPin, EXTIPin>::_payloadSize;
 }
-#endif //! ZHELE_DRIVERS_NRF24L_H

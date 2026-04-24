@@ -6,8 +6,7 @@
  * @author Aleksei Zhelonkin
  * @license MIT
  */
-#ifndef ZHELE_PLATFORM_STM32_COMMON_DAC_H
-#define ZHELE_PLATFORM_STM32_COMMON_DAC_H
+#pragma once
 
 #include <cstdint>
 
@@ -189,4 +188,3 @@ namespace Zhele
 
 #include "impl/dac.h"
 
-#endif //! ZHELE_PLATFORM_STM32_COMMON_DAC_H

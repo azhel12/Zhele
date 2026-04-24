@@ -7,10 +7,8 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_G0_DAC_H
-#define ZHELE_PLATFORM_STM32_G0_DAC_H
+#pragma once
 
 #include <stm32g0xx.h>
 #include "../common/dac.h"
 
-#endif //! ZHELE_PLATFORM_STM32_G0_DAC_H

@@ -9,8 +9,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_DRIVERS_FONTS_H
-#define ZHELE_DRIVERS_FONTS_H
+#pragma once
 
 #include "../common/template_utils/data_type_selector.h"
 
@@ -534,4 +533,3 @@ namespace Zhele::Drivers
     };
 }
 
-#endif //! ZHELE_DRIVERS_FONTS_H

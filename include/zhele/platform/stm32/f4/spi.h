@@ -7,8 +7,7 @@
  * @licence MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_F4_SPI_H
-#define ZHELE_PLATFORM_STM32_F4_SPI_H
+#pragma once
 
 #include <stm32f4xx.h>
 
@@ -169,4 +168,3 @@ namespace Zhele
         Dma1Stream0Channel0>;
 }
 
-#endif //! ZHELE_PLATFORM_STM32_F4_SPI_H

@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_IOPINS_H
-#define ZHELE_PLATFORM_STM32_COMMON_IOPINS_H
+#pragma once
 
 #include <zhele/common/iopin.h>
 
@@ -128,4 +127,3 @@ namespace Zhele::IO
     #endif
 }
 
-#endif // !ZHELE_PLATFORM_STM32_COMMON_IOPINS_H

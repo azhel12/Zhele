@@ -2,8 +2,7 @@
  * @file
  * Clock enable via RCC_APB2PCENR (WCH CH32: V00x / V10x / V20x / V30x share RCC_IOPxEN + APB2PCENR).
  */
-#ifndef ZHELE_PLATFORM_CH32_COMMON_CLOCK_GPIO_APB2_H
-#define ZHELE_PLATFORM_CH32_COMMON_CLOCK_GPIO_APB2_H
+#pragma once
 
 #include "ioreg.h"
 
@@ -22,4 +21,4 @@ namespace Zhele::Clock {
   using PortdClock = PortClock<Apb2PeriphClockEnable, RCC_IOPDEN>;
 }
 
-#endif // ZHELE_PLATFORM_CH32_COMMON_CLOCK_GPIO_APB2_H
+

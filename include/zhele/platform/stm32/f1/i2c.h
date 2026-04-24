@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_F1_I2C_H
-#define ZHELE_PLATFORM_STM32_F1_I2C_H
+#pragma once
 
 #include "../common/i2c.h"
 
@@ -99,4 +98,3 @@ namespace Zhele
 #endif
 }
 
-#endif //! ZHELE_PLATFORM_STM32_F1_I2C_H

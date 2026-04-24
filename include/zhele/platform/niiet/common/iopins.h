@@ -4,8 +4,7 @@
  *
  * K1921VG015 has 3 ports (A, B, C) with 16 pins each.
  */
-#ifndef ZHELE_PLATFORM_NIIET_COMMON_IOPINS_H
-#define ZHELE_PLATFORM_NIIET_COMMON_IOPINS_H
+#pragma once
 
 #include <zhele/common/iopin.h>
 #include <zhele/ioports.h>
@@ -71,4 +70,4 @@ namespace Zhele::IO
 
 } // namespace Zhele::IO
 
-#endif // ZHELE_PLATFORM_NIIET_COMMON_IOPINS_H
+

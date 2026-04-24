@@ -8,8 +8,7 @@
  * @licence MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_WATCHDOG_H
-#define ZHELE_PLATFORM_STM32_COMMON_WATCHDOG_H
+#pragma once
 
 #include <zhele/clock.h>
 
@@ -185,4 +184,3 @@ namespace Zhele::Timers
     };
 }
 
-#endif //! ZHELE_PLATFORM_STM32_COMMON_WATCHDOG_H

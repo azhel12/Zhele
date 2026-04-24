@@ -7,11 +7,9 @@
  * @licence MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_G0_PINLIST_H
-#define ZHELE_PLATFORM_STM32_G0_PINLIST_H
+#pragma once
 
 #include <stm32g0xx.h>
 
 #include "../common/pinlist.h"
 
-#endif //! ZHELE_PLATFORM_STM32_G0_PINLIST_H

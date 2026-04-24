@@ -6,8 +6,7 @@
  * @date 2020
  * @license MIT
  */
-#ifndef ZHELE_PLATFORM_STM32_COMMON_EXTI_H
-#define ZHELE_PLATFORM_STM32_COMMON_EXTI_H
+#pragma once
 
 #include <zhele/ioports.h>
 
@@ -129,4 +128,3 @@ namespace Zhele
 
 #include "impl/exti.h"
 
-#endif //! ZHELE_PLATFORM_STM32_COMMON_EXTI_H

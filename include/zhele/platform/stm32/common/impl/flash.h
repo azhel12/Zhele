@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_IMPL_FLASH_H
-#define ZHELE_PLATFORM_STM32_COMMON_IMPL_FLASH_H
+#pragma once
 
 #include <cstdint>
 
@@ -104,4 +103,3 @@ namespace Zhele
     }
 }
 
-#endif //! ZHELE_PLATFORM_STM32_COMMON_IMPL_FLASH_H

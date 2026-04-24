@@ -3,8 +3,7 @@
  * STM32: family dispatch for CRC32
  */
 
-#ifndef ZHELE_PLATFORM_STM32_CRC_H
-#define ZHELE_PLATFORM_STM32_CRC_H
+#pragma once
 
 #if defined(STM32F0)
     #include <stm32f0xx.h>
@@ -30,4 +29,4 @@ namespace Zhele {
     using Crc = Private::Crc32<Clock::CrcClock>;
 }
 
-#endif // ZHELE_PLATFORM_STM32_CRC_H
+

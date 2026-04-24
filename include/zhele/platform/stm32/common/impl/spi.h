@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_IMPL_SPI_H
-#define ZHELE_PLATFORM_STM32_COMMON_IMPL_SPI_H
+#pragma once
 
 namespace Zhele::Private
 {
@@ -233,4 +232,3 @@ namespace Zhele::Private
         _DmaTx::Transfer(_DmaTx::Mem2Periph | dataSize, &dummy, &_Regs()->DR, bufferSize);
     }
 }
-#endif //! ZHELE_PLATFORM_STM32_COMMON_IMPL_SPI_H

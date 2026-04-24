@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_TIMER_H
-#define ZHELE_TIMER_H
+#pragma once
 
 #include "platform_detector.h"
 
@@ -19,4 +18,4 @@
   #error "Zhele: unsupported platform. Define ZHELE_PLATFORM_XX or include CMSIS device headers."
 #endif
 
-#endif // ZHELE_TIMER_H
+

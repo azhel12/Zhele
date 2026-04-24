@@ -9,8 +9,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_DRIVERS_IR_H
-#define ZHELE_DRIVERS_IR_H
+#pragma once
 
 namespace Zhele::Drivers
 {
@@ -228,4 +227,3 @@ namespace Zhele::Drivers
     uint32_t NecDecoder::_frame;
     NecDecoder::Callback NecDecoder::_callback;
 }
-#endif // !ZHELE_DRIVERS_IR_H

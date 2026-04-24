@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_RINGBUFFER_IMPL_H
-#define ZHELE_RINGBUFFER_IMPL_H
+#pragma once
 
 #include <atomic>
 
@@ -279,4 +278,3 @@ namespace Zhele::Containers::Private
     }
 }
 
-#endif //! ZHELE_RINGBUFFER_IMPL_H

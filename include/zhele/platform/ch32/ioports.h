@@ -2,8 +2,7 @@
  * @file
  * GPIO ports for CH32 — dispatches to the correct family implementation.
  */
-#ifndef ZHELE_PLATFORM_CH32_IOPORTS_H
-#define ZHELE_PLATFORM_CH32_IOPORTS_H
+#pragma once
 
 // Run the family detector even if ZHELE_PLATFORM_CH32 was set externally
 // (the root platform_detector.h skips it in that case).
@@ -17,4 +16,4 @@
 #  error "Zhele: CH32 family not detected. Define CH32V003 (or the correct WCH device macro) or set ZHELE_CH32_FAMILY_V0 manually."
 #endif
 
-#endif // ZHELE_PLATFORM_CH32_IOPORTS_H
+

@@ -9,8 +9,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_DRIVERS_AHT10_H
-#define ZHELE_DRIVERS_AHT10_H
+#pragma once
 
 #include <zhele/delay.h>
 #include <limits.h>
@@ -248,4 +247,3 @@ namespace Zhele::Drivers
         }
     };
 }
-#endif // !ZHELE_DRIVERS_AHT10_H

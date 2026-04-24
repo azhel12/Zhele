@@ -7,8 +7,7 @@
  * @licence MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_SPI_H
-#define ZHELE_PLATFORM_STM32_SPI_H
+#pragma once
 
 #if defined(STM32F0)
     #include "f0/spi.h"
@@ -26,4 +25,4 @@
     #include "g0/spi.h"
 #endif
 
-#endif // ZHELE_PLATFORM_STM32_SPI_H
+

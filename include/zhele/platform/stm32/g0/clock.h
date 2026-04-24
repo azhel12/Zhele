@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_G0_CLOCK_H
-#define ZHELE_PLATFORM_STM32_G0_CLOCK_H
+#pragma once
 
 #include <stm32g0xx.h>
 
@@ -423,4 +422,3 @@ namespace Zhele::Clock
 */
 } // namespace Zhele::Clock
 
-#endif //! ZHELE_PLATFORM_STM32_G0_CLOCK_H

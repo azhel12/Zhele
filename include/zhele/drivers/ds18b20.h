@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_DS18B20_H
-#define ZHELE_DS18B20_H
+#pragma once
 
 #include <zhele/one_wire.h>
 
@@ -165,4 +164,3 @@ namespace Zhele::Drivers
     };
 }
 
-#endif //! ZHELE_DS18B20_H

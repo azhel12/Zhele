@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_RINGBUFFER_H
-#define ZHELE_RINGBUFFER_H
+#pragma once
 
 #include "../common/template_utils/data_type_selector.h"
 
@@ -314,4 +313,3 @@ namespace Zhele::Containers
 #include "impl/ring_buffer.h"
 
 
-#endif //! ZHELE_RINGBUFFER_H

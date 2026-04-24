@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_USART_H
-#define ZHELE_PLATFORM_STM32_COMMON_USART_H
+#pragma once
 
 #include <zhele/common/template_utils/enum.h>
 #include "ioreg.h"
@@ -445,5 +444,3 @@ namespace Zhele
 }
 
 #include "impl/usart.h"
-
-#endif

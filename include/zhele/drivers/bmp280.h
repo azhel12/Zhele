@@ -9,8 +9,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_DRIVERS_BMP280_H
-#define ZHELE_DRIVERS_BMP280_H
+#pragma once
 
 namespace Zhele::Drivers
 {
@@ -284,4 +283,3 @@ namespace Zhele::Drivers
         .Filter = static_cast<uint8_t>(Bmp280<_I2CBus>::Filter::X16)
     };
 }
-#endif // !ZHELE_DRIVERS_BMP280_H

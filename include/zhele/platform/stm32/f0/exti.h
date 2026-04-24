@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_F0_EXTI_H
-#define ZHELE_PLATFORM_STM32_F0_EXTI_H
+#pragma once
 
 #include <stm32f0xx.h>
 
@@ -54,4 +53,3 @@ namespace Zhele
     using Exti14 = Exti<14, EXTI4_15_IRQn>;
     using Exti15 = Exti<15, EXTI4_15_IRQn>;
 }
-#endif //! ZHELE_PLATFORM_STM32_F0_EXTI_H

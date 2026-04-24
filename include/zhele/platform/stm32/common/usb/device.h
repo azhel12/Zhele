@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_USB_DEVICE_H
-#define ZHELE_PLATFORM_STM32_COMMON_USB_DEVICE_H
+#pragma once
 
 #include "configuration.h"
 #include "cdc.h"
@@ -245,4 +244,3 @@ namespace Zhele::Usb
 
 #include "impl/device.h"
 
-#endif // ZHELE_PLATFORM_STM32_COMMON_USB_DEVICE_H

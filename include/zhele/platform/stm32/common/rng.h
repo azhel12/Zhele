@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_RNG_H
-#define ZHELE_PLATFORM_STM32_COMMON_RNG_H
+#pragma once
 
 #include <zhele/clock.h>
 
@@ -68,4 +67,3 @@ namespace Zhele {
 
 #include "impl/rng.h"
 
-#endif //! ZHELE_PLATFORM_STM32_COMMON_RNG_H

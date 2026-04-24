@@ -14,14 +14,12 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_USB_ENDPOINT_H
-#define ZHELE_PLATFORM_STM32_COMMON_USB_ENDPOINT_H
+#pragma once
 
 #include <zhele/common/template_utils/type_list.h>
 
 #include "common.h"
 
-#include <array>
 #include <cstddef>
 
 namespace Zhele::Usb
@@ -79,7 +77,7 @@ namespace Zhele::Usb
         */
         constexpr auto GetBytes() const
         {
-            return std::array<uint8_t, 7> {
+            return ArrayU8 {
                 Length,
                 static_cast<uint8_t>(Type),
                 Address,
@@ -174,7 +172,7 @@ namespace Zhele::Usb
     /**
      * @brief Endpoint type values for EPnR registers (indexed by EndpointType)
      */
-    inline constexpr std::array<uint16_t, 7> endpoints_types_for_epr{
+    inline constexpr ArrayU16 endpoints_types_for_epr{
         USB_EP_CONTROL,
         USB_EP_ISOCHRONOUS,
         USB_EP_BULK,
@@ -1439,4 +1437,3 @@ namespace Zhele::Usb
      */
     using DefaultEp0 = ZeroEndpointBase<64>;
 }
-#endif // ZHELE_PLATFORM_STM32_COMMON_USB_ENDPOINT_H

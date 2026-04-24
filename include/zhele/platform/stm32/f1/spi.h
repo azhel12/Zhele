@@ -7,8 +7,7 @@
  * @licence MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_F1_SPI_H
-#define ZHELE_PLATFORM_STM32_F1_SPI_H
+#pragma once
 
 #include <stm32f1xx.h>
 
@@ -195,4 +194,3 @@ namespace Zhele
     
 }
 
-#endif //! ZHELE_PLATFORM_STM32_F1_SPI_H

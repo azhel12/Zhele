@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_IMPL_DAC_H
-#define ZHELE_PLATFORM_STM32_COMMON_IMPL_DAC_H
+#pragma once
 
 namespace Zhele::Private
 {
@@ -112,4 +111,3 @@ namespace Zhele::Private
     }
 }
 
-#endif //! ZHELE_PLATFORM_STM32_COMMON_IMPL_DAC_H

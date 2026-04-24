@@ -16,8 +16,7 @@
  *   ALTFUNCCLR  — alt-function disable (write-only)
  *   ALTFUNCNUM  — alt-function number, 2 bits/pin (read-write; selects which AF 0-3)
  */
-#ifndef ZHELE_PLATFORM_NIIET_COMMON_IOPORTS_GPIO_H
-#define ZHELE_PLATFORM_NIIET_COMMON_IOPORTS_GPIO_H
+#pragma once
 
 #include "../platform_detector.h"
 
@@ -333,4 +332,4 @@ namespace Zhele::IO {
     } // namespace Private
 } // namespace Zhele::IO
 
-#endif // ZHELE_PLATFORM_NIIET_COMMON_IOPORTS_GPIO_H
+

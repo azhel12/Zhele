@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_TIMER_H
-#define ZHELE_PLATFORM_STM32_COMMON_TIMER_H
+#pragma once
 
 #include <zhele/common/template_utils/enum.h>
 #include <zhele/common/template_utils/type_list.h>
@@ -820,4 +819,4 @@ namespace Zhele::Timers
 
 #include "impl/timer.h"
 
-#endif //! ZHELE_PLATFORM_STM32_COMMON_TIMER_H
+

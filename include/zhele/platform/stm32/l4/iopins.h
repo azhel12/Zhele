@@ -7,12 +7,10 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_L4_IOPINS_H
-#define ZHELE_PLATFORM_STM32_L4_IOPINS_H
+#pragma once
 #include <stm32l4xx.h>
 
 #include "ioports.h"
 
 #include "../common/iopins.h"
 
-#endif //! ZHELE_PLATFORM_STM32_L4_IOPINS_H

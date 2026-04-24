@@ -6,8 +6,7 @@
  * @date 2020
  * @license MIT
  */
-#ifndef ZHELE_PLATFORM_STM32_COMMON_IMPL_EXTI_H
-#define ZHELE_PLATFORM_STM32_COMMON_IMPL_EXTI_H
+#pragma once
 
 #include <zhele/clock.h>
 #include <zhele/ioports.h>
@@ -69,4 +68,3 @@ namespace Zhele
         EXTI->PR |= (1 << _Line);
     }
 }
-#endif //! ZHELE_PLATFORM_STM32_COMMON_IMPL_EXTI_H

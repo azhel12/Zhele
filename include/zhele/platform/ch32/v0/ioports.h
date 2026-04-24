@@ -2,8 +2,7 @@
  * @file
  * CH32V00x: instantiate GPIO ports (device + clocks + shared PortImplementation).
  */
-#ifndef ZHELE_PLATFORM_CH32_V0_IOPORTS_H
-#define ZHELE_PLATFORM_CH32_V0_IOPORTS_H
+#pragma once
 
 #include <ch32v00x.h>
 
@@ -53,4 +52,4 @@ namespace Zhele::IO
 #undef MAKE_PORT
 }
 
-#endif // ZHELE_PLATFORM_CH32_V0_IOPORTS_H
+

@@ -9,9 +9,8 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PINLIST_H
-#define ZHELE_PINLIST_H
+#pragma once
 
 #include "common/pinlist.h"
 
-#endif // ZHELE_PINLIST_H
+

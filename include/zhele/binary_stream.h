@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_BINARY_STREAM_H
-#define ZHELE_BINARY_STREAM_H
+#pragma once
 
 #include <cstdint>
 
@@ -239,4 +238,3 @@ namespace Zhele
 
 #include "impl/binary_stream.h"
 
-#endif //! ZHELE_BINARY_STREAM_H

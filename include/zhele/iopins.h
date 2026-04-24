@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_IOPINS_H
-#define ZHELE_IOPINS_H
+#pragma once
 
 #include "platform_detector.h"
 
@@ -54,4 +53,4 @@ namespace Zhele::IO
 
 } // namespace Zhele::IO
 
-#endif // ZHELE_IOPINS_H
+

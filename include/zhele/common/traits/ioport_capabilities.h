@@ -5,8 +5,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_COMMON_TRAITS_IO_SPEED_MIXIN_H
-#define ZHELE_COMMON_TRAITS_IO_SPEED_MIXIN_H
+#pragma once
 
 #include <type_traits>
 
@@ -18,4 +17,4 @@ namespace Zhele::IO::detail {
   };
 } // namespace Zhele::IO::detail
 
-#endif // ZHELE_COMMON_TRAITS_IO_SPEED_MIXIN_H
+

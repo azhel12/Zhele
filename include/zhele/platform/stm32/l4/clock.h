@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_L4_CLOCK_H
-#define ZHELE_PLATFORM_STM32_L4_CLOCK_H
+#pragma once
 
 #include <stm32l4xx.h>
 #include "../common/clock.h"
@@ -401,4 +400,3 @@ namespace Zhele::Clock
         using DSIClock = ClockControl<PeriphClockEnable2, RCC_APB2ENR_DSIEN, Apb2Clock>;
     #endif
 }
-#endif //! ZHELE_PLATFORM_STM32_L4_CLOCK_H

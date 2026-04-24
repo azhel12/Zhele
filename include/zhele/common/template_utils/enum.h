@@ -7,23 +7,22 @@
  * to use enum type in to std::views::iota(Enum::Null, Enum::Size)
  *
  * @author Konstantin Chizhov / X-Ray
- * @date 2025
+ * @date 2026
  * @license MIT
  */
 
+#pragma once
 
-#ifndef ZHELE_COMMON_TEMPLATE_UTILS_ENUM_H
-#define ZHELE_COMMON_TEMPLATE_UTILS_ENUM_H
-
+#include <concepts>
 #include <utility>
 
 namespace Zhele {
 
+inline namespace EnumOps {
+
 template <typename E> concept Enum = std::is_enum_v<E>;
 
-template <typename E> concept Integral = std::is_integral_v<E>;
-
-inline namespace EnumOps {
+using std ::integral;
 
 #if __cpp_lib_to_underlying >= 202102L
 using std::to_underlying;
@@ -50,7 +49,8 @@ template <Enum E>
 [[nodiscard]] constexpr E operator--(E& e, int) noexcept { return std::exchange(e, static_cast<E>(+e - 1)); }
 
 #define DECLARE_VIEWS_IOTA(ENUM)                                        \
-    template <> struct std::incrementable_traits<ENUM> {                \
+    template <>                                                         \
+    struct std::incrementable_traits<ENUM> {                            \
         using difference_type = make_signed_t<underlying_type_t<ENUM>>; \
     };
 
@@ -67,24 +67,24 @@ template <Enum L, Enum R>
 template <Enum E>
 [[nodiscard]] constexpr E operator~(E left) noexcept { return static_cast<E>(~+left); }
 
-// Enum OP Integral
-template <Enum L, Integral R>
+// Enum OP integral
+template <Enum L, integral R>
 [[nodiscard]] constexpr L operator&(L left, R right) noexcept { return static_cast<L>(+left & right); }
 
-template <Enum L, Integral R>
+template <Enum L, integral R>
 [[nodiscard]] constexpr L operator^(L left, R right) noexcept { return static_cast<L>(+left ^ right); }
 
-template <Enum L, Integral R>
+template <Enum L, integral R>
 [[nodiscard]] constexpr L operator|(L left, R right) noexcept { return static_cast<L>(+left | right); }
 
-// Integral OP Enum
-template <Integral L, Enum R>
+// integral OP Enum
+template <integral L, Enum R>
 [[nodiscard]] constexpr R operator&(L left, R right) noexcept { return static_cast<R>(left & +right); }
 
-template <Integral L, Enum R>
+template <integral L, Enum R>
 [[nodiscard]] constexpr R operator^(L left, R right) noexcept { return static_cast<R>(left ^ +right); }
 
-template <Integral L, Enum R>
+template <integral L, Enum R>
 [[nodiscard]] constexpr R operator|(L left, R right) noexcept { return static_cast<R>(left | +right); }
 
 // Enum OP= Enum
@@ -97,14 +97,14 @@ template <Enum L, Enum R>
 template <Enum L, Enum R>
 [[nodiscard]] constexpr const L& operator|=(L& left, R right) noexcept { return left = left | right; }
 
-// Enum OP= Integral
-template <Enum L, Integral R>
+// Enum OP= integral
+template <Enum L, integral R>
 [[nodiscard]] constexpr const L& operator&=(L& left, R right) noexcept { return left = left & right; }
 
-template <Enum L, Integral R>
+template <Enum L, integral R>
 [[nodiscard]] constexpr const L& operator^=(L& left, R right) noexcept { return left = left ^ right; }
 
-template <Enum L, Integral R>
+template <Enum L, integral R>
 [[nodiscard]] constexpr const L& operator|=(L& left, R right) noexcept { return left = left | right; }
 
 } // namespace EnumOps
@@ -159,5 +159,3 @@ static_assert([](E e) consteval { auto _ = e--; return e; }(E::B) == E::A);
 } // namespace Test
 
 #endif
-
-#endif // ZHELE_COMMON_TEMPLATE_UTILS_ENUM_H

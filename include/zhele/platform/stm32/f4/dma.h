@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_F4_DMA_H
-#define ZHELE_PLATFORM_STM32_F4_DMA_H
+#pragma once
 
 #include <stm32f4xx.h>
 #include "../common/dma.h"
@@ -103,4 +102,3 @@ namespace Zhele
     DECLARE_STREAM_CHANNELS(2, 7)
 }
 
-#endif //! ZHELE_PLATFORM_STM32_F4_DMA_H

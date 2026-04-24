@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_DRIVERS_ENCODER_H
-#define ZHELE_DRIVERS_ENCODER_H
+#pragma once
 
 #include "../common/template_utils/type_list.h"
 
@@ -94,4 +93,4 @@ namespace Zhele::Drivers
         }
     };
 }
-#endif // !ZHELE_DRIVERS_ENCODER_H
+

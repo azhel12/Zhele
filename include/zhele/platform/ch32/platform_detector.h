@@ -9,8 +9,7 @@
  *   ZHELE_CH32_FAMILY_V2      — CH32V203 / CH32V20x
  *   ZHELE_CH32_FAMILY_V3      — CH32V303 / CH32V30x
  */
-#ifndef ZHELE_PLATFORM_CH32_PLATFORM_DETECTOR_H
-#define ZHELE_PLATFORM_CH32_PLATFORM_DETECTOR_H
+#pragma once
 
 // wch_cmake sets CH32V0 (family) + CH32V00x (type); WCH SDK sets CH32V003/CH32V006/etc.
 #if defined(CH32V0) || defined(CH32V00x) \
@@ -32,4 +31,4 @@
   // Family set explicitly without a WCH SDK macro — allowed for testing/mocking.
 #endif
 
-#endif // ZHELE_PLATFORM_CH32_PLATFORM_DETECTOR_H
+

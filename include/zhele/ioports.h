@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_IOPORTS_H
-#define ZHELE_IOPORTS_H
+#pragma once
 
 #include "platform_detector.h"
 
@@ -65,4 +64,4 @@ namespace Zhele::IO {
 
 } // namespace Zhele::IO
 
-#endif // ZHELE_IOPORTS_H
+

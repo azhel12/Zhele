@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_F4_USB_H
-#define ZHELE_PLATFORM_STM32_F4_USB_H
+#pragma once
 
 #include <stm32f4xx.h>
 
@@ -30,4 +29,3 @@ namespace Zhele::Usb
     }
 }
 
-#endif //! ZHELE_PLATFORM_STM32_F4_USB_H

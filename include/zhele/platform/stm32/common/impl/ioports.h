@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_IMPL_IOPORTS_H
-#define ZHELE_PLATFORM_STM32_COMMON_IMPL_IOPORTS_H
+#pragma once
 
 namespace Zhele::IO::Private
 {
@@ -189,4 +188,3 @@ namespace Zhele::IO::Private
         return (value & ~(mask * 0x0f)) | mask * configuration;
     }
 }
-#endif //! ZHELE_PLATFORM_STM32_COMMON_IMPL_IOPORTS_H

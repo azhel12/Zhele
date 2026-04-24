@@ -20,8 +20,7 @@
  * @licence MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_F1_REMAP_H
-#define ZHELE_PLATFORM_STM32_F1_REMAP_H
+#pragma once
 
 #include <stm32f1xx.h>
 #include "../common/ioreg.h"
@@ -115,4 +114,3 @@ namespace Zhele::IO
 } // namespace Zhele::IO
 
 
-#endif // !ZHELE_PLATFORM_STM32_F1_REMAP_H

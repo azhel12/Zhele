@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_IOPIN_COMMON_H
-#define ZHELE_IOPIN_COMMON_H
+#pragma once
 
 #include <cstdint>
 
@@ -98,4 +97,4 @@ namespace Zhele::IO {
 
 #include "impl/iopin.h"
 
-#endif // ZHELE_IOPIN_COMMON_H
+

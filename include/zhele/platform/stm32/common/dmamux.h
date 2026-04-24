@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_DMAMUX_H
-#define ZHELE_PLATFORM_STM32_COMMON_DMAMUX_H
+#pragma once
 
 #include "ioreg.h"
 
@@ -133,4 +132,3 @@ namespace Zhele
 
 #include "impl/dmamux.h"
 
-#endif //! ZHELE_PLATFORM_STM32_COMMON_DMAMUX_H

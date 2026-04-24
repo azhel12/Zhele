@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_USB_ENDPOINTS_MANAGER_H
-#define ZHELE_PLATFORM_STM32_COMMON_USB_ENDPOINTS_MANAGER_H
+#pragma once
 
 #include <zhele/common/template_utils/type_list.h>
 
@@ -737,4 +736,3 @@ namespace Zhele::Usb
     EndpointFifoNotEmptyHandlers(template_utils::type_list<Ep...> endpoints) -> EndpointFifoNotEmptyHandlers<Ep...>;
 #endif
 }
-#endif // ZHELE_PLATFORM_STM32_COMMON_USB_ENDPOINTS_MANAGER_H

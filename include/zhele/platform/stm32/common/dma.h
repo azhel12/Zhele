@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_DMA_H
-#define ZHELE_PLATFORM_STM32_COMMON_DMA_H
+#pragma once
 
 #include <zhele/common/template_utils/enum.h>
 #include "ioreg.h"
@@ -539,4 +538,4 @@ namespace Zhele
 
 #include "impl/dma.h"
 
-#endif //! ZHELE_PLATFORM_STM32_COMMON_DMA_H
+

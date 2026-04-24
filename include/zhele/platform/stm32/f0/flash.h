@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_F0_FLASH_H
-#define ZHELE_PLATFORM_STM32_F0_FLASH_H
+#pragma once
 
 #include <stm32f0xx.h>
 
@@ -132,4 +131,3 @@ namespace Zhele
     }
 }
 
-#endif //! ZHELE_PLATFORM_STM32_F0_FLASH_H

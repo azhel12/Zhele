@@ -6,8 +6,7 @@
  * @licence MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_F1_ADC_H
-#define ZHELE_PLATFORM_STM32_F1_ADC_H
+#pragma once
 
 #include <zhele/clock.h>
 #include <zhele/dma.h>
@@ -66,4 +65,3 @@ namespace Zhele
     using Adc1 = Private::Adc<Private::Adc1Regs, Clock::Adc1Clock, Private::Adc1Pins, Dma1Channel1>;
 }
 
-#endif //! ZHELE_PLATFORM_STM32_F1_ADC_H

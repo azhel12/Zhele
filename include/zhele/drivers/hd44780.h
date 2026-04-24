@@ -8,8 +8,7 @@
  * @date 2018
  * @license MIT
  */
-#ifndef ZHELE_DRIVERS_HD44780_H
-#define ZHELE_DRIVERS_HD44780_H
+#pragma once
 
 #include <zhele/delay.h>
 #include <zhele/i2c.h>
@@ -552,4 +551,4 @@ namespace Zhele::Drivers
         }
     };
 }
-#endif //! ZHELE_DRIVERS_HD44780_H
+

@@ -2,8 +2,7 @@
  * @file
  * GPIO clock enable via RCC->APB2PCENR for CH32 V00x / V10x / V20x / V30x.
  */
-#ifndef ZHELE_PLATFORM_CH32_COMMON_CLOCK_GPIO_APB2_H
-#define ZHELE_PLATFORM_CH32_COMMON_CLOCK_GPIO_APB2_H
+#pragma once
 
 #include "ioreg.h"
 
@@ -46,4 +45,4 @@ namespace Zhele::Clock
 #endif
 }
 
-#endif // ZHELE_PLATFORM_CH32_COMMON_CLOCK_GPIO_APB2_H
+

@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_IMPL_RNG_H
-#define ZHELE_PLATFORM_STM32_COMMON_IMPL_RNG_H
+#pragma once
 
 namespace Zhele {
     void Rng::Init() {
@@ -67,4 +66,3 @@ namespace Zhele {
     }
 } 
 
-#endif //! ZHELE_PLATFORM_STM32_COMMON_IMPL_RNG_H

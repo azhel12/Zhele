@@ -7,8 +7,7 @@
  * @licence MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_IMPL_ONE_WIRE_H
-#define ZHELE_PLATFORM_STM32_COMMON_IMPL_ONE_WIRE_H
+#pragma once
 
 namespace Zhele 
 {
@@ -147,4 +146,3 @@ namespace Zhele
         }
     }
 }
-#endif // !ZHELE_PLATFORM_STM32_COMMON_IMPL_ONE_WIRE_H

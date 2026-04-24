@@ -9,12 +9,10 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_L4_AFIO_BIND_H
-#define ZHELE_PLATFORM_STM32_L4_AFIO_BIND_H
+#pragma once
 
 #include <zhele/common/template_utils/type_list.h>
 
-#include <array>
 #include <cstdint>
 
 namespace Zhele::Private
@@ -51,6 +49,3 @@ namespace Zhele::Private
     template<typename Regs>
     const static uint8_t GetAltFunctionNumber = AltFuncHelper<Regs>::value;
 } // namespace Private
-
-
-#endif // !ZHELE_PLATFORM_STM32_L4_AFIO_BIND_H

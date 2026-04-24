@@ -5,8 +5,7 @@
  * Enable()  — gates on the AHB clock and releases the peripheral from reset.
  * Disable() — puts the peripheral back in reset and gates off the clock.
  */
-#ifndef ZHELE_PLATFORM_NIIET_COMMON_CLOCK_GPIO_AHB_H
-#define ZHELE_PLATFORM_NIIET_COMMON_CLOCK_GPIO_AHB_H
+#pragma once
 
 #include "ioreg.h"
 
@@ -39,4 +38,4 @@ namespace Zhele::Clock {
 
 } // namespace Zhele::Clock
 
-#endif // ZHELE_PLATFORM_NIIET_COMMON_CLOCK_GPIO_AHB_H
+

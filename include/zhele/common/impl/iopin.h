@@ -6,8 +6,7 @@
  * @date 2013
  * @license MIT
  */
-#ifndef ZHELE_IOPIN_IMPL_COMMON_H
-#define ZHELE_IOPIN_IMPL_COMMON_H
+#pragma once
 
 #include <type_traits>
 
@@ -139,4 +138,4 @@ namespace Zhele::IO {
   }
 } // namespace Zhele::IO
 
-#endif // ZHELE_IOPIN_IMPL_COMMON_H
+

@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_DRIVERS_DS1307_H
-#define ZHELE_DRIVERS_DS1307_H
+#pragma once
 
 namespace Zhele::Drivers
 {
@@ -302,4 +301,3 @@ namespace Zhele::Drivers
 		}
 	};
 }
-#endif // !ZHELE_DRIVERS_DS1307_H

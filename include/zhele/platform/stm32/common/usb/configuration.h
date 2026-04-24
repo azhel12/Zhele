@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_USB_CONFIGURATION_H
-#define ZHELE_PLATFORM_STM32_COMMON_USB_CONFIGURATION_H
+#pragma once
 
 #include "interface.h"
 
@@ -47,7 +46,7 @@ namespace Zhele::Usb
         */
         constexpr auto GetBytes()
         {
-            return std::array<uint8_t, 9> {
+            return ArrayU8 {
                 Length,
                 static_cast<uint8_t>(Type),
                 static_cast<uint8_t>(TotalLength & 0xff), static_cast<uint8_t>((TotalLength >> 8) & 0xff),
@@ -134,4 +133,3 @@ namespace Zhele::Usb
         }
     };
 }
-#endif // ZHELE_PLATFORM_STM32_COMMON_USB_CONFIGURATION_H

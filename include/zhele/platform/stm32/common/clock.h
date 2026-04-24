@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_CLOCK_H
-#define ZHELE_PLATFORM_STM32_COMMON_CLOCK_H
+#pragma once
 
 #include "ioreg.h"
 
@@ -548,4 +547,3 @@ namespace Zhele
 
 #include "impl/clock.h"
 
-#endif //! ZHELE_PLATFORM_STM32_COMMON_CLOCK_H

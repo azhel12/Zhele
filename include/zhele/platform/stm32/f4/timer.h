@@ -6,15 +6,13 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_F4_TIMER_H
-#define ZHELE_PLATFORM_STM32_F4_TIMER_H
+#pragma once
 
 #include <stm32f4xx.h>
 
 #include "iopins.h"
 #include "../common/timer.h"
 
-#include <array>
 #include <cstddef>
 #include <cstdint>
 
@@ -102,22 +100,34 @@ namespace Zhele::Timers
 
         using namespace Zhele::IO;
         template<unsigned ChannelNumber> struct Tim2ChPins;
-        template<> struct Tim2ChPins<0>{ struct Pins { using io_pins = IO::PinList<Pa0, Pa5, Pa15>; static constexpr std::array<uint8_t, 3> alt_functions{1, 1, 1}; }; };
-        template<> struct Tim2ChPins<1>{ struct Pins { using io_pins = IO::PinList<Pa1, Pb3>; static constexpr std::array<uint8_t, 2> alt_functions{1, 1}; }; };
-        template<> struct Tim2ChPins<2>{ struct Pins { using io_pins = IO::PinList<Pa2, Pb10>; static constexpr std::array<uint8_t, 2> alt_functions{1, 1}; }; };
-        template<> struct Tim2ChPins<3>{ struct Pins { using io_pins = IO::PinList<Pa3, Pb11>; static constexpr std::array<uint8_t, 2> alt_functions{1, 1}; }; };
+        template<> struct Tim2ChPins<0>{ using Pins = IO::AltPinList<{1, 1, 1},
+            Pa0, Pa5, Pa15>; };
+        template<> struct Tim2ChPins<1>{ using Pins = IO::AltPinList<{1, 1},
+            Pa1, Pb3>; };
+        template<> struct Tim2ChPins<2>{ using Pins = IO::AltPinList<{1, 1},
+            Pa2, Pb10>; };
+        template<> struct Tim2ChPins<3>{ using Pins = IO::AltPinList<{1, 1},
+            Pa3, Pb11>; };
         
         template<unsigned ChannelNumber> struct Tim3ChPins;
-        template<> struct Tim3ChPins<0>{ struct Pins { using io_pins = IO::PinList<Pa6, Pb4, Pc6>; static constexpr std::array<uint8_t, 3> alt_functions{2, 2, 2}; }; };
-        template<> struct Tim3ChPins<1>{ struct Pins { using io_pins = IO::PinList<Pa7, Pb5, Pc7>; static constexpr std::array<uint8_t, 3> alt_functions{2, 2, 2}; }; };
-        template<> struct Tim3ChPins<2>{ struct Pins { using io_pins = IO::PinList<Pb0, Pc8>; static constexpr std::array<uint8_t, 2> alt_functions{2, 2}; }; };
-        template<> struct Tim3ChPins<3>{ struct Pins { using io_pins = IO::PinList<Pb1, Pc9>; static constexpr std::array<uint8_t, 2> alt_functions{2, 2}; }; };
+        template<> struct Tim3ChPins<0>{ using Pins = IO::AltPinList<{2, 2, 2},
+            Pa6, Pb4, Pc6>; };
+        template<> struct Tim3ChPins<1>{ using Pins = IO::AltPinList<{2, 2, 2},
+            Pa7, Pb5, Pc7>; };
+        template<> struct Tim3ChPins<2>{ using Pins = IO::AltPinList<{2, 2},
+            Pb0, Pc8>; };
+        template<> struct Tim3ChPins<3>{ using Pins = IO::AltPinList<{2, 2},
+            Pb1, Pc9>; };
         
         template<unsigned ChannelNumber> struct Tim4ChPins;
-        template<> struct Tim4ChPins<0>{ struct Pins { using io_pins = IO::PinList<Pb6, Pd12>; static constexpr std::array<uint8_t, 2> alt_functions{2, 2}; }; };
-        template<> struct Tim4ChPins<1>{ struct Pins { using io_pins = IO::PinList<Pb7, Pd13>; static constexpr std::array<uint8_t, 2> alt_functions{2, 2}; }; };
-        template<> struct Tim4ChPins<2>{ struct Pins { using io_pins = IO::PinList<Pb8, Pd14>; static constexpr std::array<uint8_t, 2> alt_functions{2, 2}; }; };
-        template<> struct Tim4ChPins<3>{ struct Pins { using io_pins = IO::PinList<Pb9, Pd15>; static constexpr std::array<uint8_t, 2> alt_functions{2, 2}; }; };
+        template<> struct Tim4ChPins<0>{ using Pins = IO::AltPinList<{2, 2},
+            Pb6, Pd12>; };
+        template<> struct Tim4ChPins<1>{ using Pins = IO::AltPinList<{2, 2},
+            Pb7, Pd13>; };
+        template<> struct Tim4ChPins<2>{ using Pins = IO::AltPinList<{2, 2},
+            Pb8, Pd14>; };
+        template<> struct Tim4ChPins<3>{ using Pins = IO::AltPinList<{2, 2},
+            Pb9, Pd15>; };
         
         IO_STRUCT_WRAPPER(TIM1, Tim1Regs, TIM_TypeDef);
         IO_STRUCT_WRAPPER(TIM2, Tim2Regs, TIM_TypeDef);
@@ -130,4 +140,3 @@ namespace Zhele::Timers
     using Timer4 = Private::GPTimer<Private::Tim4Regs, Clock::Tim4Clock, TIM4_IRQn, Private::Tim4ChPins>;
 }
 
-#endif //! ZHELE_PLATFORM_STM32_F4_TIMER_H

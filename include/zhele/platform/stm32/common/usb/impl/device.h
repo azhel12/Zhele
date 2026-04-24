@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_USB_IMPL_DEVICE_H
-#define ZHELE_PLATFORM_STM32_COMMON_USB_IMPL_DEVICE_H
+#pragma once
 
 namespace Zhele::Usb
 {
@@ -497,4 +496,3 @@ namespace Zhele::Usb
     volatile bool USB_DEVICE_TEMPLATE_QUALIFIER::_isDeviceConfigured = false;
 }
 
-#endif //! ZHELE_PLATFORM_STM32_COMMON_USB_IMPL_DEVICE_H

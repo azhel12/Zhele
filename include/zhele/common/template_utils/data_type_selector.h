@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_DATA_TYPE_SELECTOR_H
-#define ZHELE_DATA_TYPE_SELECTOR_H
+#pragma once
 
 #include "type_list.h"
 #include <stdint.h>
@@ -52,4 +51,4 @@ namespace Zhele::template_utils
     };
 }
 
-#endif //! ZHELE_DATA_TYPE_SELECTOR_H
+

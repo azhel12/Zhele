@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_IMPL_I2C_H
-#define ZHELE_PLATFORM_STM32_COMMON_IMPL_I2C_H
+#pragma once
 
 namespace Zhele
 {
@@ -865,4 +864,3 @@ namespace Zhele
         }
     }
 }
-#endif //! ZHELE_PLATFORM_STM32_COMMON_IMPL_I2C_H

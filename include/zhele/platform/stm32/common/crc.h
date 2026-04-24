@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_CRC_H
-#define ZHELE_PLATFORM_STM32_COMMON_CRC_H
+#pragma once
 
 #include <stdint.h>
 #include <type_traits>
@@ -129,4 +128,3 @@ namespace Zhele::Private
 
 #include "impl/crc.h"
 
-#endif //! ZHELE_PLATFORM_STM32_COMMON_CRC_H

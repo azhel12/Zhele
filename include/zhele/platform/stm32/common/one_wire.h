@@ -9,8 +9,7 @@
  * @licence MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_ONE_WIRE_H
-#define ZHELE_PLATFORM_STM32_COMMON_ONE_WIRE_H
+#pragma once
 
 #include <cstdint>
 
@@ -169,4 +168,3 @@ namespace Zhele
 
 #include "impl/one_wire.h"
 
-#endif // !ZHELE_PLATFORM_STM32_COMMON_ONE_WIRE_H

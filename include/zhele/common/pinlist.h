@@ -6,12 +6,12 @@
  * @licence MIT
  */
 
-#ifndef ZHELE_COMMON_PINLIST_H
-#define ZHELE_COMMON_PINLIST_H
+#pragma once
 
 #include "template_utils/type_list.h"
 #include "template_utils/data_type_selector.h"
 #include "traits/ioport_capabilities.h"
+#include "zhele/common/template_utils/array.h"
 
 #include <limits>
 #include <type_traits>
@@ -119,8 +119,15 @@ namespace Zhele::IO {
     static DataType ExtractPinlistValueFromPort(auto port);
   };
 
+  template <ArrayU8 AltFunctions, typename... IOPins>
+  struct AltPinList {
+      static_assert(AltFunctions.size() == sizeof...(IOPins));
+      using io_pins                          = IO::PinList<IOPins...>;
+      static constexpr ArrayU8 alt_functions = AltFunctions;
+  };
+
 } // namespace Zhele::IO
 
 #include "impl/pinlist.h"
 
-#endif // ZHELE_COMMON_PINLIST_H
+

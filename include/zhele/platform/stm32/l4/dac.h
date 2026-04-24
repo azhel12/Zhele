@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_L4_DAC_H
-#define ZHELE_PLATFORM_STM32_L4_DAC_H
+#pragma once
 
 #include <stm32l4xx.h>
 #include "../common/dac.h"
@@ -29,4 +28,3 @@ namespace Zhele
     };
 }
 
-#endif //! ZHELE_PLATFORM_STM32_L4_DAC_H

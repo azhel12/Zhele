@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_IOPINS_H
-#define ZHELE_PLATFORM_STM32_IOPINS_H
+#pragma once
 
 #if defined(STM32F0)
     #include "f0/iopins.h"
@@ -26,4 +25,4 @@
     #include "g0/iopins.h"
 #endif
 
-#endif // ZHELE_PLATFORM_STM32_IOPINS_H
+

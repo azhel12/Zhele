@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_DRIVERS_SDCARD_IMPL_H
-#define ZHELE_DRIVERS_SDCARD_IMPL_H
+#pragma once
 
 namespace Zhele::Drivers
 {
@@ -153,4 +152,4 @@ namespace Zhele::Drivers
     }
 }
 
-#endif //! ZHELE_DRIVERS_SDCARD_IMPL_H
+

@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_I2C_H
-#define ZHELE_PLATFORM_STM32_COMMON_I2C_H
+#pragma once
 
 #include <zhele/common/template_utils/enum.h>
 #include <zhele/common/template_utils/type_list.h>
@@ -441,4 +440,4 @@ namespace Zhele
 
 #include "impl/i2c.h"
 
-#endif //! ZHELE_PLATFORM_STM32_COMMON_I2C_H
+

@@ -3,8 +3,7 @@
  * STM32: family dispatch for Watchdog
  */
 
-#ifndef ZHELE_PLATFORM_STM32_WATCHDOG_H
-#define ZHELE_PLATFORM_STM32_WATCHDOG_H
+#pragma once
 
 #if defined(STM32F0)
     #include <stm32f0xx.h>
@@ -24,4 +23,4 @@
 
 #include "common/watchdog.h"
 
-#endif // ZHELE_PLATFORM_STM32_WATCHDOG_H
+

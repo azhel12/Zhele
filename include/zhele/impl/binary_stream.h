@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_BINARY_STREAM_IMPL_H
-#define ZHELE_BINARY_STREAM_IMPL_H
+#pragma once
 
 namespace Zhele
 {
@@ -118,4 +117,3 @@ namespace Zhele
     }
 }
 
-#endif //! ZHELE_BINARY_STREAM_IMPL_H

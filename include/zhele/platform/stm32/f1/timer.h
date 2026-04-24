@@ -6,15 +6,13 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_F1_TIMER_H
-#define ZHELE_PLATFORM_STM32_F1_TIMER_H
+#pragma once
 
 #include "../common/timer.h"
 
 #include "iopins.h"
 #include "remap.h"
 
-#include <array>
 #include <cstddef>
 #include <cstdint>
 
@@ -124,29 +122,45 @@ namespace Zhele::Timers
         using namespace Zhele::IO;
 
         template<unsigned ChannelNumber> struct Tim1ChPins;
-        template<> struct Tim1ChPins<0>{ struct Pins { using io_pins = IO::PinList<Pa8, Pe9>; static constexpr std::array<uint8_t, 2> alt_functions{0, 3}; }; };
-        template<> struct Tim1ChPins<1>{ struct Pins { using io_pins = IO::PinList<Pa9, Pe11>; static constexpr std::array<uint8_t, 2> alt_functions{0, 3}; }; };
-        template<> struct Tim1ChPins<2>{ struct Pins { using io_pins = IO::PinList<Pa10, Pe13>; static constexpr std::array<uint8_t, 2> alt_functions{0, 3}; }; };
-        template<> struct Tim1ChPins<3>{ struct Pins { using io_pins = IO::PinList<Pa11, Pe14>; static constexpr std::array<uint8_t, 2> alt_functions{0, 3}; }; };
+        template<> struct Tim1ChPins<0>{ using Pins = IO::AltPinList<{0, 3},
+            Pa8, Pe9>; };
+        template<> struct Tim1ChPins<1>{ using Pins = IO::AltPinList<{0, 3},
+            Pa9, Pe11>; };
+        template<> struct Tim1ChPins<2>{ using Pins = IO::AltPinList<{0, 3},
+            Pa10, Pe13>; };
+        template<> struct Tim1ChPins<3>{ using Pins = IO::AltPinList<{0, 3},
+            Pa11, Pe14>; };
 
         template<unsigned ChannelNumber> struct Tim2ChPins;
-        template<> struct Tim2ChPins<0>{ struct Pins { using io_pins = IO::PinList<Pa0, Pa15, Pa0, Pa15>; static constexpr std::array<uint8_t, 4> alt_functions{0, 1, 2, 3}; }; };
-        template<> struct Tim2ChPins<1>{ struct Pins { using io_pins = IO::PinList<Pa1, Pb3, Pa1, Pb3>; static constexpr std::array<uint8_t, 4> alt_functions{0, 1, 2, 3}; }; };
-        template<> struct Tim2ChPins<2>{ struct Pins { using io_pins = IO::PinList<Pa2, Pb10>; static constexpr std::array<uint8_t, 2> alt_functions{0, 2}; }; };
-        template<> struct Tim2ChPins<3>{ struct Pins { using io_pins = IO::PinList<Pa3, Pb11>; static constexpr std::array<uint8_t, 2> alt_functions{0, 2}; }; };
+        template<> struct Tim2ChPins<0>{ using Pins = IO::AltPinList<{0, 1, 2, 3},
+            Pa0, Pa15, Pa0, Pa15>; };
+        template<> struct Tim2ChPins<1>{ using Pins = IO::AltPinList<{0, 1, 2, 3},
+            Pa1, Pb3, Pa1, Pb3>; };
+        template<> struct Tim2ChPins<2>{ using Pins = IO::AltPinList<{0, 2},
+            Pa2, Pb10>; };
+        template<> struct Tim2ChPins<3>{ using Pins = IO::AltPinList<{0, 2},
+            Pa3, Pb11>; };
 
         template<unsigned ChannelNumber> struct Tim3ChPins;
-        template<> struct Tim3ChPins<0>{ struct Pins { using io_pins = IO::PinList<Pa6, Pb4, Pc6>; static constexpr std::array<uint8_t, 3> alt_functions{0, 2, 3}; }; };
-        template<> struct Tim3ChPins<1>{ struct Pins { using io_pins = IO::PinList<Pa7, Pb5, Pc7>; static constexpr std::array<uint8_t, 3> alt_functions{0, 2, 3}; }; };
-        template<> struct Tim3ChPins<2>{ struct Pins { using io_pins = IO::PinList<Pb0, Pc8>; static constexpr std::array<uint8_t, 2> alt_functions{0, 3}; }; };
-        template<> struct Tim3ChPins<3>{ struct Pins { using io_pins = IO::PinList<Pb1, Pc9>; static constexpr std::array<uint8_t, 2> alt_functions{0, 3}; }; };
+        template<> struct Tim3ChPins<0>{ using Pins = IO::AltPinList<{0, 2, 3},
+            Pa6, Pb4, Pc6>; };
+        template<> struct Tim3ChPins<1>{ using Pins = IO::AltPinList<{0, 2, 3},
+            Pa7, Pb5, Pc7>; };
+        template<> struct Tim3ChPins<2>{ using Pins = IO::AltPinList<{0, 3},
+            Pb0, Pc8>; };
+        template<> struct Tim3ChPins<3>{ using Pins = IO::AltPinList<{0, 3},
+            Pb1, Pc9>; };
 
 #if defined (TIM4)
         template<unsigned ChannelNumber> struct Tim4ChPins;
-        template<> struct Tim4ChPins<0>{ struct Pins { using io_pins = IO::PinList<Pb6, Pd12>; static constexpr std::array<uint8_t, 2> alt_functions{0, 1}; }; };
-        template<> struct Tim4ChPins<1>{ struct Pins { using io_pins = IO::PinList<Pb7, Pd13>; static constexpr std::array<uint8_t, 2> alt_functions{0, 1}; }; };
-        template<> struct Tim4ChPins<2>{ struct Pins { using io_pins = IO::PinList<Pb8, Pd14>; static constexpr std::array<uint8_t, 2> alt_functions{0, 1}; }; };
-        template<> struct Tim4ChPins<3>{ struct Pins { using io_pins = IO::PinList<Pb9, Pd15>; static constexpr std::array<uint8_t, 2> alt_functions{0, 1}; }; };
+        template<> struct Tim4ChPins<0>{ using Pins = IO::AltPinList<{0, 1},
+            Pb6, Pd12>; };
+        template<> struct Tim4ChPins<1>{ using Pins = IO::AltPinList<{0, 1},
+            Pb7, Pd13>; };
+        template<> struct Tim4ChPins<2>{ using Pins = IO::AltPinList<{0, 1},
+            Pb8, Pd14>; };
+        template<> struct Tim4ChPins<3>{ using Pins = IO::AltPinList<{0, 1},
+            Pb9, Pd15>; };
 #endif
         IO_STRUCT_WRAPPER(TIM1, Tim1Regs, TIM_TypeDef);
         IO_STRUCT_WRAPPER(TIM2, Tim2Regs, TIM_TypeDef);
@@ -176,4 +190,3 @@ namespace Zhele::Timers
 #endif
 }
 
-#endif //! ZHELE_PLATFORM_STM32_F1_TIMER_H

@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_F4_IOPORTS_H
-#define ZHELE_PLATFORM_STM32_F4_IOPORTS_H
+#pragma once
 
 #include <stm32f4xx.h>
 
@@ -16,4 +15,3 @@
 #include "../common/ioports.h"
 
 
-#endif //! ZHELE_PLATFORM_STM32_F4_IOPORTS_H

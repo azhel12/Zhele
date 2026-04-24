@@ -11,8 +11,7 @@
  *   2. __K1921VG015_H header guard (set after #include <K1921VG015.h>).
  *   3. Explicit ZHELE_PLATFORM_NIIET — allowed for testing / mocking.
  */
-#ifndef ZHELE_PLATFORM_NIIET_PLATFORM_DETECTOR_H
-#define ZHELE_PLATFORM_NIIET_PLATFORM_DETECTOR_H
+#pragma once
 
 #if defined(K1921VG015) || defined(__K1921VG015_H)
   #define ZHELE_PLATFORM_NIIET          1
@@ -21,4 +20,4 @@
   // Device / family must also be set explicitly when overriding.
 #endif
 
-#endif // ZHELE_PLATFORM_NIIET_PLATFORM_DETECTOR_H
+

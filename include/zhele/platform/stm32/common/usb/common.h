@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_USB_COMMON_H
-#define ZHELE_PLATFORM_STM32_COMMON_USB_COMMON_H
+#pragma once
 
 #include <stdint.h>
 #include <cstring>
@@ -173,4 +172,3 @@ namespace Zhele::Usb
 #endif
 #pragma pack(pop)
 }
-#endif // ZHELE_PLATFORM_STM32_COMMON_USB_COMMON_H

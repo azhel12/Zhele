@@ -6,8 +6,7 @@
  * @author Konstantin Chizhov
  * @license MIT
  */
-#ifndef ZHELE_PLATFORM_STM32_COMMON_ADC_H
-#define ZHELE_PLATFORM_STM32_COMMON_ADC_H
+#pragma once
 
 #include <initializer_list>
 
@@ -448,4 +447,3 @@ namespace Zhele
 
 #include "impl/adc.h"
 
-#endif //! ZHELE_PLATFORM_STM32_COMMON_ADC_H

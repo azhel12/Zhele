@@ -5,8 +5,7 @@
  * @author Aleksei Zhelonkin (based on Konstantin Chizhov)
  * @licence MIT
  */
-#ifndef ZHELE_COMMON_PINLIST_IMPL_H
-#define ZHELE_COMMON_PINLIST_IMPL_H
+#pragma once
 
 namespace Zhele::IO {
   template<typename... _Pins>
@@ -250,4 +249,4 @@ namespace Zhele::IO {
 
 } // namespace Zhele::IO
 
-#endif // ZHELE_COMMON_PINLIST_IMPL_H
+

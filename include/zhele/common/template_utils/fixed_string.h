@@ -10,8 +10,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_FIXEDSTRING_H
-#define ZHELE_FIXEDSTRING_H
+#pragma once
 
 #include <type_traits>
 
@@ -43,4 +42,3 @@ namespace Zhele::template_utils
     constexpr Zhele::template_utils::fixed_string_16 EmptyFixedString16(u"");
 }
 
-#endif //!ZHELE_FIXEDSTRING_H

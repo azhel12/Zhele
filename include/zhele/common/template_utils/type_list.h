@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_TYPELIST_H
-#define ZHELE_TYPELIST_H
+#pragma once
 
 #include <concepts>
 #include <type_traits>
@@ -424,4 +423,3 @@ namespace Zhele::template_utils {
   }
 }
 
-#endif //! ZHELE_TYPELIST_H

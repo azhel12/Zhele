@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_DRIVERS_SDCARD_H
-#define ZHELE_DRIVERS_SDCARD_H
+#pragma once
 
 #include <zhele/delay.h>
 #include <zhele/binary_stream.h>
@@ -291,4 +290,4 @@ namespace Zhele::Drivers
 #include "impl/sdcard.h"
 
 
-#endif //! ZHELE_DRIVERS_SDCARD_H
+

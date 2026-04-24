@@ -6,8 +6,7 @@
  * @date 2018
  * @license MIT
  */
-#ifndef ZHELE_PLATFORM_CH32_COMMON_IOREG_H
-#define ZHELE_PLATFORM_CH32_COMMON_IOREG_H
+#pragma once
 
 #include <cstdint>
 
@@ -216,4 +215,4 @@ namespace Zhele
 
 } // namespace Zhele
 
-#endif // ZHELE_PLATFORM_CH32_COMMON_IOREG_H
+

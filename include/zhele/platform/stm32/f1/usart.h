@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_F1_USART_H
-#define ZHELE_PLATFORM_STM32_F1_USART_H
+#pragma once
 
 #include "../common/usart.h"
 
@@ -16,7 +15,6 @@
 #include "iopins.h"
 #include "remap.h"
 
-#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
@@ -88,38 +86,20 @@ namespace Zhele
          }
 
 
-        struct Usart1TxPins
-        {
-            using io_pins = IO::PinList<IO::Pa9, IO::Pb6>;
-            static constexpr std::array<uint8_t, 2> alt_functions{0, 1};
-        };
-        struct Usart1RxPins
-        {
-            using io_pins = IO::PinList<IO::Pa10, IO::Pb7>;
-            static constexpr std::array<uint8_t, 2> alt_functions{0, 1};
-        };
+        using Usart1TxPins = IO::AltPinList<{0, 1},
+            IO::Pa9, IO::Pb6>;
+        using Usart1RxPins = IO::AltPinList<{0, 1},
+            IO::Pa10, IO::Pb7>;
 
-        struct Usart2TxPins
-        {
-            using io_pins = IO::PinList<IO::Pa2, IO::Pd5>;
-            static constexpr std::array<uint8_t, 2> alt_functions{0, 1};
-        };
-        struct Usart2RxPins
-        {
-            using io_pins = IO::PinList<IO::Pa3, IO::Pd6>;
-            static constexpr std::array<uint8_t, 2> alt_functions{0, 1};
-        };
+        using Usart2TxPins = IO::AltPinList<{0, 1},
+            IO::Pa2, IO::Pd5>;
+        using Usart2RxPins = IO::AltPinList<{0, 1},
+            IO::Pa3, IO::Pd6>;
 
-        struct Usart3TxPins
-        {
-            using io_pins = IO::PinList<IO::Pb10, IO::Pc10, IO::Pd8>;
-            static constexpr std::array<uint8_t, 3> alt_functions{0, 1, 3};
-        };
-        struct Usart3RxPins
-        {
-            using io_pins = IO::PinList<IO::Pb11, IO::Pc11, IO::Pd9>;
-            static constexpr std::array<uint8_t, 3> alt_functions{0, 1, 3};
-        };
+        using Usart3TxPins = IO::AltPinList<{0, 1, 3},
+            IO::Pb10, IO::Pc10, IO::Pd8>;
+        using Usart3RxPins = IO::AltPinList<{0, 1, 3},
+            IO::Pb11, IO::Pc11, IO::Pd9>;
 
         IO_STRUCT_WRAPPER(USART1, Usart1Regs, USART_TypeDef);
         IO_STRUCT_WRAPPER(USART2, Usart2Regs, USART_TypeDef);
@@ -134,4 +114,4 @@ namespace Zhele
     #endif
 }
 
-#endif //! ZHELE_PLATFORM_STM32_F1_USART_H
+

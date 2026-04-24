@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_F4_USART_H
-#define ZHELE_PLATFORM_STM32_F4_USART_H
+#pragma once
 
 #include <stm32f4xx.h>
 
@@ -152,4 +151,3 @@ namespace Zhele
 #endif
 }
 
-#endif //! ZHELE_PLATFORM_STM32_F4_USART_H

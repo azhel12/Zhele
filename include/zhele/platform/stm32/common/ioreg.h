@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_IOREG_H
-#define ZHELE_PLATFORM_STM32_COMMON_IOREG_H
+#pragma once
 
 #include <cstdint>
 
@@ -223,4 +222,4 @@ namespace Zhele
     template<uint32_t _Mask>
     inline constexpr uint32_t GetBitFieldLength = BitFieldLength<_Mask>::value;
 }
-#endif //! ZHELE_PLATFORM_STM32_COMMON_IOREG_H
+

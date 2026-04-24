@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_IOPORTS_H
-#define ZHELE_PLATFORM_STM32_COMMON_IOPORTS_H
+#pragma once
 
 #include "ioreg.h"
 #include <zhele/common/template_utils/type_list.h>
@@ -719,4 +718,3 @@ namespace Zhele
 
 #include "impl/ioports.h"
 
-#endif //ZHELE_PLATFORM_STM32_COMMON_IOPORTS_H

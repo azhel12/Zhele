@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_DRIVERS_ST7735_H
-#define ZHELE_DRIVERS_ST7735_H
+#pragma once
 
 #include <zhele/delay.h>
 
@@ -524,4 +523,3 @@ namespace Zhele::Drivers
     bool St7735<_SpiBus, _SsPin, _DcPin, _ResetPin, _Width, _Height>::_busy = false;
 }
 
-#endif //! ZHELE_DRIVERS_ST7735_H

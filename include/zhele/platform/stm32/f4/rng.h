@@ -7,8 +7,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_F4_RNG_H
-#define ZHELE_PLATFORM_STM32_F4_RNG_H
+#pragma once
 
 #include <stm32f4xx.h>
 
@@ -18,4 +17,3 @@
     #error "THIS MCU does not support hardware RNF"
 #endif
 
-#endif //! ZHELE_PLATFORM_STM32_F4_RNG_H

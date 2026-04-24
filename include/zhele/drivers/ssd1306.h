@@ -6,8 +6,7 @@
  * @license MIT
  */
 
-#ifndef ZHELE_DRIVERS_SSD1306_H
-#define ZHELE_DRIVERS_SSD1306_H
+#pragma once
 
 #include <zhele/delay.h>
 
@@ -296,4 +295,3 @@ namespace Zhele::Drivers
     uint16_t Ssd1306<I2CBus, Width, Height>::_y = 0;
 }
 
-#endif //! ZHELE_DRIVERS_SSD1306_H

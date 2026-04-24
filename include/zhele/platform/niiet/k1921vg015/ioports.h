@@ -2,8 +2,7 @@
  * @file
  * K1921VG015: instantiate GPIO port types (Porta, Portb, Portc).
  */
-#ifndef ZHELE_PLATFORM_NIIET_K1921VG015_IOPORTS_H
-#define ZHELE_PLATFORM_NIIET_K1921VG015_IOPORTS_H
+#pragma once
 
 #include <K1921VG015.h>
 
@@ -37,4 +36,4 @@ namespace Zhele::IO
 
 } // namespace Zhele::IO
 
-#endif // ZHELE_PLATFORM_NIIET_K1921VG015_IOPORTS_H
+
