@@ -344,7 +344,7 @@ namespace Zhele::Usb
         auto dst = result.begin();
         ++dst;
 
-        std::copy(str.Text, str.Text + str.Size / 2, dst);
+        std::copy(str.begin(), str.end(), dst);
 
         return result;
     }
