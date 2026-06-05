@@ -125,67 +125,6 @@ namespace Zhele
     };
     
     /**
-     * @brief
-     * Implements I/O register
-     * 
-     * @tparam _RegAddr Register address (from MCU main CMSIS header)
-     * @tparam _DataType Register data type
-     */
-    template<unsigned _RegAddr, typename _DataType = unsigned char>
-    class IoReg
-    {
-    public:
-        using DataT = _DataType;
-        
-        static volatile DataT& Value(){ return *static_cast<DataT*>(_RegAddr);}
-        static DataT Get(){return Value();}
-        static void Set(DataT value){Value() = value;}
-        static void Or(DataT value){Value() |= value;}
-        static void And(DataT value){Value() &= value;}
-        static void Xor(DataT value){Value() ^= value;}
-        static void AndOr(DataT andMask, DataT orMask){Value() = (Value() & andMask) | orMask;}
-        template<int Bit>
-        static bool BitIsSet(){return Value() & (1 << Bit);}
-        template<int Bit>
-        static bool BitIsClear(){return !(Value() & (1 << Bit));}
-    };
-    
-
-    /**
-     * @brief I\O register wrapper
-     * 
-     * @tparam _RegAddr Register address
-     * @tparam _WrapperType I/O register wrapper class type
-     */
-    template<unsigned _RegAddr, typename _WrapperType>
-    class IoStruct
-    {
-    public:
-        using DataT = _WrapperType;
-        static DataT* Get(){return static_cast<DataT*>(_RegAddr);}
-        DataT* operator->(){return Get();}
-    };
-    
-    /**
-     * @brief I/O register bitfield wrapper
-     * 
-     * @tparam _RegAddr Register address
-     * @tparam _DataType Register data type
-     * @tparam _BitfieldOffset Bitfield offset in register
-     * @tparam _BitfieldLength Bitfield length
-     */
-    template<unsigned _RegAddr, typename _DataType, unsigned _BitfieldOffset, unsigned _BitfieldLength>
-    class IoBitfield
-    {
-    public:
-        using DataT = _DataType;
-        static volatile DataT& Value(){ return *static_cast<DataT*>(_RegAddr);}
-        static constexpr DataT Mask = ((DataT(1u) << _BitfieldLength) - 1);
-        static DataT Get(){return (Value() >> _BitfieldOffset) & Mask;}
-        static void Set(DataT value){Value() = (Value() & ~(Mask << _BitfieldOffset)) | ((value & Mask) << _BitfieldOffset);}
-    };
-
-    /**
      * @brief I/O register bit wrapper
      * 
      * @tparam _RegAddr Register address
