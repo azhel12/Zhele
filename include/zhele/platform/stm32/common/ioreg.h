@@ -9,6 +9,7 @@
 #ifndef ZHELE_PLATFORM_STM32_COMMON_IOREG_H
 #define ZHELE_PLATFORM_STM32_COMMON_IOREG_H
 
+#include <bit>
 #include <cstdint>
 
 namespace Zhele
@@ -36,9 +37,9 @@ namespace Zhele
         static void Xor(DataT value){REG_NAME ^= value;}\
         static void AndOr(DataT andMask, DataT orMask){REG_NAME = (REG_NAME & andMask) | orMask;}\
         template<unsigned Bit>\
-        static bool IsBitSet(){return REG_NAME & (1 << Bit);}\
+        static bool IsBitSet(){return REG_NAME & (1u << Bit);}\
         template<unsigned Bit>\
-        static bool IsBitClear(){return !(REG_NAME & (1 << Bit));}\
+        static bool IsBitClear(){return !(REG_NAME & (1u << Bit));}\
     }
 
     template<uint32_t _Address, typename _DataType>
@@ -52,9 +53,9 @@ namespace Zhele
         static void Xor(_DataType value){ *reinterpret_cast<_DataType*>(_Address) ^= value;}
         static void AndOr(_DataType andMask, _DataType orMask){ *reinterpret_cast<_DataType*>(_Address) = ( *reinterpret_cast<_DataType*>(_Address) & andMask) | orMask;}
         template<unsigned Bit>
-        static bool IsBitSet(){return  *reinterpret_cast<_DataType*>(_Address) & (1 << Bit);}
+        static bool IsBitSet(){return  *reinterpret_cast<_DataType*>(_Address) & (1u << Bit);}
         template<unsigned Bit>
-        static bool IsBitClear(){return !( *reinterpret_cast<_DataType*>(_Address) & (1 << Bit));}
+        static bool IsBitClear(){return !( *reinterpret_cast<_DataType*>(_Address) & (1u << Bit));}
     };
 
     /**
@@ -93,8 +94,8 @@ namespace Zhele
     }
     
     #define DECLARE_IO_BITFIELD_WRAPPER(REG_NAME, CLASS_NAME, CMSIS_DEFINE) \
-        const static unsigned CLASS_NAME##Offset = CMSIS_DEFINE##_Pos; \
-        const static unsigned CLASS_NAME##Length = GetBitFieldLength<(CMSIS_DEFINE##_Msk >> CMSIS_DEFINE##_Pos)>; \
+        static constexpr unsigned CLASS_NAME##Offset = CMSIS_DEFINE##_Pos; \
+        static constexpr unsigned CLASS_NAME##Length = GetBitFieldLength<(CMSIS_DEFINE##_Msk >> CMSIS_DEFINE##_Pos)>; \
         IO_BITFIELD_WRAPPER(REG_NAME, CLASS_NAME, uint32_t, CLASS_NAME##Offset, CLASS_NAME##Length); \
 
     
@@ -137,29 +138,25 @@ namespace Zhele
     public:
         static volatile _DataType& Value(){ return *reinterpret_cast<_DataType*>(_RegAddr);}
         static bool IsSet(){ return ((Value() >> _BitfieldOffset) & 0x01) != 0; }
-        static void Set(){ Value() |= 1 << _BitfieldOffset; }
-        static void Clear(){ Value() &= ~(1 << _BitfieldOffset); }
+        static void Set(){ Value() |= 1u << _BitfieldOffset; }
+        static void Clear(){ Value() &= ~(1u << _BitfieldOffset); }
     };
 
     /**
-     * @brief Calculate bitfield length (if bitfield is continuous) in compile-time
-     * 
+     * @brief Calculate bitfield length (for a contiguous, right-aligned mask) in compile-time
+     *
+     * @details The mask is expected to be of the form 2^n - 1 (the field mask shifted down
+     * to bit 0). For such a mask the length equals the number of set bits.
+     *
      * @tparam _Mask Bitfield mask
      */
     template<uint32_t _Mask>
-    class BitFieldLength
+    consteval uint32_t CalcBitFieldLength()
     {
-    public:
-        static_assert((_Mask & 1) == 1);
-        static const uint32_t value = 1 + BitFieldLength<(_Mask >> 1)>::value;
-    };
-    template<>
-    class BitFieldLength<0>
-    {
-    public:
-        static const uint32_t value = 0;
-    };
+        static_assert((_Mask & (_Mask + 1)) == 0, "Bitfield mask must be contiguous and right-aligned");
+        return std::popcount(_Mask);
+    }
     template<uint32_t _Mask>
-    inline constexpr uint32_t GetBitFieldLength = BitFieldLength<_Mask>::value;
+    inline constexpr uint32_t GetBitFieldLength = CalcBitFieldLength<_Mask>();
 }
 #endif //! ZHELE_PLATFORM_STM32_COMMON_IOREG_H
