@@ -1,7 +1,18 @@
 [![Build all examples](https://github.com/azhel12/Zhele/actions/workflows/build_examples.yml/badge.svg)](https://github.com/azhel12/Zhele/actions/workflows/build_examples.yml)
 
 # Zhele
-Framework for Stm32 MCU on C++ templates. Project based on "mcucpp" by Konstantin Chizhov.
+Framework for MCU on C++ templates. Project based on "mcucpp" by Konstantin Chizhov.
+
+Originally an STM32-only framework, Zhele is now multi-platform. The platform-specific code lives
+under `include/zhele/platform/`, and the active backend is detected automatically from the linked
+CMSIS device headers (or can be forced with `-DZHELE_PLATFORM_XX`). Supported platforms:
+- **STM32** (F0 / F1 / F4 / G0 / L4) — the most complete backend
+- **WCH CH32** — initial support (V0 line only for now)
+- **NIIET K1921VG015** — initial GPIO support
+
+The getting-started guide below uses STM32; CH32 and NIIET need their own CMSIS/SDK and toolchain
+setup (see the `wch_cmake` / `niiet_cmake` helpers and the examples under `example/ch32` and
+`example/niiet`).
 
 Support: I created public group in [telegram](https://t.me/stm32_zhele), where I'll try help everyone with using the framework. Sorry, but I can answer only on russian:)
 
@@ -10,15 +21,18 @@ Also I write small [lessons](https://github.com/azhel12/ZheleLessons) about appl
 I'm using following stack:
 - **VSCode IDE**
 - **CMake**
-- **GNU Arm Embedded Toolchain Version** (latest is 14.2.1)
+- **GNU Arm Embedded Toolchain Version** (latest is 15.2.rel1)
 - **stm32-cmake** project for CMSIS/HAL access
 - **openocd** and cmsis-dap/stlink for flash and debug
 
-Basically c++17 is required, c++20 needed only for USB. But I'm planning to use more new features from modern C++ (such as concepts and maybe coroutines
-and some features from c++23), so it's strongly recommended to use latest toolchain.
+The framework targets **C++23** — the `zhele::zhele` CMake target requires `cxx_std_23`, and the
+example below sets `CMAKE_CXX_STANDARD 23`. The practical floor is C++20: concepts are now used in
+the core GPIO headers (`iopins.h`, `ioports.h`), not just in USB. C++17 is no longer enough. New
+features from modern C++ (concepts and maybe coroutines, plus some C++23 features) keep being
+adopted, so it's strongly recommended to use the latest toolchain.
 1. Download Visual Studio Code from [official site](https://code.visualstudio.com/download) and install it.
 
-2. Download new Arm Embedded Toolchain from [official site](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads). Choose latest (arm-gnu-toolchain-13.2.rel1-mingw-w64-i686-arm-none-eabi).
+2. Download new Arm Embedded Toolchain from [official site](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads). Choose latest (e.g. arm-gnu-toolchain-15.2.rel1-mingw-w64-i686-arm-none-eabi).
 Download *exe* and install, or you can download zip and add **bin** folder location to system PATH.\
 If you use *nix system download appropriate linux hosted cross toolchains.
 There is no latest version in official repo (I tried on ubuntu), so unpack toolchain manually
