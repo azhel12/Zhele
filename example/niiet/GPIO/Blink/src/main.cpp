@@ -1,5 +1,7 @@
 #include <zhele/iopins.h>
 
+#include <system_k1921vg015.h> // SystemInit()
+
 // Tested on IRIS=UNO-VG015
 using Led = Zhele::IO::Pc10;
 
