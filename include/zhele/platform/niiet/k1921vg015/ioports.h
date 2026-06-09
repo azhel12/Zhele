@@ -7,7 +7,7 @@
 
 #include <K1921VG015.h>
 
-#include "../common/clock_gpio_ahb.h"
+#include "../common/clock.h"
 #include "../common/ioreg.h"
 #include "../common/ioports_gpio.h"
 
