@@ -22,8 +22,13 @@ namespace Zhele
     namespace Clock
     {
         IO_REG_WRAPPER(RCC->CR, RccCrReg, uint32_t);
+#if defined (STM32C0)
+        IO_REG_WRAPPER(RCC->CSR2, RccCsrReg, uint32_t);
+        IO_REG_WRAPPER(RCC->CSR1, RccBdcrReg, uint32_t);
+#else
         IO_REG_WRAPPER(RCC->CSR, RccCsrReg, uint32_t);
         IO_REG_WRAPPER(RCC->BDCR, RccBdcrReg, uint32_t);
+#endif
 
         /**
          * @brief Base class for clock sources (Hsi, Hse, Pll, Lsi)
@@ -125,7 +130,13 @@ namespace Zhele
              * 
              * @returns Hsi divider
              */
+#if defined (STM32C0)
+            // STM32C0 derives HSISYS from HSI48 through the runtime HSIDIV prescaler,
+            // so the divider is read from a register and cannot be constexpr.
+            static unsigned GetDivider();
+#else
             static constexpr unsigned GetDivider();
+#endif
 
             /**
              * @brief Returns HSI multiplier
@@ -139,10 +150,14 @@ namespace Zhele
              * 
              * @details
              * Final clock frequece = source clock frequence / divider * multiplier
-             * 
+             *
              * @returns Final frequence
              */
+#if defined (STM32C0)
+            static ClockFrequenceT ClockFreq();
+#else
             static constexpr ClockFrequenceT ClockFreq();
+#endif
 
             /**
              * @brief Enables Hsi source

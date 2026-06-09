@@ -98,10 +98,14 @@ namespace Zhele::Clock
 
 
     constexpr ClockFrequenceT HsiClock::SrcClockFreq() { return HSI_VALUE; }
-    constexpr unsigned HsiClock::GetDivider() { return 1; }
     constexpr unsigned HsiClock::GetMultipler() { return 1; }
+#if !defined (STM32C0)
+    constexpr unsigned HsiClock::GetDivider() { return 1; }
     constexpr ClockFrequenceT HsiClock::ClockFreq() { return SrcClockFreq(); }
+#endif
 
+// PLL bodies are gated on RCC_CFGR_SWS_PLL: families without a PLL (e.g. C0) leave it
+#if defined(RCC_CFGR_SWS_PLL)
     inline ClockFrequenceT PllClock::SrcClockFreq()
     {
         return GetClockSource() == External
@@ -133,6 +137,7 @@ namespace Zhele::Clock
     {
         ClockBase::DisableClockSource(RCC_CR_PLLON, RCC_CR_PLLRDY);
     }
+#endif
 
 #if defined (RCC_CSR_LSION)
     inline bool LsiClock::Enable()
@@ -169,6 +174,7 @@ namespace Zhele::Clock
                 return ClockSourceFailed;
             resultFrequence = HseClock::ClockFreq();
         }
+#if defined(RCC_CFGR_SWS_PLL)
         else if constexpr(clockSource == Pll)
         {
             clockStatusValue = RCC_CFGR_SWS_PLL;
@@ -177,6 +183,7 @@ namespace Zhele::Clock
                 return ClockSourceFailed;
             resultFrequence = PllClock::ClockFreq() / PllClock::GetSystemOutputDivider();
         }
+#endif
         else {
             static_assert(false, "Invalid clock source");
         }
@@ -202,7 +209,9 @@ namespace Zhele::Clock
         {
             case RCC_CFGR_SWS_HSI: return HsiClock::ClockFreq();
             case RCC_CFGR_SWS_HSE: return HseClock::ClockFreq();
+#if defined(RCC_CFGR_SWS_PLL)
             case RCC_CFGR_SWS_PLL: return PllClock::ClockFreq() / PllClock::GetSystemOutputDivider();
+#endif
         }
         return 0;
     }

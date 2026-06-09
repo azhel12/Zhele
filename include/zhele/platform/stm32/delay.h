@@ -10,6 +10,9 @@
 #ifndef ZHELE_PLATFORM_STM32_DELAY_H
 #define ZHELE_PLATFORM_STM32_DELAY_H
 
+#if defined(STM32C0)
+    #include "c0/delay.h"
+#endif
 #if defined(STM32F0)
     #include "f0/delay.h"
 #endif
