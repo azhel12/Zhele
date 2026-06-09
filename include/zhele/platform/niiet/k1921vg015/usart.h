@@ -9,6 +9,7 @@
 
 #include "../common/usart.h"
 
+#include <zhele/dma.h>
 #include <zhele/iopins.h>
 
 #include <array>

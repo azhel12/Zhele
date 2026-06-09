@@ -11,6 +11,7 @@
 #include "ioreg.h"
 
 #include <zhele/clock.h>
+#include <zhele/dma.h>
 #include <zhele/iopins.h>
 #include <zhele/pinlist.h>
 
@@ -149,6 +150,7 @@ namespace Zhele
             using Regs = _Regs;
             using DmaTx = _DmaTx;
             using DmaRx = _DmaRx;
+            using TransferCallback = DmaChannelData::TransferCallback;
 
             static constexpr Plic_IsrVect_TypeDef IRQNumber = _IRQNumber;
 
@@ -200,6 +202,28 @@ namespace Zhele
             {
                 while (!ReadReady()) { }
                 return static_cast<uint8_t>(_Regs()->DR & UART_DR_DATA_Msk);
+            }
+
+            static void WriteAsync(const void* data, size_t size, TransferCallback callback = nullptr)
+            {
+                if constexpr (!std::is_same_v<_DmaTx, void>)
+                {
+                    _DmaTx::SetTransferCallback(callback);
+                    _Regs()->DMACR |= UART_DMACR_TXDMAE_Msk;
+                    _DmaTx::Transfer(_DmaTx::Mem2Periph | _DmaTx::MemIncrement | _DmaTx::MSize8Bits | _DmaTx::PSize8Bits,
+                                     data, &_Regs()->DR, size);
+                }
+            }
+
+            static void EnableAsyncRead(void* receiveBuffer, size_t bufferSize, TransferCallback callback = nullptr)
+            {
+                if constexpr (!std::is_same_v<_DmaRx, void>)
+                {
+                    _DmaRx::SetTransferCallback(callback);
+                    _Regs()->DMACR |= UART_DMACR_RXDMAE_Msk;
+                    _DmaRx::Transfer(_DmaRx::Periph2Mem | _DmaRx::MemIncrement | _DmaRx::MSize8Bits | _DmaRx::PSize8Bits,
+                                     receiveBuffer, &_Regs()->DR, bufferSize);
+                }
             }
 
             static void EnableInterrupt(InterruptFlags interruptFlags)
