@@ -22,5 +22,8 @@
 #if defined(STM32G0)
     #include "g0/dmamux.h"
 #endif
+#if defined(STM32C0)
+    #include "c0/dmamux.h"
+#endif
 
 #endif // ZHELE_PLATFORM_STM32_DMAMUX_H

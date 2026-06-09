@@ -3,31 +3,47 @@
 
 #include <zhele/iopins.h>
 #include <zhele/usart.h>
+#if defined (STM32C0)
+#include <zhele/clock.h>
+#endif
 
 using namespace Zhele;
 using namespace Zhele::IO;
 
-#if defined (STM32G0)
+#if defined (STM32C0)
+    using UsartConnection = Usart2<>;
+    using Led = Pa4Inv;
+#elif defined (STM32G0)
     using UsartConnection = Usart1<>;
+    using Led = Pa7;
 #else
     using UsartConnection = Usart1;
+    using Led = Pa7;
 #endif
-using Led = Pa7;
 
 // This program enables LED and USART. After initial setings sends "Hello\r\n" to USART.
 // Then program waits input data. If "on" has been received LED will be turn on and controller transmits "LED is turn on\r\n".
 // If "off" has been received LED will be turn off and controller transmits "LED is turn off\r\n".
 int main()
 {
+#if defined (STM32C0)
+    Clock::SetHsiSysDivider<1>();
+    Clock::SysClock::SelectClockSource<Clock::SysClock::Internal>();
+#endif
+
     Led::Port::Enable();
     Led::SetConfiguration(Led::Configuration::Out);
     Led::SetDriverType(Led::DriverType::PushPull);
     Led::Set();
 
-    // Init usart1, baud = 9600
+    // Init usart, baud = 9600
     UsartConnection::Init(9600);
     // Select pins
+#if defined (STM32C0)
+    UsartConnection::SelectTxRxPins<Pa2, Pa3>();
+#else
     UsartConnection::SelectTxRxPins<Pb6, Pb7>();
+#endif
     // Or
     //UsartConnection::SelectTxRxPins<1, 1>();
     // Or
@@ -48,7 +64,11 @@ int Size = 0;
 
 extern "C"
 {
+#if defined (STM32C0)
+    void USART2_IRQHandler()
+#else
     void USART1_IRQHandler()
+#endif
     {
         // Check that usart is ready to read
         if(UsartConnection::ReadReady())

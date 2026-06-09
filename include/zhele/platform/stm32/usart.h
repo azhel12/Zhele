@@ -24,5 +24,8 @@
 #if defined(STM32G0)
     #include "g0/usart.h"
 #endif
+#if defined(STM32C0)
+    #include "c0/usart.h"
+#endif
 
 #endif // ZHELE_PLATFORM_STM32_USART_H

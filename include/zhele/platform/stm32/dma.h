@@ -25,5 +25,8 @@
 #if defined(STM32G0)
     #include "g0/dma.h"
 #endif
+#if defined(STM32C0)
+    #include "c0/dma.h"
+#endif
 
 #endif // ZHELE_PLATFORM_STM32_DMA_H

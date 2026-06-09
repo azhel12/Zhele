@@ -1,7 +1,7 @@
 # STM32-only examples
 
-stm32_fetch_cmsis(F0 F1 F4 G0)
-find_package(CMSIS COMPONENTS STM32F0 STM32F1 STM32F4 STM32G0 REQUIRED)
+stm32_fetch_cmsis(C0 F0 F1 F4 G0)
+find_package(CMSIS COMPONENTS STM32C011F6 STM32F0 STM32F1 STM32F4 STM32G0 REQUIRED)
 
 add_subdirectory(Adc)
 add_subdirectory(Clock)
