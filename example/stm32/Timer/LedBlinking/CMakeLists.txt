@@ -35,3 +35,9 @@ add_executable(led_blinking_g0 main.cpp)
 target_link_libraries(led_blinking_g0 CMSIS::STM32::G030F6 STM32::NoSys STM32::Nano)
 target_compile_options(led_blinking_g0 PRIVATE -fno-exceptions $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti> -ffunction-sections -fdata-sections)
 stm32_print_size_of_target(led_blinking_g0)
+
+# C0 build
+add_executable(led_blinking_c0 main.cpp)
+target_link_libraries(led_blinking_c0 CMSIS::STM32::C011F6 STM32::NoSys STM32::Nano)
+target_compile_options(led_blinking_c0 PRIVATE -fno-exceptions $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti> -ffunction-sections -fdata-sections)
+stm32_print_size_of_target(led_blinking_c0)
