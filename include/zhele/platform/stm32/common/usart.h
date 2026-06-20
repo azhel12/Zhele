@@ -83,9 +83,9 @@ namespace Zhele
             
             } CR3;
 
-            constexpr UsartMode(UsartMode::_CR1 cr1) : CR1(cr1) {}
-            constexpr UsartMode(UsartMode::_CR2 cr2) : CR2(cr2) {}
-            constexpr UsartMode(UsartMode::_CR3 cr3) : CR3(cr3) {}
+            constexpr UsartMode(UsartMode::_CR1 cr1) : CR1(cr1), CR2{}, CR3{} {}
+            constexpr UsartMode(UsartMode::_CR2 cr2) : CR1{}, CR2(cr2), CR3{} {}
+            constexpr UsartMode(UsartMode::_CR3 cr3) : CR1{}, CR2{}, CR3(cr3) {}
 
             constexpr UsartMode(UsartMode::_CR1 cr1, UsartMode::_CR2 cr2, UsartMode::_CR3 cr3) : CR1(cr1), CR2(cr2), CR3(cr3) {}
 
@@ -102,6 +102,16 @@ namespace Zhele
             constexpr UsartMode operator | (UsartMode::_CR3 flag)
             {
                 return UsartMode{CR1, CR2, static_cast<UsartMode::_CR3>(CR3 | flag)};
+            }
+
+            template<typename L, typename R>
+                requires (Enum<L> && Enum<R>
+                    && (std::is_same_v<L, _CR1> || std::is_same_v<L, _CR2> || std::is_same_v<L, _CR3>)
+                    && (std::is_same_v<R, _CR1> || std::is_same_v<R, _CR2> || std::is_same_v<R, _CR3>)
+                    && !std::is_same_v<L, R>)
+            friend constexpr UsartMode operator | (L left, R right)
+            {
+                return UsartMode{left} | right;
             }
         };
 
