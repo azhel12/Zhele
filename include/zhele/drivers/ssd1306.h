@@ -10,6 +10,7 @@
 #define ZHELE_DRIVERS_SSD1306_H
 
 #include <zhele/delay.h>
+#include <zhele/i2c.h>
 
 #include <cstring>
 
@@ -155,7 +156,9 @@ namespace Zhele::Drivers
             Commands::On,
         };
 
-        I2CBus::Write(I2cAddress, 0x00, initSequence, sizeof(initSequence));
+        if (I2CBus::Write(I2cAddress, 0x00, initSequence, sizeof(initSequence)) != I2cStatus::Success) {
+            return false;
+        }
 
         Fill(Pixel::Off);
         Update();
