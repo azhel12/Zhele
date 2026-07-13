@@ -464,9 +464,12 @@ namespace Zhele
             uint32_t result = 0;
             uint32_t tmpreg = 0;
 
+            // Round CCR up: SCL may come out slower than requested, never faster
+            constexpr auto ceilDiv = [](uint32_t value, uint32_t divider) { return (value + divider - 1) / divider; };
+
             if (i2cClockSpeed <= 100000)
             {
-                result = (uint16_t)(sourceClock / (i2cClockSpeed << 1));
+                result = ceilDiv(sourceClock, i2cClockSpeed << 1);
 
                 if (result < 0x04)
                 {
@@ -479,11 +482,11 @@ namespace Zhele
             {
                 if (dutyCycle2)
                 {
-                    result = static_cast<uint16_t>(sourceClock / (i2cClockSpeed * 3));
+                    result = ceilDiv(sourceClock, i2cClockSpeed * 3);
                 }
                 else
                 {
-                    result = static_cast<uint16_t>(sourceClock / (i2cClockSpeed * 25));
+                    result = ceilDiv(sourceClock, i2cClockSpeed * 25);
                     result |= 0x4000;
                 }
 
@@ -507,6 +510,8 @@ namespace Zhele
             while (_Regs()->CR1 & I2C_CR1_PE) {};
             
             uint32_t sourceClock = _ClockCtrl::ClockFreq();
+            // FREQ must equal the APB clock in MHz (the reset value 0 is invalid)
+            _Regs()->CR2 = (_Regs()->CR2 & ~I2C_CR2_FREQ) | (sourceClock / 1000000);
             CalcTiming<_Regs>(sourceClock, i2cClockSpeed, dutyCycle2);
 
             _Regs()->CR1 |= (I2C_CR1_ACK | I2C_CR1_PE);
@@ -533,20 +538,20 @@ namespace Zhele
                 return GetErorFromEvent(GetLastEvent());
 
             if(!Start())
-                return GetErorFromEvent(GetLastEvent());
+                return FailTransfer();
             
             if(!WriteDevAddr(devAddr, false, opts))
-                return GetErorFromEvent(GetLastEvent());
+                return FailTransfer();
 
             if(!HasAnyFlag(opts, I2cOpts::RegAddrNone) )
             {
                 if(!WriteRegAddr(regAddr, opts))
-                    return GetErorFromEvent(GetLastEvent());
+                    return FailTransfer();
             }
             _Regs()->DR = data;
 
             if(!WaitEvent(Events::ByteTransferFinished | Events::TxEmpty | Events::MasterSlave | Events::BusBusy | Events::TransmitterReceiver))
-                return GetErorFromEvent(GetLastEvent());
+                return FailTransfer();
 
             _Regs()->CR1 &= ~I2C_CR1_ACK;
             _Regs()->CR1 |= I2C_CR1_STOP;
@@ -566,15 +571,15 @@ namespace Zhele
             _Regs()->CR1 |= I2C_CR1_ACK;
             
             if(!Start())
-                return GetErorFromEvent(GetLastEvent());
+                return FailTransfer();
             
            if(!WriteDevAddr(devAddr, false, opts))
-                return GetErorFromEvent(GetLastEvent());
+                return FailTransfer();
 
             if(!HasAnyFlag(opts, I2cOpts::RegAddrNone) )
             {
                 if(!WriteRegAddr(regAddr, opts))
-                    return GetErorFromEvent(GetLastEvent());
+                    return FailTransfer();
             }
             
             for(uint16_t i = 0; i < size; ++i)
@@ -582,7 +587,7 @@ namespace Zhele
                 _Regs()->DR = data[i];
 
                 if(!WaitEvent(Events::ByteTransferFinished | Events::TxEmpty | Events::MasterSlave | Events::BusBusy))
-                    return GetErorFromEvent(GetLastEvent());
+                    return FailTransfer();
             }
             
             _Regs()->CR1 &= ~I2C_CR1_ACK;
@@ -603,15 +608,15 @@ namespace Zhele
             _Regs()->CR1 |= I2C_CR1_ACK;
             
             if(!Start())
-                return GetErorFromEvent(GetLastEvent());
+                return FailTransfer();
             
            if(!WriteDevAddr(devAddr, false, opts))
-                return GetErorFromEvent(GetLastEvent());
+                return FailTransfer();
 
             if(!HasAnyFlag(opts, I2cOpts::RegAddrNone) )
             {
                 if(!WriteRegAddr(regAddr, opts))
-                    return GetErorFromEvent(GetLastEvent());
+                    return FailTransfer();
             }
             
             _transferData.Callback = callback;
@@ -650,22 +655,22 @@ namespace Zhele
                 return ReadResult {0, GetErorFromEvent(GetLastEvent())};
 
             if(!Start())
-                return ReadResult {0, GetErorFromEvent(GetLastEvent())};
+                return ReadResult {0, FailTransfer()};
 
             if(!WriteDevAddr(devAddr, false, opts))
-                return ReadResult {0, GetErorFromEvent(GetLastEvent())};
+                return ReadResult {0, FailTransfer()};
 
             if(!HasAnyFlag(opts, I2cOpts::RegAddrNone))
             {
                 if(!WriteRegAddr(regAddr, opts))
-                    return ReadResult {0, GetErorFromEvent(GetLastEvent())};
+                    return ReadResult {0, FailTransfer()};
             }
 
             if(!Start())
-                return ReadResult {0, GetErorFromEvent(GetLastEvent())};
+                return ReadResult {0, FailTransfer()};
 
             if(!WriteDevAddr(devAddr, true, opts))
-                return ReadResult {0, GetErorFromEvent(GetLastEvent())};
+                return ReadResult {0, FailTransfer()};
 
             _Regs()->CR1 = (_Regs()->CR1 & (~I2C_CR1_ACK)) | I2C_CR1_STOP;
             uint8_t readedValue = static_cast<uint8_t>(_Regs()->DR);
@@ -680,29 +685,29 @@ namespace Zhele
                 return GetErorFromEvent(GetLastEvent());
             
             if(!Start())
-                return GetErorFromEvent(GetLastEvent());
+                return FailTransfer();
 
             if(!WriteDevAddr(devAddr, false, opts))
-                return GetErorFromEvent(GetLastEvent());
+                return FailTransfer();
 
             if(!HasAnyFlag(opts, I2cOpts::RegAddrNone))
             {
                 if(!WriteRegAddr(regAddr, opts))
-                    return GetErorFromEvent(GetLastEvent());
+                    return FailTransfer();
             }
             
             if(!Start())
-                return GetErorFromEvent(GetLastEvent());
+                return FailTransfer();
 
             _Regs()->CR1 |= I2C_CR1_ACK;
 
             if(!WriteDevAddr(devAddr, true, opts))
-                return GetErorFromEvent(GetLastEvent());
+                return FailTransfer();
             
             for(int i = 0; i < size - 1; ++i)
             {
                 if(!WaitEvent(Events::RxNotEmpty | Events::MasterSlave | Events::BusBusy))
-                    return GetErorFromEvent(GetLastEvent());
+                    return FailTransfer();
 
                 data[i] = static_cast<uint8_t>(_Regs()->DR);
             }
@@ -710,7 +715,7 @@ namespace Zhele
             _Regs()->CR1 &= ~I2C_CR1_ACK;
 
             if(!WaitEvent(Events::RxNotEmpty | Events::MasterSlave | Events::BusBusy))
-                    return GetErorFromEvent(GetLastEvent());
+                    return FailTransfer();
 
             data[size - 1] = static_cast<uint8_t>(_Regs()->DR);
 
@@ -726,24 +731,24 @@ namespace Zhele
                 return GetErorFromEvent(GetLastEvent());
             
             if(!Start())
-                return GetErorFromEvent(GetLastEvent());
+                return FailTransfer();
 
             if(!WriteDevAddr(devAddr, false, opts))
-                return GetErorFromEvent(GetLastEvent());
+                return FailTransfer();
 
             if(!HasAnyFlag(opts, I2cOpts::RegAddrNone))
             {
                 if(!WriteRegAddr(regAddr, opts))
-                    return GetErorFromEvent(GetLastEvent());
+                    return FailTransfer();
             }
             
             if(!Start())
-                return GetErorFromEvent(GetLastEvent());
+                return FailTransfer();
 
             _Regs()->CR1 |= I2C_CR1_ACK;
 
             if(!WriteDevAddr(devAddr, true, opts))
-                return GetErorFromEvent(GetLastEvent());
+                return FailTransfer();
             
             _transferData.Callback = callback;
 
@@ -816,6 +821,14 @@ namespace Zhele
         }
 
         I2C_TEMPLATE_ARGS
+        I2cStatus I2C_TEMPLATE_QUALIFIER::FailTransfer()
+        {
+            const I2cStatus status = GetErorFromEvent(GetLastEvent());
+            _Regs()->CR1 |= I2C_CR1_STOP;
+            return status;
+        }
+
+        I2C_TEMPLATE_ARGS
         bool I2C_TEMPLATE_QUALIFIER::Busy()
         {
             return (_Regs()->SR2 & I2C_SR2_BUSY) > 0;
@@ -830,7 +843,7 @@ namespace Zhele
         I2C_TEMPLATE_ARGS
         bool I2C_TEMPLATE_QUALIFIER::WaitWhileBusy()
         {
-            for(uint32_t i = _timeout; i >= 0 && Busy(); --i);
+            for(uint32_t i = _timeout; i > 0 && Busy(); --i);
 
             return !Busy();
         }

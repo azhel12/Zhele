@@ -427,6 +427,15 @@ namespace Zhele
              * @retval false Fail
              */
             static bool Start();
+
+            /**
+             * @brief Classify the failure and release the bus with STOP
+             *
+             * Without STOP a failed transfer leaves SR2.BUSY latched forever.
+             *
+             * @returns Error status of the failed transfer
+             */
+            static I2cStatus FailTransfer();
             #endif
 
             /**
