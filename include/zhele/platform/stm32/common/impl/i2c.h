@@ -677,13 +677,13 @@ namespace Zhele
         I2cStatus I2C_TEMPLATE_QUALIFIER::Read(uint16_t devAddr, uint16_t regAddr, uint8_t *data, uint16_t size, I2cOpts opts)
         {            
             if(!WaitWhileBusy())
-                GetErorFromEvent(GetLastEvent());
+                return GetErorFromEvent(GetLastEvent());
             
             if(!Start())
-                GetErorFromEvent(GetLastEvent());
+                return GetErorFromEvent(GetLastEvent());
 
             if(!WriteDevAddr(devAddr, false, opts))
-                GetErorFromEvent(GetLastEvent());
+                return GetErorFromEvent(GetLastEvent());
 
             if(!HasAnyFlag(opts, I2cOpts::RegAddrNone))
             {
@@ -697,7 +697,7 @@ namespace Zhele
             _Regs()->CR1 |= I2C_CR1_ACK;
 
             if(!WriteDevAddr(devAddr, true, opts))
-                GetErorFromEvent(GetLastEvent());
+                return GetErorFromEvent(GetLastEvent());
             
             for(int i = 0; i < size - 1; ++i)
             {
@@ -723,13 +723,13 @@ namespace Zhele
         I2cStatus I2C_TEMPLATE_QUALIFIER::EnableAsyncRead(uint16_t devAddr, uint16_t regAddr, uint8_t *data, uint16_t size, I2cOpts opts, I2cCallback callback)
         {            
             if(!WaitWhileBusy())
-                GetErorFromEvent(GetLastEvent());
+                return GetErorFromEvent(GetLastEvent());
             
             if(!Start())
-                GetErorFromEvent(GetLastEvent());
+                return GetErorFromEvent(GetLastEvent());
 
             if(!WriteDevAddr(devAddr, false, opts))
-                GetErorFromEvent(GetLastEvent());
+                return GetErorFromEvent(GetLastEvent());
 
             if(!HasAnyFlag(opts, I2cOpts::RegAddrNone))
             {
@@ -743,7 +743,7 @@ namespace Zhele
             _Regs()->CR1 |= I2C_CR1_ACK;
 
             if(!WriteDevAddr(devAddr, true, opts))
-                GetErorFromEvent(GetLastEvent());
+                return GetErorFromEvent(GetLastEvent());
             
             _transferData.Callback = callback;
 
