@@ -93,12 +93,12 @@ namespace Zhele
         _Regs()->ICR = _Regs()->ISR;
 
         if(!WriteDevAddrForWrite(devAddr, opts))
-            GetErorFromEvent(GetLastEvent());
+            return GetErorFromEvent(GetLastEvent());
 
         if(!HasAnyFlag(opts, I2cOpts::RegAddrNone))
         {
             if(!WriteRegAddr(regAddr, opts))
-                GetErorFromEvent(GetLastEvent());
+                return GetErorFromEvent(GetLastEvent());
         }
 
         SetTransferSize(1);
@@ -111,15 +111,15 @@ namespace Zhele
     I2cStatus I2C_TEMPLATE_QUALIFIER::Write(uint16_t devAddr, uint16_t regAddr, const uint8_t* data, uint16_t size, I2cOpts opts)
     {
         if(!WaitWhileBusy())
-            GetErorFromEvent(GetLastEvent());
+            return GetErorFromEvent(GetLastEvent());
 
         if(!WriteDevAddrForWrite(devAddr, opts))
-            GetErorFromEvent(GetLastEvent());
+            return GetErorFromEvent(GetLastEvent());
 
         if(!HasAnyFlag(opts, I2cOpts::RegAddrNone))
         {
             if(!WriteRegAddr(regAddr, opts))
-                GetErorFromEvent(GetLastEvent());
+                return GetErorFromEvent(GetLastEvent());
         }
 
         while (size > 255)
@@ -130,7 +130,7 @@ namespace Zhele
             {
                 _Regs()->TXDR = *data;
                 if(!WaitEvent(TxInterrupt))
-                    GetErorFromEvent(GetLastEvent());
+                    return GetErorFromEvent(GetLastEvent());
                 ++data;
             }
             size -= 255;
@@ -138,7 +138,7 @@ namespace Zhele
             ++data;
 
             if(!WaitEvent(TransfertCompleteReload))
-                GetErorFromEvent(GetLastEvent());
+                return GetErorFromEvent(GetLastEvent());
         }
             
         SetTransferSize(size & 0xff);
@@ -147,7 +147,7 @@ namespace Zhele
         {
             _Regs()->TXDR = *data;
             if(!WaitEvent(TxInterrupt))
-                GetErorFromEvent(GetLastEvent());
+                return GetErorFromEvent(GetLastEvent());
             ++data;
         }
         _Regs()->TXDR = *data;
@@ -229,14 +229,18 @@ namespace Zhele
         if(!WaitWhileBusy())
             return ReadResult {0, I2cStatus::Busy};
 
-        if(!WriteDevAddrForWrite(devAddr, opts))
-            return ReadResult{0, GetErorFromEvent(GetLastEvent())};
-
-        _Regs()->CR2 &= ~(I2C_CR2_AUTOEND | I2C_CR2_RELOAD);
+        // Register-less devices (RegAddrNone) take a pure read: no write phase.
+        // Addressing for write with NBYTES = 0 would stall waiting for a TXIS
+        // that never comes (the device raises TCR instead).
         if(!HasAnyFlag(opts, I2cOpts::RegAddrNone))
         {
+            if(!WriteDevAddrForWrite(devAddr, opts))
+                return ReadResult{0, GetErorFromEvent(GetLastEvent())};
+
+            _Regs()->CR2 &= ~(I2C_CR2_AUTOEND | I2C_CR2_RELOAD);
+
             if(!WriteRegAddr(regAddr, opts))
-                ReadResult{0, GetErorFromEvent(GetLastEvent())};
+                return ReadResult{0, GetErorFromEvent(GetLastEvent())};
         }
 
         if(!WriteDevAddrForRead(devAddr, opts, 1, false))
@@ -256,19 +260,23 @@ namespace Zhele
         if(!WaitWhileBusy())
             return I2cStatus::Busy;
 
-        if(!WriteDevAddrForWrite(devAddr, opts))
-            return GetErorFromEvent(GetLastEvent());
-
-        _Regs()->CR2 &= ~(I2C_CR2_AUTOEND | I2C_CR2_RELOAD);
+        // Register-less devices (RegAddrNone) take a pure read: no write phase.
+        // Addressing for write with NBYTES = 0 would stall waiting for a TXIS
+        // that never comes (the device raises TCR instead).
         if(!HasAnyFlag(opts, I2cOpts::RegAddrNone))
         {
+            if(!WriteDevAddrForWrite(devAddr, opts))
+                return GetErorFromEvent(GetLastEvent());
+
+            _Regs()->CR2 &= ~(I2C_CR2_AUTOEND | I2C_CR2_RELOAD);
+
             if(!WriteRegAddr(regAddr, opts))
-                GetErorFromEvent(GetLastEvent());
+                return GetErorFromEvent(GetLastEvent());
         }
 
         if(!WriteDevAddrForRead(devAddr, opts, size > 255 ? 255 : size, size > 255))
             return GetErorFromEvent(GetLastEvent());
-        
+
         while (size > 255)
         {
             SetTransferSize(255, false);
@@ -308,14 +316,18 @@ namespace Zhele
         if(!WaitWhileBusy())
             return I2cStatus::Busy;
 
-        if(!WriteDevAddrForWrite(devAddr, opts))
-            return GetErorFromEvent(GetLastEvent());
-
-        _Regs()->CR2 &= ~(I2C_CR2_AUTOEND | I2C_CR2_RELOAD);
+        // Register-less devices (RegAddrNone) take a pure read: no write phase.
+        // Addressing for write with NBYTES = 0 would stall waiting for a TXIS
+        // that never comes (the device raises TCR instead).
         if(!HasAnyFlag(opts, I2cOpts::RegAddrNone))
         {
+            if(!WriteDevAddrForWrite(devAddr, opts))
+                return GetErorFromEvent(GetLastEvent());
+
+            _Regs()->CR2 &= ~(I2C_CR2_AUTOEND | I2C_CR2_RELOAD);
+
             if(!WriteRegAddr(regAddr, opts))
-                GetErorFromEvent(GetLastEvent());
+                return GetErorFromEvent(GetLastEvent());
         }
 
         if(!WriteDevAddrForRead(devAddr, opts, size > 255 ? 255 : size, size > 255))
