@@ -38,6 +38,12 @@ namespace Zhele
     using Dma1Channel7 = DmaChannel<Dma1, Private::Dma1Channel7, 7, DMA1_Channel7_IRQn>;
 
 #if defined (RCC_AHBENR_DMA2EN)
+// On devices where DMA2 channels 4/5 share one vector, CMSIS provides the
+// compatibility define (DMA2_Channel4_IRQn = DMA2_Channel4_5_IRQn) for
+// channel 4 only; provide the missing one for channel 5.
+#ifdef DMA2_Channel4_IRQn
+    #define DMA2_Channel5_IRQn DMA2_Channel4_5_IRQn
+#endif
     namespace Private
     {
         IO_STRUCT_WRAPPER(DMA2, Dma2, DMA_TypeDef);
