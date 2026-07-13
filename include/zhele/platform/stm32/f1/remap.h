@@ -73,7 +73,8 @@ namespace Zhele::IO
         // SPI remap
         DECLARE_IO_BITFIELD_WRAPPER(AFIO->MAPR, Spi1RemapBitField, AFIO_MAPR_SPI1_REMAP)
         DECLARE_PERIPH_REMAP(Zhele::Clock::Spi1Clock, Spi1RemapBitField);
-        #if defined(SPI3)
+        // High-density F103 have SPI3 but no SPI3 remap bit (connectivity line only)
+        #if defined(AFIO_MAPR_SPI3_REMAP)
             DECLARE_IO_BITFIELD_WRAPPER(AFIO->MAPR, Spi3RemapBitField, AFIO_MAPR_SPI3_REMAP)
             DECLARE_PERIPH_REMAP(Zhele::Clock::Spi3Clock, Spi3RemapBitField);
         #endif
@@ -105,7 +106,7 @@ namespace Zhele::IO
     using Usart3Remap = Private::PeriphRemap<Zhele::Clock::Usart3Clock>;
 #endif
     using Spi1Remap = Private::PeriphRemap<Zhele::Clock::Spi1Clock>;
-#if defined(SPI3)
+#if defined(AFIO_MAPR_SPI3_REMAP)
     using Spi3Remap = Private::PeriphRemap<Zhele::Clock::Spi3Clock>;
 #endif
 
