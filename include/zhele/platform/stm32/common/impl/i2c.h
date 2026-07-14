@@ -626,12 +626,16 @@ namespace Zhele
 
             _DmaTx::SetTransferCallback([](void* buffer, unsigned size, bool success)
             {
+                _Regs()->CR2 &= ~I2C_CR2_DMAEN;
+
                 if(!WaitEvent(Events::ByteTransferFinished))
                 {
+                    _Regs()->CR1 |= I2C_CR1_STOP;
                     if (_transferData.Callback != nullptr)
                     {
                         _transferData.Callback(GetErorFromEvent(GetLastEvent()));
                     }
+                    return;
                 }
 
                 _Regs()->CR1 &= ~I2C_CR1_ACK;
@@ -757,14 +761,17 @@ namespace Zhele
 
             _DmaRx::SetTransferCallback([](void* buffer, unsigned size, bool success)
             {
+                _Regs()->CR2 &= ~I2C_CR2_DMAEN;
                 _Regs()->CR1 &= ~I2C_CR1_ACK;
 
                 if(!WaitEvent(Events::RxNotEmpty | Events::MasterSlave | Events::BusBusy))
                 {
+                    _Regs()->CR1 |= I2C_CR1_STOP;
                     if (_transferData.Callback != nullptr)
                     {
                         _transferData.Callback(GetErorFromEvent(GetLastEvent()));
                     }
+                    return;
                 }
 
                 static_cast<uint8_t*>(buffer)[size] = static_cast<uint8_t>(_Regs()->DR);
