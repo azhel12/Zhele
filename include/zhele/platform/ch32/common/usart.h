@@ -121,8 +121,8 @@ namespace Zhele
          * @tparam _Regs Peripheral register wrapper
          * @tparam _IRQNumber Global USART IRQ number
          * @tparam _ClockCtrl Clock control class
-         * @tparam _RemapMask AFIO->PCFR1 mask of this USART's remap field
-         * @tparam _RemapShift Bit offset of the remap field inside _RemapMask
+         * @tparam _TxPins TX pin map (io_pins PinList + parallel alt_functions remap values)
+         * @tparam _RxPins RX pin map (io_pins PinList aligned with _TxPins by remap index)
          * @tparam _DmaTx TX DMA channel
          * @tparam _DmaRx RX DMA channel
          */
@@ -130,8 +130,8 @@ namespace Zhele
             typename _Regs,
             IRQn_Type _IRQNumber,
             typename _ClockCtrl,
-            uint32_t _RemapMask,
-            uint32_t _RemapShift,
+            typename _TxPins,
+            typename _RxPins,
             typename _DmaTx,
             typename _DmaRx>
         class Usart : public UsartBase
@@ -195,9 +195,12 @@ namespace Zhele
             static void ClearAllInterruptFlags();
 
             /**
-             * @brief Select TX/RX pins and apply the global AFIO remap (0 = default pins).
+             * @brief Select TX/RX pins and apply the AFIO remap derived from the TX pin.
+             *
+             * TX and RX must be the matching pair for one remap value (their shared
+             * index in _TxPins::io_pins selects _TxPins::alt_functions[index]).
              */
-            template<typename TxPin, typename RxPin, uint8_t Remap = 0>
+            template<typename TxPin, typename RxPin>
             static void SelectTxRxPins();
         };
     }

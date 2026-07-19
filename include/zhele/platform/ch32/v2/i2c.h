@@ -11,6 +11,9 @@
 #include "clock.h"
 #include "dma.h"
 #include "iopins.h"
+#include "afio.h"
+
+#include <zhele/pinlist.h>
 
 #include "../common/i2c.h"
 #include "../common/ioreg.h"
@@ -19,13 +22,15 @@ namespace Zhele
 {
     namespace Private
     {
-        using I2C1SclPins = IO::PinList<IO::Pb6>;
-        using I2C1SdaPins = IO::PinList<IO::Pb7>;
+        // I2C1_REMAP: 0 -> SCL/PB6 SDA/PB7 (default), 1 -> SCL/PB8 SDA/PB9.
+        struct I2C1SclPins { using io_pins = IO::PinList<IO::Pb6, IO::Pb8>; static constexpr uint8_t alt_functions[] = {0, 1}; };
+        struct I2C1SdaPins { using io_pins = IO::PinList<IO::Pb7, IO::Pb9>; static constexpr uint8_t alt_functions[] = {0, 1}; };
 
         IO_STRUCT_WRAPPER(I2C1, I2C1Regs, I2C_TypeDef);
 #if defined(I2C2)
-        using I2C2SclPins = IO::PinList<IO::Pb10>;
-        using I2C2SdaPins = IO::PinList<IO::Pb11>;
+        // I2C2 has no remap field on V20x (fixed SCL/PB10 SDA/PB11).
+        struct I2C2SclPins { using io_pins = IO::PinList<IO::Pb10>; static constexpr uint8_t alt_functions[] = {0}; };
+        struct I2C2SdaPins { using io_pins = IO::PinList<IO::Pb11>; static constexpr uint8_t alt_functions[] = {0}; };
 
         IO_STRUCT_WRAPPER(I2C2, I2C2Regs, I2C_TypeDef);
 #endif

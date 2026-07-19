@@ -84,8 +84,8 @@ namespace Zhele
          * @tparam _EventIrqNumber Event IRQ number
          * @tparam _ErrorIrqNumber Error IRQ number
          * @tparam _ClockCtrl Clock control class
-         * @tparam _SclPins SCL candidate pin list
-         * @tparam _SdaPins SDA candidate pin list
+         * @tparam _SclPins SCL pin map (io_pins PinList + parallel alt_functions remap values)
+         * @tparam _SdaPins SDA pin map (io_pins PinList + parallel alt_functions remap values)
          * @tparam _DmaTx TX DMA channel
          * @tparam _DmaRx RX DMA channel
          */
@@ -173,10 +173,19 @@ namespace Zhele
 
             /**
              * @brief Configure the SCL/SDA pins (alternate function, open-drain) and remap.
+             *
+             * The AFIO remap value is derived from the SCL pin's position in
+             * _SclPins::io_pins (SCL and SDA must be the matching pair, i.e. share
+             * the same index), just like SPI derives its remap from the SCK pin.
              */
             template<typename SclPin, typename SdaPin>
             static void SelectPins()
             {
+                constexpr int sclIndex = _SclPins::io_pins::template IndexOf<SclPin>;
+                constexpr int sdaIndex = _SdaPins::io_pins::template IndexOf<SdaPin>;
+                static_assert(sclIndex >= 0, "SCL pin is not valid for this I2C");
+                static_assert(sdaIndex == sclIndex, "SCL and SDA pins do not form a valid remap pair");
+
                 SclPin::Port::Enable();
                 SclPin::template SetConfiguration<SclPin::Port::Configuration::AltFunc>();
                 SclPin::template SetDriverType<SclPin::Port::DriverType::OpenDrain>();
@@ -186,21 +195,8 @@ namespace Zhele
                 SdaPin::template SetConfiguration<SdaPin::Port::Configuration::AltFunc>();
                 SdaPin::template SetDriverType<SdaPin::Port::DriverType::OpenDrain>();
 
-                // Apply I2C1 remap for the chosen SCL pin (PD1/PD0 or PC5/PC6; default PC2/PC1).
-#if defined(AFIO_PCFR1_I2C1_HIGH_BIT_REMAP)
-                constexpr char sclPort = static_cast<char>(SclPin::Port::Id);
-                constexpr unsigned sclNum = SclPin::Number;
-                if constexpr (sclPort == 'D')
-                {
-                    Clock::Apb2PeriphClockEnable::Or(RCC_AFIOEN);
-                    AFIO->PCFR1 |= AFIO_PCFR1_I2C1_REMAP;
-                }
-                else if constexpr (sclPort == 'C' && sclNum == 5)
-                {
-                    Clock::Apb2PeriphClockEnable::Or(RCC_AFIOEN);
-                    AFIO->PCFR1 |= AFIO_PCFR1_I2C1_HIGH_BIT_REMAP;
-                }
-#endif
+                Clock::Apb2PeriphClockEnable::Or(RCC_AFIOEN);
+                Zhele::IO::Private::PeriphRemap<_ClockCtrl>::Set(_SclPins::alt_functions[static_cast<size_t>(sclIndex)]);
             }
 
         private:

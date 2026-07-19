@@ -16,11 +16,11 @@ namespace Zhele
             typename _Regs, \
             IRQn_Type _IRQNumber, \
             typename _ClockCtrl, \
-            uint32_t _RemapMask, \
-            uint32_t _RemapShift, \
+            typename _TxPins, \
+            typename _RxPins, \
             typename _DmaTx, \
             typename _DmaRx>
-        #define USART_TEMPLATE_QUALIFIER Usart<_Regs, _IRQNumber, _ClockCtrl, _RemapMask, _RemapShift, _DmaTx, _DmaRx>
+        #define USART_TEMPLATE_QUALIFIER Usart<_Regs, _IRQNumber, _ClockCtrl, _TxPins, _RxPins, _DmaTx, _DmaRx>
 
         USART_TEMPLATE_ARGS
         template<unsigned long baud>
@@ -216,9 +216,17 @@ namespace Zhele
         }
 
         USART_TEMPLATE_ARGS
-        template<typename TxPin, typename RxPin, uint8_t Remap>
+        template<typename TxPin, typename RxPin>
         void USART_TEMPLATE_QUALIFIER::SelectTxRxPins()
         {
+            // The AFIO remap value is derived from the TX pin's position in
+            // _TxPins::io_pins, just like SPI derives its remap from the SCK pin.
+            // TX and RX must be the matching pair (same index) for one remap value.
+            constexpr int txIndex = _TxPins::io_pins::template IndexOf<TxPin>;
+            constexpr int rxIndex = _RxPins::io_pins::template IndexOf<RxPin>;
+            static_assert(txIndex >= 0, "TX pin is not valid for this USART");
+            static_assert(rxIndex == txIndex, "TX and RX pins do not form a valid remap pair");
+
             TxPin::Port::Enable();
             TxPin::template SetConfiguration<TxPin::Port::Configuration::AltFunc>();
             TxPin::template SetDriverType<TxPin::Port::DriverType::PushPull>();
@@ -229,11 +237,8 @@ namespace Zhele
             RxPin::template SetConfiguration<RxPin::Port::Configuration::In>();
             RxPin::template SetPullMode<RxPin::Port::PullMode::PullUp>();
 
-            if constexpr (_RemapMask != 0)
-            {
-                Clock::Apb2PeriphClockEnable::Or(RCC_AFIOEN);
-                AFIO->PCFR1 = (AFIO->PCFR1 & ~_RemapMask) | ((static_cast<uint32_t>(Remap) << _RemapShift) & _RemapMask);
-            }
+            Clock::Apb2PeriphClockEnable::Or(RCC_AFIOEN);
+            Zhele::IO::Private::PeriphRemap<_ClockCtrl>::Set(_TxPins::alt_functions[static_cast<size_t>(txIndex)]);
         }
 
         #undef USART_TEMPLATE_ARGS

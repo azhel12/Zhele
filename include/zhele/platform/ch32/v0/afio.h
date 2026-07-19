@@ -31,6 +31,9 @@ namespace Zhele::IO::Private
     // Wide contiguous fields.
     ZHELE_CH32_V0_REMAP(I2c1Clock,   AFIO_PCFR1_I2C1_REMAP);
     ZHELE_CH32_V0_REMAP(Usart1Clock, AFIO_PCFR1_USART1_REMAP);
+#if defined(AFIO_PCFR1_USART2_REMAP)
+    ZHELE_CH32_V0_REMAP(Usart2Clock, AFIO_PCFR1_USART2_REMAP);
+#endif
     ZHELE_CH32_V0_REMAP(Tim1Clock,   AFIO_PCFR1_TIM1_REMAP);
     ZHELE_CH32_V0_REMAP(Tim2Clock,   AFIO_PCFR1_TIM2_REMAP);
 #else

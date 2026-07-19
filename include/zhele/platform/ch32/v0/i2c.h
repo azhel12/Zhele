@@ -11,6 +11,9 @@
 #include "clock.h"
 #include "dma.h"
 #include "iopins.h"
+#include "afio.h"
+
+#include <zhele/pinlist.h>
 
 #include "../common/i2c.h"
 #include "../common/ioreg.h"
@@ -19,8 +22,15 @@ namespace Zhele
 {
     namespace Private
     {
-        using I2C1SclPins = IO::PinList<IO::Pc2, IO::Pd1, IO::Pc5>;
-        using I2C1SdaPins = IO::PinList<IO::Pc1, IO::Pd0, IO::Pc6>;
+#if defined(CH32V00X)
+        // V00x I2C1_RM[2:0]: only the PC2/PC1 default pair is wired here (remap 0).
+        struct I2C1SclPins { using io_pins = IO::PinList<IO::Pc2>; static constexpr uint8_t alt_functions[] = {0}; };
+        struct I2C1SdaPins { using io_pins = IO::PinList<IO::Pc1>; static constexpr uint8_t alt_functions[] = {0}; };
+#else
+        // V003 I2C1 remap (SplitRemapField): 0 -> PC2/PC1, 1 -> PD1/PD0, 2 -> PC5/PC6.
+        struct I2C1SclPins { using io_pins = IO::PinList<IO::Pc2, IO::Pd1, IO::Pc5>; static constexpr uint8_t alt_functions[] = {0, 1, 2}; };
+        struct I2C1SdaPins { using io_pins = IO::PinList<IO::Pc1, IO::Pd0, IO::Pc6>; static constexpr uint8_t alt_functions[] = {0, 1, 2}; };
+#endif
 
         IO_STRUCT_WRAPPER(I2C1, I2C1Regs, I2C_TypeDef);
     }
