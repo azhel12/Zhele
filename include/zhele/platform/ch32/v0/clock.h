@@ -129,6 +129,8 @@ namespace Zhele::Clock
   using Usart2Clock = PeriphClock<Apb2PeriphClockEnable, RCC_USART2EN, Apb2Clock>;
 #endif
 
+  using Spi1Clock = PeriphClock<Apb2PeriphClockEnable, RCC_SPI1EN, Apb2Clock>;
+
   // TIM1 on APB2, TIM2/TIM3 on APB1 (TIM3 only on V00x, not V003)
   using Tim1Clock = PeriphClock<Apb2PeriphClockEnable, RCC_TIM1EN, Apb2Clock>;
   using Tim2Clock = PeriphClock<Apb1PeriphClockEnable, RCC_TIM2EN, Apb1Clock>;
