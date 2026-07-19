@@ -93,7 +93,7 @@ namespace Zhele
          * @tparam _DmaRx RX DMA channel
          * @tparam _RemapMask AFIO->PCFR1 remap bit for this SPI (0 if none)
          */
-        template<typename _Regs, typename _Clock, typename _DmaTx, typename _DmaRx, uint32_t _RemapMask = 0>
+        template<typename _Regs, typename _Clock, typename _DmaTx, typename _DmaRx, typename _ClockPins>
         class Spi : public SpiBase
         {
         public:
@@ -157,7 +157,7 @@ namespace Zhele
             /**
              * @brief Configure the SPI pins and apply the AFIO remap (NullPin skips MISO/SS).
              */
-            template<typename MosiPin, typename MisoPin, typename SckPin, typename SsPin = IO::NullPin, uint8_t Remap = 0>
+            template<typename MosiPin, typename MisoPin, typename SckPin, typename SsPin = IO::NullPin>
             static void SelectPins();
 
         private:

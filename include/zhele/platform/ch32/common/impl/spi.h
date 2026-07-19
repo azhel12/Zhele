@@ -17,9 +17,9 @@ namespace Zhele
             typename _Clock, \
             typename _DmaTx, \
             typename _DmaRx, \
-            uint32_t _RemapMask>
+            typename _ClockPins>
 
-        #define SPI_TEMPLATE_QUALIFIER Spi<_Regs, _Clock, _DmaTx, _DmaRx, _RemapMask>
+        #define SPI_TEMPLATE_QUALIFIER Spi<_Regs, _Clock, _DmaTx, _DmaRx, _ClockPins>
 
         SPI_TEMPLATE_ARGS
         void SPI_TEMPLATE_QUALIFIER::Enable()
@@ -161,7 +161,7 @@ namespace Zhele
         }
 
         SPI_TEMPLATE_ARGS
-        template<typename MosiPin, typename MisoPin, typename SckPin, typename SsPin, uint8_t Remap>
+        template<typename MosiPin, typename MisoPin, typename SckPin, typename SsPin>
         void SPI_TEMPLATE_QUALIFIER::SelectPins()
         {
             SckPin::Port::Enable();
@@ -191,14 +191,12 @@ namespace Zhele
                 SsPin::template SetDriverType<SsPin::Port::DriverType::PushPull>();
             }
 
-            if constexpr (_RemapMask != 0)
-            {
-                Clock::Apb2PeriphClockEnable::Or(RCC_AFIOEN);
-                if constexpr (Remap != 0)
-                    AFIO->PCFR1 |= _RemapMask;
-                else
-                    AFIO->PCFR1 &= ~_RemapMask;
-            }
+            // Derive the AFIO remap value from the SCK pin (its position in the
+            // clock-pin list maps to a remap value via alt_functions).
+            constexpr int idx = _ClockPins::io_pins::template IndexOf<SckPin>;
+            static_assert(idx >= 0, "SCK pin is not valid for this SPI");
+            Clock::Apb2PeriphClockEnable::Or(RCC_AFIOEN);
+            Zhele::IO::Private::PeriphRemap<_Clock>::Set(_ClockPins::alt_functions[static_cast<size_t>(idx)]);
         }
 
         SPI_TEMPLATE_ARGS
