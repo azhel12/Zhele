@@ -5,3 +5,4 @@ find_package(CMSIS COMPONENTS CH32V0 CH32V2 REQUIRED)
 
 add_subdirectory(Clock)
 add_subdirectory(GPIO)
+add_subdirectory(Timer)
