@@ -22,7 +22,9 @@
 #elif defined(CH32V1) || defined(CH32V10x) || defined(CH32V103)
 #  define ZHELE_PLATFORM_CH32    1
 #  define ZHELE_CH32_FAMILY_V1   1
-#elif defined(CH32V2) || defined(CH32V20x) || defined(CH32V203)
+// The WCH ch32v20x.h always self-defines one of CH32V20x_D6 / _D8 / _D8W
+#elif defined(CH32V2) || defined(CH32V20x) || defined(CH32V203) \
+ || defined(CH32V20x_D6) || defined(CH32V20x_D8) || defined(CH32V20x_D8W)
 #  define ZHELE_PLATFORM_CH32    1
 #  define ZHELE_CH32_FAMILY_V2   1
 #elif defined(CH32V3) || defined(CH32V30x) || defined(CH32V303)

@@ -20,12 +20,18 @@ namespace Zhele
     public:
       using DataType = uint16_t;
 
+      // The new V00x GPIO (V002/004/005/006/007) narrows MODE to a single bit
       enum Configuration
       {
         Analog  = 0,
         In      = 0x04,
+#if defined(CH32V00X) // new V00x (V002/4/5/6/7, not V003) — 1-bit MODE field
+        Out     = 0x01,
+        AltFunc = 0x09
+#else
         Out     = 0x03,
         AltFunc = 0x0B
+#endif
       };
 
       enum PullMode

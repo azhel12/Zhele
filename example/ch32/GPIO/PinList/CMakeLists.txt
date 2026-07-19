@@ -7,7 +7,7 @@ project(pinlist CXX C ASM)
 ch32_fetch_cmsis(V0)
 find_package(CMSIS COMPONENTS CH32V0 REQUIRED)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../../../../include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../../../include)
 
 add_executable(pinlist_v003 main.cpp)
 target_compile_features(pinlist_v003 PRIVATE cxx_std_20)

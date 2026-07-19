@@ -1,20 +1,30 @@
+/**
+ * GPIO blink — toggle a single LED with a millisecond delay (V003 / V006 / V203).
+ *
+ * LED pin (adjust to your board):
+ *   CH32V003 / CH32V006 -> PC4
+ *   CH32V203            -> PB2
+ */
 #include <zhele/iopins.h>
+#include <zhele/delay.h>
 
-using Led = Zhele::IO::Pd2;
+using namespace Zhele;
+using namespace Zhele::IO;
 
-static void delay() {
-    for (unsigned i = 1'000'000u; i != 0u; --i) {
-        __asm volatile ("nop");
-    }
-}
+#if defined(CH32V203)
+using Led = Pb2;
+#else
+using Led = Pc4;
+#endif
 
-int main() {
+int main()
+{
     Led::Port::Enable();
     Led::SetConfiguration<Led::Configuration::Out>();
     Led::SetDriverType<Led::DriverType::PushPull>();
 
-    for(;;) {
+    for (;;) {
         Led::Toggle();
-        delay();
+        delay_ms<500>();
     }
 }

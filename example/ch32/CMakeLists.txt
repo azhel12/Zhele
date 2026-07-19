@@ -1,6 +1,7 @@
 # CH32V examples
 
-ch32_fetch_cmsis(V0)
-find_package(CMSIS COMPONENTS CH32V0 REQUIRED)
+ch32_fetch_cmsis(V0 V2)
+find_package(CMSIS COMPONENTS CH32V0 CH32V2 REQUIRED)
 
+add_subdirectory(Clock)
 add_subdirectory(GPIO)
