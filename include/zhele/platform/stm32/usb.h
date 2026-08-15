@@ -24,5 +24,8 @@
 #if defined(STM32G0)
     #include "g0/usb.h"
 #endif
+#if defined(STM32G4)
+    #include "g4/usb.h"
+#endif
 
 #endif // ZHELE_PLATFORM_STM32_USB_H

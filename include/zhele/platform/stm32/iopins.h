@@ -28,5 +28,8 @@
 #if defined(STM32G0)
     #include "g0/iopins.h"
 #endif
+#if defined(STM32G4)
+    #include "g4/iopins.h"
+#endif
 
 #endif // ZHELE_PLATFORM_STM32_IOPINS_H

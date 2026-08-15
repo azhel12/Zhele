@@ -24,6 +24,9 @@
 #if defined(STM32G0)
     #include "g0/usart.h"
 #endif
+#if defined(STM32G4)
+    #include "g4/usart.h"
+#endif
 #if defined(STM32C0)
     #include "c0/usart.h"
 #endif

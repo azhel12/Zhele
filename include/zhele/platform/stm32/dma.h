@@ -25,6 +25,9 @@
 #if defined(STM32G0)
     #include "g0/dma.h"
 #endif
+#if defined(STM32G4)
+    #include "g4/dma.h"
+#endif
 #if defined(STM32C0)
     #include "c0/dma.h"
 #endif

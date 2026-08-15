@@ -24,6 +24,9 @@
 #if defined(STM32G0)
     #include "g0/timer.h"
 #endif
+#if defined(STM32G4)
+    #include "g4/timer.h"
+#endif
 #if defined(STM32C0)
     #include "c0/timer.h"
 #endif

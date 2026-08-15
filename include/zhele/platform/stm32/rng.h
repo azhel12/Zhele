@@ -21,5 +21,8 @@
 #if defined(STM32G0)
     #error STM32G0 does not support RNG
 #endif
+#if defined(STM32G4)
+    #include "g4/rng.h"
+#endif
 
 #endif // ZHELE_PLATFORM_STM32_RNG_H

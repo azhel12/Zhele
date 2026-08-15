@@ -121,7 +121,7 @@ namespace Zhele::Usb
          * 
          * @returns Bytes of interface descriptor
          */
-        static consteval auto FillDescriptor()
+        static consteval auto GetDescriptor()
         {
             constexpr unsigned size = sizeof(InterfaceDescriptor) + NestedDescriptorSize();
             std::array<uint8_t, size> result;

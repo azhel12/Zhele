@@ -110,6 +110,14 @@ namespace Zhele
             static void DisableBuffer();
 
             /**
+             * @brief Selects high frequency interface mode by AHB clock (if supported by device)
+             * 
+             * @par Returns
+             *  Nothing
+             */
+            static void SelectHighFrequencyMode();
+
+            /**
              * @brief Enable noise wave generation
              * 
              * @param amplitude Amplitude value
