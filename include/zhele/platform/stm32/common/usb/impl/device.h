@@ -443,11 +443,14 @@ namespace Zhele::Usb
     IO_STRUCT_WRAPPER(USB_OTG_FS_PERIPH_BASE + USB_OTG_DEVICE_BASE, UsbDeviceRegs, USB_OTG_DeviceTypeDef);
 #endif
 
-// USB_LP_IRQn/USB_HP_IRQn (split low/high priority IRQ, e.g. STM32G4) are IRQn_Type
-// enumerators, not preprocessor macros, so `defined(USB_LP_IRQn)` can't detect them:
-// a family header must `#define USB_IRQ` itself before including this file in that case.
+// On some families (e.g. STM32F1) USB_LP_IRQn/USB_HP_IRQn are preprocessor macros and
+// `defined(USB_LP_IRQn)` correctly detects them. On others (e.g. STM32G4) they are
+// IRQn_Type enumerators, invisible to `#if defined()` - such a family header must
+// `#define USB_IRQ` itself before including this file, which the guard below respects.
 #if !defined (USB_IRQ)
-#if defined (USB)
+#if defined (USB_LP_IRQn)
+    #define USB_IRQ USB_LP_IRQn
+#elif defined (USB)
     #define USB_IRQ USB_IRQn
 #elif defined (USB_OTG_FS)
     #define USB_IRQ OTG_FS_IRQn
