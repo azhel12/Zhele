@@ -28,5 +28,8 @@
 #if defined(STM32G0)
     #include "g0/delay.h"
 #endif
+#if defined(STM32G4)
+    #include "g4/delay.h"
+#endif
 
 #endif // ZHELE_PLATFORM_STM32_DELAY_H

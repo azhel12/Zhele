@@ -22,5 +22,8 @@
 #if defined(STM32G0)
     #include "g0/adc.h"
 #endif
+#if defined(STM32G4)
+    #include "g4/adc.h"
+#endif
 
 #endif // ZHELE_PLATFORM_STM32_ADC_H
