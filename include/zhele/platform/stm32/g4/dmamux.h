@@ -15,24 +15,27 @@
 
 namespace Zhele
 {
+    // Enumerator names are prefixed (SyncExtiN, not ExtiN) because DmamuxSyncInput is an
+    // unscoped enum in namespace Zhele (required by DmaMux's std::convertible_to<uint32_t>
+    // constraint) and would otherwise collide with the Exti0..Exti15 class aliases in exti.h.
     enum DmamuxSyncInput
     {
-        Exti0 = 0,
-        Exti1 = 1,
-        Exti2 = 2,
-        Exti3 = 3,
-        Exti4 = 4,
-        Exti5 = 5,
-        Exti6 = 6,
-        Exti7 = 7,
-        Exti8 = 8,
-        Exti9 = 9,
-        Exti10 = 10,
-        Exti11 = 11,
-        Exti12 = 12,
-        Exti13 = 13,
-        Exti14 = 14,
-        Exti15 = 15,
+        SyncExti0 = 0,
+        SyncExti1 = 1,
+        SyncExti2 = 2,
+        SyncExti3 = 3,
+        SyncExti4 = 4,
+        SyncExti5 = 5,
+        SyncExti6 = 6,
+        SyncExti7 = 7,
+        SyncExti8 = 8,
+        SyncExti9 = 9,
+        SyncExti10 = 10,
+        SyncExti11 = 11,
+        SyncExti12 = 12,
+        SyncExti13 = 13,
+        SyncExti14 = 14,
+        SyncExti15 = 15,
         DmamuxEvent0 = 16,
         DmamuxEvent1 = 17,
         DmamuxEvent2 = 18,
@@ -40,6 +43,8 @@ namespace Zhele
         Lptim1Out = 20,
     };
 
+    // Adc1..Adc5 are prefixed (AdcReqN, not AdcN) to avoid colliding with the Adc1..Adc5
+    // class template aliases in adc.h (same unscoped-enum issue as DmamuxSyncInput above).
     /// DMAMUX request inputs (RM0440 Table "DMAMUX: assignment of multiplexer inputs to resources")
     enum DmamuxRequestInput
     {
@@ -48,7 +53,7 @@ namespace Zhele
         Generator1 = 2,
         Generator2 = 3,
         Generator3 = 4,
-        Adc1 = 5,
+        AdcReq1 = 5,
         Dac1Ch1 = 6,
         Dac1Ch2 = 7,
         Tim6Up = 8,
@@ -79,10 +84,10 @@ namespace Zhele
         Uart5Tx = 33,
         Lpuart1Rx = 34,
         Lpuart1Tx = 35,
-        Adc2 = 36,
-        Adc3 = 37,
-        Adc4 = 38,
-        Adc5 = 39,
+        AdcReq2 = 36,
+        AdcReq3 = 37,
+        AdcReq4 = 38,
+        AdcReq5 = 39,
         Quadspi = 40,
         Dac2Ch1 = 41,
         Tim1Ch1 = 42,
