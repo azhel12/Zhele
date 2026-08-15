@@ -25,6 +25,7 @@
 #include "dma.h"
 #include "iopins.h"
 
+#include <zhele/common/template_utils/type_list.h>
 #include <zhele/delay.h>
 #include <zhele/pinlist.h>
 
@@ -46,20 +47,33 @@ namespace Zhele
         static constexpr int32_t Adc_TempSensorCal2Temp = 110;
         static constexpr uint16_t Adc_VrefintCalVref = 3000; // mV, Vdda at which VREFINT/TS were calibrated
 
+        /// Wraps an IRQn_Type value as a type, so it can join a homogeneous type parameter pack
+        template<IRQn_Type V>
+        using Irq = std::integral_constant<IRQn_Type, V>;
+
         /**
          * @brief Implements STM32G4 ADC (SAR ADC, ADEN/ADCAL-based)
          *
-         * @tparam _Regs ADC instance register wrapper
-         * @tparam _CommonRegs ADC12_COMMON/ADC345_COMMON register wrapper (shared by a pair of ADCs)
-         * @tparam _ClockCtrl Clock control (Clock::Adc12Clock or Clock::Adc345Clock)
-         * @tparam _IRQn ADC IRQ number
-         * @tparam _PinMap Pin map: exposes `io_pins` (PinList of bonded input pins) and a
-         *         `channels` array giving the ADC channel number for each pin (by index)
-         * @tparam _DmaChannel DMA channel used for StartRegular()/StopRegular() (optional)
+         * @tparam _Params Packed as (_Regs, _CommonRegs, _ClockCtrl, _IRQn, _PinMap, _DmaChannel):
+         *         _Regs ADC instance register wrapper;
+         *         _CommonRegs ADC12_COMMON/ADC345_COMMON register wrapper (shared by a pair of ADCs);
+         *         _ClockCtrl Clock control (Clock::Adc12Clock or Clock::Adc345Clock);
+         *         _IRQn ADC IRQ number, wrapped as Irq<V>;
+         *         _PinMap Pin map: exposes `io_pins` (PinList of bonded input pins) and a
+         *         `channels` array giving the ADC channel number for each pin (by index);
+         *         _DmaChannel DMA channel used for StartRegular()/StopRegular() (optional, default void)
          */
-        template<typename _Regs, typename _CommonRegs, typename _ClockCtrl, IRQn_Type _IRQn, typename _PinMap, typename _DmaChannel = void>
+        template<typename... _Params>
         class AdcG4 : public AdcCommon
         {
+            using _Args = Zhele::template_utils::type_list<_Params...>;
+            using _Regs = Zhele::template_utils::type_unbox<_Args::template get<0>()>;
+            using _CommonRegs = Zhele::template_utils::type_unbox<_Args::template get<1>()>;
+            using _ClockCtrl = Zhele::template_utils::type_unbox<_Args::template get<2>()>;
+            static constexpr IRQn_Type _IRQn = Zhele::template_utils::type_unbox<_Args::template get<3>()>::value;
+            using _PinMap = Zhele::template_utils::type_unbox<_Args::template get<4>()>;
+            using _DmaChannel = Zhele::template_utils::type_unbox<_Args::template get<5>()>;
+
         public:
             static const uint8_t ResolutionBits = 12;
 
@@ -233,11 +247,11 @@ namespace Zhele
     }
 
     template<typename _DmaChannel = void>
-    using Adc1 = Private::AdcG4<Private::Adc1Regs, Private::Adc12CommonRegs, Clock::Adc12Clock, ADC1_2_IRQn, Adc1Pins, _DmaChannel>;
+    using Adc1 = Private::AdcG4<Private::Adc1Regs, Private::Adc12CommonRegs, Clock::Adc12Clock, Private::Irq<ADC1_2_IRQn>, Adc1Pins, _DmaChannel>;
     using Adc1NoDma = Adc1<>;
 
     template<typename _DmaChannel = void>
-    using Adc2 = Private::AdcG4<Private::Adc2Regs, Private::Adc12CommonRegs, Clock::Adc12Clock, ADC1_2_IRQn, Adc2Pins, _DmaChannel>;
+    using Adc2 = Private::AdcG4<Private::Adc2Regs, Private::Adc12CommonRegs, Clock::Adc12Clock, Private::Irq<ADC1_2_IRQn>, Adc2Pins, _DmaChannel>;
     using Adc2NoDma = Adc2<>;
 
 #if defined (ADC3)
@@ -268,34 +282,31 @@ namespace Zhele
     }
 
     template<typename _DmaChannel = void>
-    using Adc3 = Private::AdcG4<Private::Adc3Regs, Private::Adc345CommonRegs, Clock::Adc345Clock, ADC3_IRQn, Adc3Pins, _DmaChannel>;
+    using Adc3 = Private::AdcG4<Private::Adc3Regs, Private::Adc345CommonRegs, Clock::Adc345Clock, Private::Irq<ADC3_IRQn>, Adc3Pins, _DmaChannel>;
     using Adc3NoDma = Adc3<>;
 
     template<typename _DmaChannel = void>
-    using Adc4 = Private::AdcG4<Private::Adc4Regs, Private::Adc345CommonRegs, Clock::Adc345Clock, ADC4_IRQn, Adc4Pins, _DmaChannel>;
+    using Adc4 = Private::AdcG4<Private::Adc4Regs, Private::Adc345CommonRegs, Clock::Adc345Clock, Private::Irq<ADC4_IRQn>, Adc4Pins, _DmaChannel>;
     using Adc4NoDma = Adc4<>;
 
     template<typename _DmaChannel = void>
-    using Adc5 = Private::AdcG4<Private::Adc5Regs, Private::Adc345CommonRegs, Clock::Adc345Clock, ADC5_IRQn, Adc5Pins, _DmaChannel>;
+    using Adc5 = Private::AdcG4<Private::Adc5Regs, Private::Adc345CommonRegs, Clock::Adc345Clock, Private::Irq<ADC5_IRQn>, Adc5Pins, _DmaChannel>;
     using Adc5NoDma = Adc5<>;
 #endif
 }
 
 namespace Zhele::Private
 {
-    #define ADCG4_TEMPLATE_ARGS template<typename _Regs, typename _CommonRegs, typename _ClockCtrl, IRQn_Type _IRQn, typename _PinMap, typename _DmaChannel>
-    #define ADCG4_TEMPLATE_QUALIFIER AdcG4<_Regs, _CommonRegs, _ClockCtrl, _IRQn, _PinMap, _DmaChannel>
-
-    ADCG4_TEMPLATE_ARGS
-    void ADCG4_TEMPLATE_QUALIFIER::Calibrate()
+    template<typename... _Params>
+    void AdcG4<_Params...>::Calibrate()
     {
         _Regs()->CR &= ~ADC_CR_ADCALDIF;
         _Regs()->CR |= ADC_CR_ADCAL;
         while ((_Regs()->CR & ADC_CR_ADCAL) != 0) continue;
     }
 
-    ADCG4_TEMPLATE_ARGS
-    void ADCG4_TEMPLATE_QUALIFIER::Init()
+    template<typename... _Params>
+    void AdcG4<_Params...>::Init()
     {
         _ClockCtrl::Enable();
 
@@ -325,8 +336,8 @@ namespace Zhele::Private
         }
     }
 
-    ADCG4_TEMPLATE_ARGS
-    void ADCG4_TEMPLATE_QUALIFIER::SetSampleTime(uint8_t channel, uint8_t sampleTime)
+    template<typename... _Params>
+    void AdcG4<_Params...>::SetSampleTime(uint8_t channel, uint8_t sampleTime)
     {
         uint32_t value = static_cast<uint32_t>(sampleTime & 0x7);
         if (channel <= 9)
@@ -341,24 +352,24 @@ namespace Zhele::Private
         }
     }
 
-    ADCG4_TEMPLATE_ARGS
+    template<typename... _Params>
     template<typename Pin>
-    void ADCG4_TEMPLATE_QUALIFIER::SetSampleTime(uint8_t sampleTime)
+    void AdcG4<_Params...>::SetSampleTime(uint8_t sampleTime)
     {
         SetSampleTime(ChannelNum<Pin>(), sampleTime);
     }
 
-    ADCG4_TEMPLATE_ARGS
+    template<typename... _Params>
     template<typename Pin>
-    constexpr uint8_t ADCG4_TEMPLATE_QUALIFIER::ChannelNum()
+    constexpr uint8_t AdcG4<_Params...>::ChannelNum()
     {
         constexpr int index = _PinMap::io_pins::template IndexOf<Pin>;
         static_assert(index >= 0, "Pin is not a member of this ADC's pin map");
         return _PinMap::channels[index];
     }
 
-    ADCG4_TEMPLATE_ARGS
-    void ADCG4_TEMPLATE_QUALIFIER::WriteSequenceSlot(uint8_t index, uint8_t channel)
+    template<typename... _Params>
+    void AdcG4<_Params...>::WriteSequenceSlot(uint8_t index, uint8_t channel)
     {
         uint32_t value = static_cast<uint32_t>(channel & 0x1F);
         if (index < 4)
@@ -371,8 +382,8 @@ namespace Zhele::Private
             _Regs()->SQR4 |= value << ((index - 14) * 6);
     }
 
-    ADCG4_TEMPLATE_ARGS
-    uint16_t ADCG4_TEMPLATE_QUALIFIER::ReadSingle(uint8_t channel)
+    template<typename... _Params>
+    uint16_t AdcG4<_Params...>::ReadSingle(uint8_t channel)
     {
         _Regs()->SQR1 = static_cast<uint32_t>(channel & 0x1F) << ADC_SQR1_SQ1_Pos;
         _Regs()->ISR = ADC_ISR_EOC | ADC_ISR_EOS;
@@ -381,25 +392,25 @@ namespace Zhele::Private
         return static_cast<uint16_t>(_Regs()->DR);
     }
 
-    ADCG4_TEMPLATE_ARGS
+    template<typename... _Params>
     template<typename Pin>
-    void ADCG4_TEMPLATE_QUALIFIER::ConfigureAnalogPin()
+    void AdcG4<_Params...>::ConfigureAnalogPin()
     {
         static_assert(_PinMap::io_pins::template IndexOf<Pin> >= 0, "Pin is not a member of this ADC's pin map");
         Pin::Port::Enable();
         Pin::template SetConfiguration<Pin::Configuration::Analog>();
     }
 
-    ADCG4_TEMPLATE_ARGS
+    template<typename... _Params>
     template<typename Pin>
-    uint16_t ADCG4_TEMPLATE_QUALIFIER::ReadSingle()
+    uint16_t AdcG4<_Params...>::ReadSingle()
     {
         ConfigureAnalogPin<Pin>();
         return ReadSingle(ChannelNum<Pin>());
     }
 
-    ADCG4_TEMPLATE_ARGS
-    bool ADCG4_TEMPLATE_QUALIFIER::StartRegular(const uint8_t* channels, uint8_t channelsCount, uint16_t* dataBuffer, uint16_t scanCount)
+    template<typename... _Params>
+    bool AdcG4<_Params...>::StartRegular(const uint8_t* channels, uint8_t channelsCount, uint16_t* dataBuffer, uint16_t scanCount)
     {
         static_assert(!std::is_void_v<_DmaChannel>, "StartRegular requires a DMA channel");
 
@@ -427,8 +438,8 @@ namespace Zhele::Private
         return true;
     }
 
-    ADCG4_TEMPLATE_ARGS
-    void ADCG4_TEMPLATE_QUALIFIER::StopRegular()
+    template<typename... _Params>
+    void AdcG4<_Params...>::StopRegular()
     {
         static_assert(!std::is_void_v<_DmaChannel>, "StopRegular requires a DMA channel");
 
@@ -441,23 +452,23 @@ namespace Zhele::Private
         _DmaChannel::Disable();
     }
 
-    ADCG4_TEMPLATE_ARGS
-    void ADCG4_TEMPLATE_QUALIFIER::EnableVref() { _CommonRegs()->CCR |= ADC_CCR_VREFEN; }
-    ADCG4_TEMPLATE_ARGS
-    void ADCG4_TEMPLATE_QUALIFIER::DisableVref() { _CommonRegs()->CCR &= ~ADC_CCR_VREFEN; }
+    template<typename... _Params>
+    void AdcG4<_Params...>::EnableVref() { _CommonRegs()->CCR |= ADC_CCR_VREFEN; }
+    template<typename... _Params>
+    void AdcG4<_Params...>::DisableVref() { _CommonRegs()->CCR &= ~ADC_CCR_VREFEN; }
 
-    ADCG4_TEMPLATE_ARGS
-    void ADCG4_TEMPLATE_QUALIFIER::EnableTemperatureSensor() { _CommonRegs()->CCR |= ADC_CCR_VSENSESEL; }
-    ADCG4_TEMPLATE_ARGS
-    void ADCG4_TEMPLATE_QUALIFIER::DisableTemperatureSensor() { _CommonRegs()->CCR &= ~ADC_CCR_VSENSESEL; }
+    template<typename... _Params>
+    void AdcG4<_Params...>::EnableTemperatureSensor() { _CommonRegs()->CCR |= ADC_CCR_VSENSESEL; }
+    template<typename... _Params>
+    void AdcG4<_Params...>::DisableTemperatureSensor() { _CommonRegs()->CCR &= ~ADC_CCR_VSENSESEL; }
 
-    ADCG4_TEMPLATE_ARGS
-    void ADCG4_TEMPLATE_QUALIFIER::EnableVBat() { _CommonRegs()->CCR |= ADC_CCR_VBATSEL; }
-    ADCG4_TEMPLATE_ARGS
-    void ADCG4_TEMPLATE_QUALIFIER::DisableVBat() { _CommonRegs()->CCR &= ~ADC_CCR_VBATSEL; }
+    template<typename... _Params>
+    void AdcG4<_Params...>::EnableVBat() { _CommonRegs()->CCR |= ADC_CCR_VBATSEL; }
+    template<typename... _Params>
+    void AdcG4<_Params...>::DisableVBat() { _CommonRegs()->CCR &= ~ADC_CCR_VBATSEL; }
 
-    ADCG4_TEMPLATE_ARGS
-    uint16_t ADCG4_TEMPLATE_QUALIFIER::MeasureVdda()
+    template<typename... _Params>
+    uint16_t AdcG4<_Params...>::MeasureVdda()
     {
         EnableVref();
         delay_us<12>(); // tSTART, VREFINT
@@ -470,14 +481,14 @@ namespace Zhele::Private
         return _vddaMv;
     }
 
-    ADCG4_TEMPLATE_ARGS
-    unsigned ADCG4_TEMPLATE_QUALIFIER::ToVolts(uint16_t value)
+    template<typename... _Params>
+    unsigned AdcG4<_Params...>::ToVolts(uint16_t value)
     {
         return static_cast<unsigned>(value) * _vddaMv / ((1u << ResolutionBits) - 1);
     }
 
-    ADCG4_TEMPLATE_ARGS
-    int16_t ADCG4_TEMPLATE_QUALIFIER::ReadTemperature()
+    template<typename... _Params>
+    int16_t AdcG4<_Params...>::ReadTemperature()
     {
         EnableTemperatureSensor();
         delay_us<120>(); // tS_TEMPSENSOR (temperature sensor buffer stabilization time)
@@ -495,14 +506,12 @@ namespace Zhele::Private
             + Adc_TempSensorCal1Temp);
     }
 
-    ADCG4_TEMPLATE_ARGS
-    void ADCG4_TEMPLATE_QUALIFIER::IrqHandler()
+    template<typename... _Params>
+    void AdcG4<_Params...>::IrqHandler()
     {
         _Regs()->ISR = _Regs()->ISR;
     }
 
-    #undef ADCG4_TEMPLATE_ARGS
-    #undef ADCG4_TEMPLATE_QUALIFIER
 }
 
 #endif //! ZHELE_PLATFORM_STM32_G4_ADC_H
