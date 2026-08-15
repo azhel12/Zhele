@@ -111,13 +111,34 @@ namespace Zhele
             static uint16_t ReadSingle(uint8_t channel);
 
             /**
+             * @brief Switches given pin to analog mode
+             *
+             * @details
+             * Not done automatically for the whole pin map in Init(): a pin map can list
+             * pins shared with other peripherals (e.g. a USART on the same physical pin),
+             * so only pins actually used for conversion are switched to analog, and only
+             * on demand. Called automatically by ReadSingle<Pin>(); call explicitly before
+             * StartRegular() for every pin used in the channel list.
+             *
+             * @par Returns
+             *  Nothing
+             */
+            template<typename Pin>
+            static void ConfigureAnalogPin();
+
+            /**
              * @brief Performs single blocking conversion on channel connected to given pin
+             * (switches the pin to analog mode first, see ConfigureAnalogPin())
              */
             template<typename Pin>
             static uint16_t ReadSingle();
 
             /**
              * @brief Starts continuous regular sequence conversion with DMA transfer
+             *
+             * @details
+             * Pins for the given channels must already be configured as analog
+             * (see ConfigureAnalogPin()) — this method only touches ADC registers.
              *
              * @param channels Channels array
              * @param channelsCount Channels count (1..16)
@@ -287,12 +308,21 @@ namespace Zhele::Private
 
         Calibrate();
 
-        _PinMap::io_pins::Enable();
-        _PinMap::io_pins::SetConfiguration(_PinMap::io_pins::Configuration::Analog);
+        // Input pins are NOT configured here: this instance's pin map can list pins that
+        // are shared with other peripherals (e.g. a USART on the same physical pin), and
+        // blanket-configuring all of them as analog would silently steal such a pin.
+        // Pins are switched to analog mode lazily, only for the channel actually read
+        // (see ReadSingle<Pin>()/ConfigureAnalogPin()).
 
         _Regs()->ISR = ADC_ISR_ADRDY;
         _Regs()->CR |= ADC_CR_ADEN;
-        while ((_Regs()->ISR & ADC_ISR_ADRDY) == 0) continue;
+        // If ADEN is set less than 4 ADC clock cycles after ADCAL was cleared, the
+        // calibration logic silently resets it: keep re-asserting ADEN until ADRDY sets.
+        while ((_Regs()->ISR & ADC_ISR_ADRDY) == 0)
+        {
+            if ((_Regs()->CR & ADC_CR_ADEN) == 0)
+                _Regs()->CR |= ADC_CR_ADEN;
+        }
     }
 
     ADCG4_TEMPLATE_ARGS
@@ -353,8 +383,18 @@ namespace Zhele::Private
 
     ADCG4_TEMPLATE_ARGS
     template<typename Pin>
+    void ADCG4_TEMPLATE_QUALIFIER::ConfigureAnalogPin()
+    {
+        static_assert(_PinMap::io_pins::template IndexOf<Pin> >= 0, "Pin is not a member of this ADC's pin map");
+        Pin::Port::Enable();
+        Pin::template SetConfiguration<Pin::Configuration::Analog>();
+    }
+
+    ADCG4_TEMPLATE_ARGS
+    template<typename Pin>
     uint16_t ADCG4_TEMPLATE_QUALIFIER::ReadSingle()
     {
+        ConfigureAnalogPin<Pin>();
         return ReadSingle(ChannelNum<Pin>());
     }
 
@@ -421,6 +461,9 @@ namespace Zhele::Private
     {
         EnableVref();
         delay_us<12>(); // tSTART, VREFINT
+        // Internal channels have high source impedance: use the longest sample time
+        // (640.5 ADC cycles), matching the conditions TS_CAL/VREFINT_CAL were measured at.
+        SetSampleTime(ReferenceChannel, 0b111);
         uint16_t raw = ReadSingle(ReferenceChannel);
         uint16_t cal = *reinterpret_cast<const volatile uint16_t*>(Adc_VrefintCalAddr);
         _vddaMv = static_cast<uint16_t>((static_cast<uint32_t>(Adc_VrefintCalVref) * cal) / raw);
@@ -437,7 +480,8 @@ namespace Zhele::Private
     int16_t ADCG4_TEMPLATE_QUALIFIER::ReadTemperature()
     {
         EnableTemperatureSensor();
-        delay_us<10>(); // tSTART, temperature sensor
+        delay_us<120>(); // tS_TEMPSENSOR (temperature sensor buffer stabilization time)
+        SetSampleTime(TempSensorChannel, 0b111); // 640.5 ADC cycles, see MeasureVdda()
         uint16_t raw = ReadSingle(TempSensorChannel);
         uint16_t cal1 = *reinterpret_cast<const volatile uint16_t*>(Adc_TempSensorCal1Addr);
         uint16_t cal2 = *reinterpret_cast<const volatile uint16_t*>(Adc_TempSensorCal2Addr);
