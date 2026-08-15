@@ -18,6 +18,7 @@ namespace Zhele::Private
     void DAC_TEMPLATE_QUALIFIER::Init()
     {
         _ClockCtrl::Enable();
+        SelectHighFrequencyMode();
     }
 
     DAC_TEMPLATE_ARGS
@@ -25,6 +26,7 @@ namespace Zhele::Private
     void DAC_TEMPLATE_QUALIFIER::Init(Trigger trigger)
     {
         _ClockCtrl::Enable();
+        SelectHighFrequencyMode();
         _Regs()->CR |= (DAC_CR_TEN1
                     | (static_cast<uint8_t>(trigger) << DAC_CR_TSEL1_Pos)
                 ) << (_Channel * ChannelOffset);
@@ -45,13 +47,34 @@ namespace Zhele::Private
     DAC_TEMPLATE_ARGS
     void DAC_TEMPLATE_QUALIFIER::EnableBuffer()
     {
+#if defined (DAC_CR_BOFF1)
         _Regs()->CR &= ~(DAC_CR_BOFF1 << (_Channel * ChannelOffset));
+#else
+        // MODE = 000: normal mode, connected to external pin with buffer enabled
+        _Regs()->MCR &= ~(DAC_MCR_MODE1_1 << (_Channel * ChannelOffset));
+#endif
     }
 
     DAC_TEMPLATE_ARGS
     void DAC_TEMPLATE_QUALIFIER::DisableBuffer()
     {
+#if defined (DAC_CR_BOFF1)
         _Regs()->CR |= (DAC_CR_BOFF1 << (_Channel * ChannelOffset));
+#else
+        // MODE = 010: normal mode, connected to external pin with buffer disabled
+        _Regs()->MCR |= (DAC_MCR_MODE1_1 << (_Channel * ChannelOffset));
+#endif
+    }
+
+    DAC_TEMPLATE_ARGS
+    void DAC_TEMPLATE_QUALIFIER::SelectHighFrequencyMode()
+    {
+#if defined (DAC_MCR_HFSEL)
+        // High frequency interface mode depends on AHB clock: > 160 MHz, > 80 MHz or below
+        auto ahbFreq = _ClockCtrl::ClockFreq();
+        _Regs()->MCR = (_Regs()->MCR & ~DAC_MCR_HFSEL)
+            | (ahbFreq > 160000000u ? DAC_MCR_HFSEL_1 : (ahbFreq > 80000000u ? DAC_MCR_HFSEL_0 : 0));
+#endif
     }
 
     DAC_TEMPLATE_ARGS
