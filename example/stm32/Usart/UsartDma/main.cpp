@@ -9,6 +9,13 @@ using namespace Zhele::IO;
     #include <zhele/dmamux.h>
     using UsartConnection = Usart2<Dma1Channel1, Dma1Channel2>;
     using Led = Pa4Inv;
+#elif defined (STM32H5)
+    #include <zhele/clock.h>
+    #include <zhele/dma.h>
+    #include <zhele/dmamux.h>
+    // STM32H503CB: USART2 on PA2/PA3 over GPDMA1, LED assumed on PA5
+    using UsartConnection = Usart2<Dma1Channel0, Dma1Channel1>;
+    using Led = Pa5;
 #elif defined (STM32G0)
     #include <zhele/dma.h>
     #include <zhele/dmamux.h>
@@ -33,6 +40,11 @@ int main()
     Clock::SetHsiSysDivider<1>();
     Clock::SysClock::SelectClockSource<Clock::SysClock::Internal>();
 #endif
+#if defined (STM32H5)
+    // Run SYSCLK straight off HSI with no divider (64 MHz), no crystal needed
+    Clock::SetHsiDivider<1>();
+    Clock::SysClock::SelectClockSource<Clock::SysClock::Internal>();
+#endif
 
     Led::Port::Enable();
     Led::SetConfiguration(Led::Configuration::Out);
@@ -41,7 +53,7 @@ int main()
 
     // Init usart
     UsartConnection::Init(9600);
-#if defined (STM32C0)
+#if defined (STM32C0) || defined (STM32H5)
     UsartConnection::SelectTxRxPins<Pa2, Pa3>();
 #else
     UsartConnection::SelectTxRxPins<Pb6, Pb7>();
@@ -52,6 +64,10 @@ int main()
     Dma1::Enable();
     DmaMux1Channel1::SelectRequestInput(DmaMux1::RequestInput::Usart2Tx);
     DmaMux1Channel2::SelectRequestInput(DmaMux1::RequestInput::Usart2Rx);
+#elif defined (STM32H5)
+    Dma1::Enable();
+    DmaMux1Channel0::SelectRequestInput(DmaMux1::RequestInput::Usart2Tx);
+    DmaMux1Channel1::SelectRequestInput(DmaMux1::RequestInput::Usart2Rx);
 #elif defined (STM32G0)
     Dma1::Enable();
     DmaMux1Channel1::SelectRequestInput(DmaMux1::RequestInput::Usart1Tx);
@@ -89,6 +105,7 @@ extern "C" {
 // F401: Dma2Stream7Channel4, Dma2Stream2Channel4
 // G030 (configurable by DMAMUX): Dma1Channel1, Dma1Channel2
 // C011 (configurable by DMAMUX): Dma1Channel1, Dma1Channel2 (ch1 own line, ch2/3 shared)
+// H503 (GPDMA, request selected per channel): Dma1Channel0, Dma1Channel1 (own lines)
 
 #if defined (STM32C0)
     void DMA1_Channel1_IRQHandler()
@@ -120,6 +137,15 @@ extern "C" {
         UsartConnection::DmaTx::IrqHandler();
     }
     void DMA2_Stream2_IRQHandler()
+    {
+        UsartConnection::DmaRx::IrqHandler();
+    }
+#elif defined (STM32H5)
+    void GPDMA1_Channel0_IRQHandler()
+    {
+        UsartConnection::DmaTx::IrqHandler();
+    }
+    void GPDMA1_Channel1_IRQHandler()
     {
         UsartConnection::DmaRx::IrqHandler();
     }

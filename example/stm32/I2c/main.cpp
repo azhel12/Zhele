@@ -7,6 +7,10 @@ using namespace Zhele;
 #include <zhele/dma.h>
 #include <zhele/dmamux.h>
 using Interface = I2c1<Dma1Channel1, Dma1Channel2>;
+#elif defined (STM32H5)
+#include <zhele/dma.h>
+#include <zhele/dmamux.h>
+using Interface = I2c1<Dma1Channel0, Dma1Channel1>;
 #else
 using Interface = I2c1;
 #endif
@@ -35,6 +39,10 @@ int main()
     Dma1::Enable();
     DmaMux1Channel1::SelectRequestInput(DmaMux1::RequestInput::I2c1Tx);
     DmaMux1Channel2::SelectRequestInput(DmaMux1::RequestInput::I2c1Rx);
+#elif defined (STM32H5)
+    Dma1::Enable();
+    DmaMux1Channel0::SelectRequestInput(DmaMux1::RequestInput::I2c1Tx);
+    DmaMux1Channel1::SelectRequestInput(DmaMux1::RequestInput::I2c1Rx);
 #endif
     Interface::EnableAsyncRead(0xD0 >> 1, 0x06, data, 555);
     Interface::WriteAsync(0xD0 >> 1, 0x06, data, 555);

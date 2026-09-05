@@ -13,6 +13,28 @@
 
 namespace Zhele
 {
+    namespace Private
+    {
+        /**
+         * @brief Flash controller registers, by role
+         *
+         * @details
+         * Every family calls them KEYR/CR/SR except H5, where the ones reachable
+         * from non-secure code are named NSKEYR/NSCR/NSSR. The *bit* names
+         * (FLASH_CR_LOCK, FLASH_SR_BSY, ...) are shared, so only the register
+         * accessors need indirection.
+         */
+    #if defined (STM32H5)
+        inline volatile uint32_t& FlashKeyReg() { return FLASH->NSKEYR; }
+        inline volatile uint32_t& FlashControlReg() { return FLASH->NSCR; }
+        inline volatile uint32_t& FlashStatusReg() { return FLASH->NSSR; }
+    #else
+        inline volatile uint32_t& FlashKeyReg() { return FLASH->KEYR; }
+        inline volatile uint32_t& FlashControlReg() { return FLASH->CR; }
+        inline volatile uint32_t& FlashStatusReg() { return FLASH->SR; }
+    #endif
+    }
+
     inline constexpr unsigned Flash::SqrtOfPowerOfTwo(uint32_t value)
     {
         unsigned result = 0;
@@ -51,22 +73,22 @@ namespace Zhele
         static constexpr uint32_t flashKey1 = 0x45670123UL;
         static constexpr uint32_t flashKey2 = 0xCDEF89ABUL;
 
-        FLASH->KEYR = flashKey1;
-        FLASH->KEYR = flashKey2;
-        
+        Private::FlashKeyReg() = flashKey1;
+        Private::FlashKeyReg() = flashKey2;
+
         WaitWhileBusy();
 
-        return (FLASH->CR & FLASH_CR_LOCK) > 0;
+        return (Private::FlashControlReg() & FLASH_CR_LOCK) > 0;
     }
 
     inline void Flash::Lock()
     {
-        FLASH->CR |= FLASH_CR_LOCK;
+        Private::FlashControlReg() |= FLASH_CR_LOCK;
     }
 
     inline bool Flash::IsLock()
     {
-        return (FLASH->CR & FLASH_CR_LOCK) != 0;
+        return (Private::FlashControlReg() & FLASH_CR_LOCK) != 0;
     }
 
     inline bool Flash::WritePage(void* dst, const void* src, unsigned size)
@@ -97,9 +119,9 @@ namespace Zhele
     inline void Flash::WaitWhileBusy()
     {
     #if defined (FLASH_SR_BSY1)
-        while(FLASH->SR & FLASH_SR_BSY1 ) continue;
+        while(Private::FlashStatusReg() & FLASH_SR_BSY1) continue;
     #else
-        while(FLASH->SR & FLASH_SR_BSY) continue;
+        while(Private::FlashStatusReg() & FLASH_SR_BSY) continue;
     #endif
     }
 }

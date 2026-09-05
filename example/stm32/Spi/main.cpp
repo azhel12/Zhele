@@ -8,6 +8,10 @@ using namespace Zhele::IO;
 #include <zhele/dma.h>
 #include <zhele/dmamux.h>
 using SpiInterface = Spi1<Dma1Channel1, Dma1Channel2>;
+#elif defined (STM32H5)
+#include <zhele/dma.h>
+#include <zhele/dmamux.h>
+using SpiInterface = Spi1<Dma1Channel0, Dma1Channel1>;
 #else
 using SpiInterface = Spi1;
 #endif
@@ -38,6 +42,10 @@ int main()
     Dma1::Enable();
     DmaMux1Channel1::SelectRequestInput(DmaMux1::RequestInput::Spi1Tx);
     DmaMux1Channel2::SelectRequestInput(DmaMux1::RequestInput::Spi1Rx);
+#elif defined (STM32H5)
+    Dma1::Enable();
+    DmaMux1Channel0::SelectRequestInput(DmaMux1::RequestInput::Spi1Tx);
+    DmaMux1Channel1::SelectRequestInput(DmaMux1::RequestInput::Spi1Rx);
 #endif
     uint8_t data[] = {0xde, 0xad, 0xbe, 0xef};
     SpiInterface::WriteAsync(data, 4);

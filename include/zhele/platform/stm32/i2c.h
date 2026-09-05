@@ -25,6 +25,9 @@
 #if defined(STM32G0)
     #include "g0/i2c.h"
 #endif
+#if defined(STM32H5)
+    #include "h5/i2c.h"
+#endif
 #if defined(STM32C0)
     #include "c0/i2c.h"
 #endif

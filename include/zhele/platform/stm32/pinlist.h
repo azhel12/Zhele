@@ -25,5 +25,8 @@
 #if defined(STM32G0)
     #include "g0/pinlist.h"
 #endif
+#if defined(STM32H5)
+    #include "h5/pinlist.h"
+#endif
 
 #endif // ZHELE_PLATFORM_STM32_PINLIST_H

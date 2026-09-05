@@ -25,5 +25,8 @@
 #if defined(STM32G0)
     #include "g0/dac.h"
 #endif
+#if defined(STM32H5)
+    #include "h5/dac.h"
+#endif
 
 #endif // ZHELE_PLATFORM_STM32_DAC_H

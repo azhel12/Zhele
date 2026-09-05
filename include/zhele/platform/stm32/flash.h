@@ -28,5 +28,8 @@
 #if defined(STM32G0)
     #include "g0/flash.h"
 #endif
+#if defined(STM32H5)
+    #include "h5/flash.h"
+#endif
 
 #endif // ZHELE_PLATFORM_STM32_FLASH_H

@@ -21,6 +21,9 @@
 #if defined(STM32G0)
     #include <stm32g0xx.h>
 #endif
+#if defined(STM32H5)
+    #include <stm32h5xx.h>
+#endif
 
 #include "common/crc.h"
 

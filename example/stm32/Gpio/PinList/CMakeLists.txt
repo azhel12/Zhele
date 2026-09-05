@@ -6,8 +6,8 @@ set (CMAKE_CXX_STANDARD 23)
 project(pinlist CXX C ASM)
 
 # Populate CMSIS using stm32-cmake project (Commented for use in github actions, uncomment if you want to build example alone)
-#stm32_fetch_cmsis(F0 F1 F4 G0)
-#find_package(CMSIS COMPONENTS STM32F0 STM32F1 STM32F4 STM32G0 REQUIRED)
+#stm32_fetch_cmsis(F0 F1 F4 G0 H5)
+#find_package(CMSIS COMPONENTS STM32F0 STM32F1 STM32F4 STM32G0 STM32H503CB REQUIRED)
 
 # Add zhele as include directory
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../../../include)
@@ -35,3 +35,9 @@ add_executable(pinlist_g0 main.cpp)
 target_link_libraries(pinlist_g0 CMSIS::STM32::G030F6 STM32::NoSys STM32::Nano)
 target_compile_options(pinlist_g0 PRIVATE -fno-exceptions $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti> -ffunction-sections -fdata-sections)
 stm32_print_size_of_target(pinlist_g0)
+
+# H5 build (STM32H503CB; PC14/PC15 sit in the backup domain, same 2 MHz limit as PC13)
+add_executable(pinlist_h503 main.cpp)
+target_link_libraries(pinlist_h503 CMSIS::STM32::H503CB STM32::NoSys STM32::Nano)
+target_compile_options(pinlist_h503 PRIVATE -fno-exceptions $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti> -ffunction-sections -fdata-sections)
+stm32_print_size_of_target(pinlist_h503)

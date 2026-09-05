@@ -126,6 +126,12 @@ namespace Zhele::IO
     #else
         DECLARE_PORT_PINS(NullPort, Pg)
     #endif
+
+    #if defined (GPIOH)
+        DECLARE_PORT_PINS(Porth, Ph)
+    #else
+        DECLARE_PORT_PINS(NullPort, Ph)
+    #endif
 }
 
 #endif // !ZHELE_PLATFORM_STM32_COMMON_IOPINS_H

@@ -45,13 +45,22 @@ namespace Zhele::Private
     DAC_TEMPLATE_ARGS
     void DAC_TEMPLATE_QUALIFIER::EnableBuffer()
     {
+    #if defined (DAC_MCR_MODE1)
+        _Regs()->MCR &= ~(DAC_MCR_MODE1_Msk << (_Channel * ChannelOffset));
+    #else
         _Regs()->CR &= ~(DAC_CR_BOFF1 << (_Channel * ChannelOffset));
+    #endif
     }
 
     DAC_TEMPLATE_ARGS
     void DAC_TEMPLATE_QUALIFIER::DisableBuffer()
     {
+    #if defined (DAC_MCR_MODE1)
+        _Regs()->MCR = (_Regs()->MCR & ~(DAC_MCR_MODE1_Msk << (_Channel * ChannelOffset)))
+            | (0b010u << (_Channel * ChannelOffset));
+    #else
         _Regs()->CR |= (DAC_CR_BOFF1 << (_Channel * ChannelOffset));
+    #endif
     }
 
     DAC_TEMPLATE_ARGS

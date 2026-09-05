@@ -66,7 +66,12 @@ namespace Zhele
     template<uint8_t _Line, IRQn_Type _IRQn>
     void Exti<_Line, _IRQn>::ClearInterruptFlag()
     {
+#if defined (EXTI_RPR1_RPIF0)
+        EXTI->RPR1 = (1 << _Line);
+        EXTI->FPR1 = (1 << _Line);
+#else
         EXTI->PR |= (1 << _Line);
+#endif
     }
 }
 #endif //! ZHELE_PLATFORM_STM32_COMMON_IMPL_EXTI_H

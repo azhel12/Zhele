@@ -714,6 +714,10 @@ namespace Zhele
         #if defined(GPIOG)
             MAKE_PORT(GPIOG, Clock::PortgClock, Portg, 'G')
         #endif
+
+        #if defined(GPIOH)
+            MAKE_PORT(GPIOH, Clock::PorthClock, Porth, 'H')
+        #endif
     }
 }
 

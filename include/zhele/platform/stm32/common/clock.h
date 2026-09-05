@@ -25,9 +25,21 @@ namespace Zhele
 #if defined (STM32C0)
         IO_REG_WRAPPER(RCC->CSR2, RccCsrReg, uint32_t);
         IO_REG_WRAPPER(RCC->CSR1, RccBdcrReg, uint32_t);
+#elif defined (STM32H5)
+        // H5 has no RCC_CSR at all: LSI and LSE both live in BDCR
+        IO_REG_WRAPPER(RCC->BDCR, RccCsrReg, uint32_t);
+        IO_REG_WRAPPER(RCC->BDCR, RccBdcrReg, uint32_t);
 #else
         IO_REG_WRAPPER(RCC->CSR, RccCsrReg, uint32_t);
         IO_REG_WRAPPER(RCC->BDCR, RccBdcrReg, uint32_t);
+#endif
+
+#if defined (STM32H5)
+        // H5 split the old CFGR in two: the system clock mux stayed in CFGR1,
+        // the bus prescalers moved to CFGR2
+        IO_REG_WRAPPER(RCC->CFGR1, RccCfgrReg, uint32_t);
+#else
+        IO_REG_WRAPPER(RCC->CFGR, RccCfgrReg, uint32_t);
 #endif
 
         /**
@@ -130,9 +142,10 @@ namespace Zhele
              * 
              * @returns Hsi divider
              */
-#if defined (STM32C0)
-            // STM32C0 derives HSISYS from HSI48 through the runtime HSIDIV prescaler,
-            // so the divider is read from a register and cannot be constexpr.
+#if defined (STM32C0) || defined (STM32H5)
+            // STM32C0 derives HSISYS from HSI48, STM32H5 derives hsi_ck from the
+            // 64 MHz RC, both through a runtime HSIDIV prescaler, so the divider
+            // is read from a register and cannot be constexpr.
             static unsigned GetDivider();
 #else
             static constexpr unsigned GetDivider();
@@ -153,7 +166,7 @@ namespace Zhele
              *
              * @returns Final frequence
              */
-#if defined (STM32C0)
+#if defined (STM32C0) || defined (STM32H5)
             static ClockFrequenceT ClockFreq();
 #else
             static constexpr ClockFrequenceT ClockFreq();

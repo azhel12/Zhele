@@ -22,4 +22,7 @@
     #error STM32G0 does not support RNG
 #endif
 
+#if defined(STM32H5)
+    #include "h5/rng.h"
+#endif
 #endif // ZHELE_PLATFORM_STM32_RNG_H
