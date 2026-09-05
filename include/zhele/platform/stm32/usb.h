@@ -25,4 +25,7 @@
     #include "g0/usb.h"
 #endif
 
+#if defined(STM32H5)
+    #include "h5/usb.h"
+#endif
 #endif // ZHELE_PLATFORM_STM32_USB_H

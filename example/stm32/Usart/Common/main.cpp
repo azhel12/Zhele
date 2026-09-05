@@ -3,7 +3,7 @@
 
 #include <zhele/iopins.h>
 #include <zhele/usart.h>
-#if defined (STM32C0)
+#if defined (STM32C0) || defined (STM32H5)
 #include <zhele/clock.h>
 #endif
 
@@ -13,6 +13,10 @@ using namespace Zhele::IO;
 #if defined (STM32C0)
     using UsartConnection = Usart2<>;
     using Led = Pa4Inv;
+#elif defined (STM32H5)
+    // STM32H503CB: USART2 on PA2/PA3, LED assumed on PA5
+    using UsartConnection = Usart2<>;
+    using Led = Pa5;
 #elif defined (STM32G0)
     using UsartConnection = Usart1<>;
     using Led = Pa7;
@@ -30,6 +34,11 @@ int main()
     Clock::SetHsiSysDivider<1>();
     Clock::SysClock::SelectClockSource<Clock::SysClock::Internal>();
 #endif
+#if defined (STM32H5)
+    // Run SYSCLK straight off HSI with no divider (64 MHz), no crystal needed
+    Clock::SetHsiDivider<1>();
+    Clock::SysClock::SelectClockSource<Clock::SysClock::Internal>();
+#endif
 
     Led::Port::Enable();
     Led::SetConfiguration(Led::Configuration::Out);
@@ -39,7 +48,7 @@ int main()
     // Init usart, baud = 9600
     UsartConnection::Init(9600);
     // Select pins
-#if defined (STM32C0)
+#if defined (STM32C0) || defined (STM32H5)
     UsartConnection::SelectTxRxPins<Pa2, Pa3>();
 #else
     UsartConnection::SelectTxRxPins<Pb6, Pb7>();
@@ -64,7 +73,7 @@ int Size = 0;
 
 extern "C"
 {
-#if defined (STM32C0)
+#if defined (STM32C0) || defined (STM32H5)
     void USART2_IRQHandler()
 #else
     void USART1_IRQHandler()

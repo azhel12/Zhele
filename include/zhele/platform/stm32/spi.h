@@ -25,5 +25,11 @@
 #if defined(STM32G0)
     #include "g0/spi.h"
 #endif
+#if defined(STM32H5)
+    #include "h5/spi.h"
+#endif
+#if defined(STM32C0)
+    #include "c0/spi.h"
+#endif
 
 #endif // ZHELE_PLATFORM_STM32_SPI_H

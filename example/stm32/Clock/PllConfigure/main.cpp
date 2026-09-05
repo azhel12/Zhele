@@ -69,6 +69,25 @@ void ConfigureClock()
     // Try select PLL as sysclock source
     SysClock::SelectClockSource<SysClock::Pll>();
 }
+#elif defined (STM32H5) // H503CB
+void ConfigureClock()
+{
+    // 250 MHz needs the highest core voltage scale; raise it before the frequency
+    SetVoltageScale(VoltageScale::Scale0);
+
+    // HSI (64 MHz) / PLL1M = 8 -> 8 MHz reference
+    PllClock::SelectClockSource<PllClock::Internal>();
+    // SetDivider also programs PLL1RGE from the resulting reference frequency
+    PllClock::SetDivider<8>();
+    // 8 MHz * 62 = 496 MHz VCO (wide range is 128..560 MHz)
+    PllClock::SetMultiplier<62>();
+    // pll1_p_ck = 496 / 2 = 248 MHz
+    PllClock::SetSystemOutputDivider<2>();
+    // Set Apb1 prescaler
+    Apb1Clock::SetPrescaler<Apb1Clock::Div2>();
+    // Try select PLL as sysclock source
+    SysClock::SelectClockSource<SysClock::Pll>();
+}
 #else
     #error "No example"
 #endif

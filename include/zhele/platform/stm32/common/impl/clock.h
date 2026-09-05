@@ -99,7 +99,7 @@ namespace Zhele::Clock
 
     constexpr ClockFrequenceT HsiClock::SrcClockFreq() { return HSI_VALUE; }
     constexpr unsigned HsiClock::GetMultipler() { return 1; }
-#if !defined (STM32C0)
+#if !defined (STM32C0) && !defined (STM32H5)
     constexpr unsigned HsiClock::GetDivider() { return 1; }
     constexpr ClockFrequenceT HsiClock::ClockFreq() { return SrcClockFreq(); }
 #endif
@@ -190,10 +190,10 @@ namespace Zhele::Clock
 
         Flash::ConfigureFrequence(resultFrequence);
 
-        RCC->CFGR = clockSelectMask;
-        
+        RccCfgrReg::Set((RccCfgrReg::Get() & ~static_cast<uint32_t>(RCC_CFGR_SW)) | clockSelectMask);
+
         uint32_t timeout = 10000;
-        while (((RCC->CFGR & RCC_CFGR_SWS) != clockStatusValue) && --timeout)
+        while (((RccCfgrReg::Get() & RCC_CFGR_SWS) != clockStatusValue) && --timeout)
             ;
         if(timeout == 0)
         {
@@ -204,7 +204,7 @@ namespace Zhele::Clock
 
     inline ClockFrequenceT SysClock::ClockFreq()
     {
-        uint32_t clockSrc = RCC->CFGR & RCC_CFGR_SWS;
+        uint32_t clockSrc = RccCfgrReg::Get() & RCC_CFGR_SWS;
         switch (clockSrc)
         {
             case RCC_CFGR_SWS_HSI: return HsiClock::ClockFreq();

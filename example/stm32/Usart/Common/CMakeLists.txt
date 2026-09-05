@@ -47,3 +47,10 @@ target_link_libraries(usart_common_g0 CMSIS::STM32::G030F6 STM32::NoSys STM32::N
 target_compile_definitions(usart_common_g0 PRIVATE HSI_VALUE=16000000)
 target_compile_options(usart_common_g0 PRIVATE -fno-exceptions $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti> -ffunction-sections -fdata-sections)
 stm32_print_size_of_target(usart_common_g0)
+
+# H5 build (STM32H503CB, USART2 on PA2/PA3, HSI @ 64 MHz)
+add_executable(usart_common_h503 main.cpp)
+target_link_libraries(usart_common_h503 CMSIS::STM32::H503CB STM32::NoSys STM32::Nano)
+target_compile_definitions(usart_common_h503 PRIVATE F_CPU=64000000)
+target_compile_options(usart_common_h503 PRIVATE -fno-exceptions $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti> -ffunction-sections -fdata-sections)
+stm32_print_size_of_target(usart_common_h503)
