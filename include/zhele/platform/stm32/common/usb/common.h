@@ -10,50 +10,13 @@
 #ifndef ZHELE_PLATFORM_STM32_COMMON_USB_COMMON_H
 #define ZHELE_PLATFORM_STM32_COMMON_USB_COMMON_H
 
+#include "hw.h"
+
 #include <stdint.h>
 #include <cstring>
 
 namespace Zhele::Usb
 {
-/// Thanks ST very much O_o
-#if defined (STM32F1) || defined (STM32F3)
-    #define PMA_ALIGN_MULTIPLIER 2
-    const unsigned PmaAlignMultiplier = 2;
-#else
-    #define PMA_ALIGN_MULTIPLIER 1
-    const unsigned PmaAlignMultiplier = 1;
-#endif
-
-    inline void CopyFromUsbPma(void* destination, const void* source, unsigned size)
-    {
-        if constexpr(PmaAlignMultiplier != 1) {
-            for(int i = 0; i < size / 2; ++i) {
-                reinterpret_cast<uint16_t*>(destination)[i] = reinterpret_cast<const uint16_t*>(source)[PmaAlignMultiplier * i];
-            }
-            if(size & 0x01) {
-                reinterpret_cast<uint8_t*>(&destination)[size - 1] = reinterpret_cast<const uint8_t*>(source)[PmaAlignMultiplier * (size - 1)];
-            }
-        }
-        else {
-            memcpy(destination, source, size);
-        }
-    }
-
-    inline void CopyToUsbPma(void* destination, const void* source, unsigned size)
-    {
-        if constexpr(PmaAlignMultiplier != 1) {
-            for(int i = 0; i < size / 2; ++i) {
-                reinterpret_cast<uint16_t*>(destination)[PmaAlignMultiplier * i] = reinterpret_cast<const uint16_t*>(source)[i];
-            }
-            if(size & 0x01) {
-                reinterpret_cast<uint8_t*>(&destination)[PmaAlignMultiplier * (size - 1)] = reinterpret_cast<const uint8_t*>(source)[size - 1];
-            }
-        }
-        else {
-            memcpy(destination, source, size);
-        }
-    }
-
     /**
      * @brief Decription type constant
      */

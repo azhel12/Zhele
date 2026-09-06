@@ -77,7 +77,7 @@ namespace Zhele::Usb
      */
     template<
         typename _Regs,
-#if defined (USB_OTG_FS)
+#if defined (ZHELE_USB_OTG)
         typename _DeviceRegs,
 #endif
         IRQn_Type _IRQNumber,
@@ -124,9 +124,9 @@ namespace Zhele::Usb
         */
         static consteval auto BuildStringDescriptor(auto str);
 
-#if defined (USB)
+#if defined (ZHELE_USB_PMA)
         using This = DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
-#elif defined (USB_OTG_FS)
+#elif defined (ZHELE_USB_OTG)
         using This = DeviceBase<_Regs, _DeviceRegs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
 #endif
         static constexpr auto _configurations = template_utils::type_list<_Configurations...>{};
@@ -135,7 +135,7 @@ namespace Zhele::Usb
         static constexpr auto _epBufferManager = EndpointsManager{_endpoints.template push_back<_Ep0>()};
         static constexpr auto _epHandlers = EndpointHandlers{_endpoints.template push_back<This>()}; // Replace Ep0 with this for correct handler register.
         static constexpr auto _ifHandlers = InterfaceHandlers{(template_utils::type_list<>{} + ... + _Configurations::Interfaces)};
-#if defined (USB_OTG_FS)
+#if defined (ZHELE_USB_OTG)
         static constexpr auto _outEndpoints = _endpoints.filter([](auto endpoint){
             return endpoint.Direction == EndpointDirection::Out || endpoint.Direction == EndpointDirection::Bidirectional;
         }).template push_back<This>();

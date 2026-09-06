@@ -77,8 +77,8 @@ namespace Zhele::Usb
                 return GetBufferOffset(previousEndpoint) + 
                     ((previousEndpoint.Type == EndpointType::BulkDoubleBuffered
                     || previousEndpoint.Direction == EndpointDirection::Bidirectional)
-                        ? previousEndpoint.MaxPacketSize * 2
-                        : previousEndpoint.MaxPacketSize);
+                        ? PmaBufferSize(previousEndpoint.MaxPacketSize) * 2
+                        : PmaBufferSize(previousEndpoint.MaxPacketSize));
             }
         }
         /**
@@ -121,7 +121,7 @@ namespace Zhele::Usb
     template<typename... Endpoints>
     OffsetCalculator(template_utils::type_list<Endpoints...> endpoints) -> OffsetCalculator<Endpoints...>;
 
-#if defined (USB)
+#if defined (ZHELE_USB_PMA)
     /**
      * @brief Calculates endpoint`s registers
      * 
@@ -136,14 +136,25 @@ namespace Zhele::Usb
     {
         /// Wrappers for EPnR registers
         /// C++ doesn't allows reinterpret_cast in compile-time
-        IO_REG_WRAPPER(USB->EP0R, Ep0Reg, uint16_t);
-        IO_REG_WRAPPER(USB->EP1R, Ep1Reg, uint16_t);
-        IO_REG_WRAPPER(USB->EP2R, Ep2Reg, uint16_t);
-        IO_REG_WRAPPER(USB->EP3R, Ep3Reg, uint16_t);
-        IO_REG_WRAPPER(USB->EP4R, Ep4Reg, uint16_t);
-        IO_REG_WRAPPER(USB->EP5R, Ep5Reg, uint16_t);
-        IO_REG_WRAPPER(USB->EP6R, Ep6Reg, uint16_t);
-        IO_REG_WRAPPER(USB->EP7R, Ep7Reg, uint16_t);
+#if defined (ZHELE_USB_DRD)
+        IO_REG_WRAPPER(USB_DRD_FS->CHEP0R, Ep0Reg, EndpointRegisterType);
+        IO_REG_WRAPPER(USB_DRD_FS->CHEP1R, Ep1Reg, EndpointRegisterType);
+        IO_REG_WRAPPER(USB_DRD_FS->CHEP2R, Ep2Reg, EndpointRegisterType);
+        IO_REG_WRAPPER(USB_DRD_FS->CHEP3R, Ep3Reg, EndpointRegisterType);
+        IO_REG_WRAPPER(USB_DRD_FS->CHEP4R, Ep4Reg, EndpointRegisterType);
+        IO_REG_WRAPPER(USB_DRD_FS->CHEP5R, Ep5Reg, EndpointRegisterType);
+        IO_REG_WRAPPER(USB_DRD_FS->CHEP6R, Ep6Reg, EndpointRegisterType);
+        IO_REG_WRAPPER(USB_DRD_FS->CHEP7R, Ep7Reg, EndpointRegisterType);
+#else
+        IO_REG_WRAPPER(USB->EP0R, Ep0Reg, EndpointRegisterType);
+        IO_REG_WRAPPER(USB->EP1R, Ep1Reg, EndpointRegisterType);
+        IO_REG_WRAPPER(USB->EP2R, Ep2Reg, EndpointRegisterType);
+        IO_REG_WRAPPER(USB->EP3R, Ep3Reg, EndpointRegisterType);
+        IO_REG_WRAPPER(USB->EP4R, Ep4Reg, EndpointRegisterType);
+        IO_REG_WRAPPER(USB->EP5R, Ep5Reg, EndpointRegisterType);
+        IO_REG_WRAPPER(USB->EP6R, Ep6Reg, EndpointRegisterType);
+        IO_REG_WRAPPER(USB->EP7R, Ep7Reg, EndpointRegisterType);
+#endif
         
         static constexpr auto _endpointRegs = template_utils::type_list<Ep0Reg, Ep1Reg, Ep2Reg, Ep3Reg, Ep4Reg, Ep5Reg, Ep6Reg, Ep7Reg>{};
         static constexpr auto _endpoints = template_utils::type_list<Endpoints...>{};
@@ -284,14 +295,14 @@ namespace Zhele::Usb
                     template_utils::type_unbox<_registersManager.template GetEndpointReg<Endpoint>()>,
                     PmaBufferBase + PmaAlignMultiplier * BufferOffset<Endpoint>, // TxBuffer
                     PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 2), // TxCount
-                    PmaBufferBase + PmaAlignMultiplier * (BufferOffset<Endpoint> + Endpoint::MaxPacketSize), // RxBuffer
+                    PmaBufferBase + PmaAlignMultiplier * (BufferOffset<Endpoint> + PmaBufferSize(Endpoint::MaxPacketSize)), // RxBuffer
                     PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 6)>, //RxCount
             typename std::conditional_t<Endpoint::Type == EndpointType::BulkDoubleBuffered,
                 BulkDoubleBufferedEndpoint<Endpoint,
                     template_utils::type_unbox<_registersManager.template GetEndpointReg<Endpoint>()>,
                     PmaBufferBase + PmaAlignMultiplier * BufferOffset<Endpoint>, // Buffer0
                     PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 2), // Buffer0Count
-                    PmaBufferBase + PmaAlignMultiplier * (BufferOffset<Endpoint> + Endpoint::MaxPacketSize), // Buffer1
+                    PmaBufferBase + PmaAlignMultiplier * (BufferOffset<Endpoint> + PmaBufferSize(Endpoint::MaxPacketSize)), // Buffer1
                     PmaBufferBase + PmaAlignMultiplier * (BdtCellOffset<Endpoint> + 6)>, //Buffer1Count
             typename std::conditional_t<Endpoint::Direction == EndpointDirection::In,
                 InEndpoint<Endpoint,
@@ -323,8 +334,8 @@ namespace Zhele::Usb
         static void InitTxFieldsInDescriptor()
         {
             _sortedUniqueEndpoints.foreach([](auto endpoint) {
-                *reinterpret_cast<uint16_t*>(BdtBase + PmaAlignMultiplier * GetBdtCellOffset(endpoint)) = GetBufferOffset(endpoint);
-                *reinterpret_cast<uint16_t*>(BdtBase + PmaAlignMultiplier * (GetBdtCellOffset(endpoint) + 2)) = 0u;
+                PmaHalfWordSet(BdtBase + PmaAlignMultiplier * GetBdtCellOffset(endpoint), GetBufferOffset(endpoint));
+                PmaHalfWordSet(BdtBase + PmaAlignMultiplier * (GetBdtCellOffset(endpoint) + 2), 0u);
             });
         }
         
@@ -335,7 +346,7 @@ namespace Zhele::Usb
             });
 
             bidirectionalAndBulkDoubleBufferedEndpoints.foreach([](auto endpoint){
-                *reinterpret_cast<uint16_t*>(BdtBase + PmaAlignMultiplier * (GetBdtCellOffset(endpoint) + 4)) = GetBufferOffset(endpoint) + endpoint.MaxPacketSize;
+                PmaHalfWordSet(BdtBase + PmaAlignMultiplier * (GetBdtCellOffset(endpoint) + 4), GetBufferOffset(endpoint) + PmaBufferSize(endpoint.MaxPacketSize));
             });
         }
         
@@ -348,7 +359,7 @@ namespace Zhele::Usb
             });
 
             outEndpoints.foreach([](auto endpoint){
-                *reinterpret_cast<uint16_t*>(BdtBase + PmaAlignMultiplier * (GetBdtCellOffset(endpoint) + 2)) = CalculateRxCountValue(endpoint);
+                PmaHalfWordSet(BdtBase + PmaAlignMultiplier * (GetBdtCellOffset(endpoint) + 2), CalculateRxCountValue(endpoint));
             });
         }
 
@@ -359,7 +370,7 @@ namespace Zhele::Usb
             });
 
             bidirectionalAndBulkDoubleBufferedEndpoints.foreach([](auto endpoint) {
-                *reinterpret_cast<uint16_t*>(BdtBase + PmaAlignMultiplier * (GetBdtCellOffset(endpoint) + 6)) = CalculateRxCountValue(endpoint);
+                PmaHalfWordSet(BdtBase + PmaAlignMultiplier * (GetBdtCellOffset(endpoint) + 6), CalculateRxCountValue(endpoint));
             });
         }
 
@@ -371,7 +382,7 @@ namespace Zhele::Usb
         }
     };
 
-#elif defined (USB_OTG_FS)
+#elif defined (ZHELE_USB_OTG)
     /**
      * @brief Calculates endpoint`s registers
      * 
@@ -682,7 +693,7 @@ namespace Zhele::Usb
     template<typename... Ep>
     EndpointHandlers(template_utils::type_list<Ep...> endpoints) -> EndpointHandlers<Ep...>;
 
-#if defined (USB_OTG_FS)
+#if defined (ZHELE_USB_OTG)
     /**
      * @brief Implements endpoint`s handlers management
      * 

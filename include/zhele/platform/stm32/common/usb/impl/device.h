@@ -12,7 +12,7 @@
 
 namespace Zhele::Usb
 {
-#if defined (USB)
+#if defined (ZHELE_USB_PMA)
     #define USB_DEVICE_TEMPLATE_ARGS template< \
         typename _Regs, \
         IRQn_Type _IRQNumber, \
@@ -30,7 +30,7 @@ namespace Zhele::Usb
         typename _Ep0, \
         typename... _Configurations>
     #define USB_DEVICE_TEMPLATE_QUALIFIER DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>
-#elif defined (USB_OTG_FS)
+#elif defined (ZHELE_USB_OTG)
     #define USB_DEVICE_TEMPLATE_ARGS template< \
         typename _Regs, \
         typename _DeviceRegs, \
@@ -51,16 +51,25 @@ namespace Zhele::Usb
     #define USB_DEVICE_TEMPLATE_QUALIFIER DeviceBase<_Regs, _DeviceRegs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>
 #endif
 
-#if defined (USB)
+#if defined (ZHELE_USB_PMA)
     USB_DEVICE_TEMPLATE_ARGS
     void USB_DEVICE_TEMPLATE_QUALIFIER::Enable()
     {
         _ClockCtrl::Enable();
+#if defined (ZHELE_USB_DRD)
+        // Both PDWN and USBRST are set after power-on. Leave power down first,
+        // wait for the transceiver startup time and only then release the reset.
+        _Regs()->CNTR = USB_CNTR_USBRST;
+        for(unsigned i = 0; i < 100; ++i) __NOP(); // tSTARTUP
+        _Regs()->CNTR = 0;
+#endif
         _epBufferManager.Init();
 
         _Regs()->CNTR = USB_CNTR_CTRM | USB_CNTR_RESETM;
         _Regs()->ISTR = 0;
-        _Regs()->BTABLE = 0;
+#if !defined (ZHELE_USB_DRD)
+        _Regs()->BTABLE = 0; // DRD has no BTABLE register, the table always starts at the packet memory base
+#endif
 #if defined (USB_BCDR_DPPU)
         _Regs()->BCDR |= USB_BCDR_DPPU;
 #endif
@@ -76,7 +85,9 @@ namespace Zhele::Usb
 
         _Regs()->CNTR = USB_CNTR_CTRM | USB_CNTR_RESETM;
         _Regs()->ISTR = 0;
+#if !defined (ZHELE_USB_DRD)
         _Regs()->BTABLE = 0;
+#endif
         _Regs()->DADDR = USB_DADDR_EF;
     }
 
@@ -102,7 +113,8 @@ namespace Zhele::Usb
         if(_Ep0::Reg::Get() & USB_EP_CTR_RX)
         {
             _Ep0::ClearCtrRx();
-            
+            _Ep0::FetchRxBuffer();
+
             if(_Ep0::Reg::Get() & USB_EP_SETUP)
             {
                 HandleSetupRequest(reinterpret_cast<SetupPacket*>(_Ep0::RxBuffer));
@@ -128,7 +140,7 @@ namespace Zhele::Usb
             _Ep0::SetRxStatus(EndpointStatus::Valid);
         });
     }
-#elif defined (USB_OTG_FS)
+#elif defined (ZHELE_USB_OTG)
     USB_DEVICE_TEMPLATE_ARGS
     void USB_DEVICE_TEMPLATE_QUALIFIER::Enable()
     {
@@ -260,7 +272,7 @@ namespace Zhele::Usb
     {
         if (_Ep0::GetOutInterrupts() & USB_OTG_DOEPINT_STUP) {
             HandleSetupRequest(reinterpret_cast<SetupPacket*>(_Ep0::RxBuffer));
-#if defined(USB_OTG_FS)
+#if defined (ZHELE_USB_OTG)
         _Ep0::SetRxStatus(EndpointStatus::Valid);
 #endif
         }
@@ -436,24 +448,28 @@ namespace Zhele::Usb
         }
     }
 
-#if defined (USB)
+#if defined (ZHELE_USB_DRD)
+    IO_STRUCT_WRAPPER(USB_DRD_FS, UsbRegs, USB_DRD_TypeDef);
+#elif defined (ZHELE_USB_PMA)
     IO_STRUCT_WRAPPER(USB, UsbRegs, USB_TypeDef);
-#elif defined (USB_OTG_FS)
+#elif defined (ZHELE_USB_OTG)
     IO_STRUCT_WRAPPER(USB_OTG_FS, UsbRegs, USB_OTG_GlobalTypeDef);
     IO_STRUCT_WRAPPER(USB_OTG_FS_PERIPH_BASE + USB_OTG_DEVICE_BASE, UsbDeviceRegs, USB_OTG_DeviceTypeDef);
 #endif
 
-#if defined (USB_LP_IRQn)
+#if defined (ZHELE_USB_DRD)
+    #define USB_IRQ USB_DRD_FS_IRQn
+#elif defined (USB_LP_IRQn)
     #define USB_IRQ USB_LP_IRQn
-#elif defined (USB)
+#elif defined (ZHELE_USB_PMA)
     #define USB_IRQ USB_IRQn
-#elif defined (USB_OTG_FS)
+#elif defined (ZHELE_USB_OTG)
     #define USB_IRQ OTG_FS_IRQn
 #endif
 
-#if defined (USB)
+#if defined (ZHELE_USB_PMA)
     using UsbClock = Zhele::Clock::UsbClock;
-#elif defined (USB_OTG_FS)
+#elif defined (ZHELE_USB_OTG)
     using UsbClock = Zhele::Clock::OtgFsClock;
 #endif
     template<
@@ -469,9 +485,9 @@ namespace Zhele::Usb
         auto _Serial,
         typename _Ep0,
         typename... _Configurations>
-#if defined (USB)
+#if defined (ZHELE_USB_PMA)
     using DeviceWithStrings = DeviceBase<UsbRegs, USB_IRQ, UsbClock, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
-#elif defined (USB_OTG_FS)
+#elif defined (ZHELE_USB_OTG)
     using DeviceWithStrings = DeviceBase<UsbRegs, UsbDeviceRegs, USB_IRQ, UsbClock, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
 #endif
     template<
@@ -484,12 +500,12 @@ namespace Zhele::Usb
         uint16_t _DeviceReleaseNumber,
         typename _Ep0,
         typename... _Configurations>
-#if defined (USB)
+#if defined (ZHELE_USB_PMA)
     using Device = DeviceBase<UsbRegs, USB_IRQ, UsbClock, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, template_utils::EmptyFixedString16, template_utils::EmptyFixedString16, template_utils::EmptyFixedString16, _Ep0, _Configurations...>;
-#elif defined (USB_OTG_FS)
+#elif defined (ZHELE_USB_OTG)
     using Device = DeviceBase<UsbRegs, UsbDeviceRegs, USB_IRQ, UsbClock, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, template_utils::EmptyFixedString16, template_utils::EmptyFixedString16, template_utils::EmptyFixedString16, _Ep0, _Configurations...>;
 #endif
-#if defined (USB)
+#if defined (ZHELE_USB_PMA)
     USB_DEVICE_TEMPLATE_ARGS
     uint8_t USB_DEVICE_TEMPLATE_QUALIFIER::_tempAddressStorage = 0x00;
 #endif
