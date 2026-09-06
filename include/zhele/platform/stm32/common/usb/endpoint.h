@@ -170,18 +170,18 @@ namespace Zhele::Usb
     class ZeroEndpointBase : public ControlEndpointBase<0, _MaxPacketSize>
     {
     }; 
-#if defined (USB)
+#if defined (ZHELE_USB_PMA)
     /**
      * @brief Endpoint type values for EPnR registers (indexed by EndpointType)
      */
-    inline constexpr std::array<uint16_t, 7> endpoints_types_for_epr{
+    inline constexpr std::array<EndpointRegisterType, 7> endpoints_types_for_epr{
         USB_EP_CONTROL,
         USB_EP_ISOCHRONOUS,
         USB_EP_BULK,
         USB_EP_INTERRUPT,
-        static_cast<uint16_t>(USB_EP_CONTROL | USB_EP_KIND),
+        static_cast<EndpointRegisterType>(USB_EP_CONTROL | USB_EP_KIND),
         0,
-        static_cast<uint16_t>(USB_EP_BULK | USB_EP_KIND)};
+        static_cast<EndpointRegisterType>(USB_EP_BULK | USB_EP_KIND)};
 
     /**
      * @brief Implements endpoint
@@ -262,7 +262,7 @@ namespace Zhele::Usb
         */
         static void SetRxStatus(EndpointStatus status)
         {
-            ToogleAndSet<USB_EPREG_MASK | USB_EPRX_STAT, USB_EP_CTR_TX | USB_EP_CTR_RX>(static_cast<uint16_t>(status) << 12);
+            ToogleAndSet<USB_EPREG_MASK | USB_EPRX_STAT, USB_EP_CTR_TX | USB_EP_CTR_RX>(static_cast<EndpointRegisterType>(status) << 12);
         }
         /**
          * @brief Set endpoint`s TX status
@@ -274,7 +274,7 @@ namespace Zhele::Usb
         */
         static void SetTxStatus(EndpointStatus status)
         {
-            ToogleAndSet<USB_EPREG_MASK | USB_EPTX_STAT, USB_EP_CTR_TX | USB_EP_CTR_RX>(static_cast<uint16_t>(status) << 4);
+            ToogleAndSet<USB_EPREG_MASK | USB_EPTX_STAT, USB_EP_CTR_TX | USB_EP_CTR_RX>(static_cast<EndpointRegisterType>(status) << 4);
         }
         /**
          * @brief Clear endpoint`s RX flag
@@ -349,25 +349,25 @@ namespace Zhele::Usb
         static void Handler();
     private:
 
-        template<uint16_t Mask, uint16_t ExtraBits>
+        template<EndpointRegisterType Mask, EndpointRegisterType ExtraBits>
         static void Toggle()
         {
-            uint16_t toggleMask = Reg::Get() & USB_EPREG_MASK;
+            EndpointRegisterType toggleMask = Reg::Get() & USB_EPREG_MASK;
             Reg::Set(toggleMask | Mask | ExtraBits);
         }
 
-        template<uint16_t Mask, uint16_t ExtraBits = 0>
-        static void ToogleAndSet(uint16_t Bit)
+        template<EndpointRegisterType Mask, EndpointRegisterType ExtraBits = 0>
+        static void ToogleAndSet(EndpointRegisterType Bit)
         {
-            uint16_t toggleMask = Reg::Get() & Mask;
+            EndpointRegisterType toggleMask = Reg::Get() & Mask;
             toggleMask ^= Bit;
             Reg::Set(toggleMask | ExtraBits);
         }
 
-        template<uint16_t Mask, uint16_t ExtraBits = 0>
-        static void ClearRegBitMaskAndSet(uint16_t Bit)
+        template<EndpointRegisterType Mask, EndpointRegisterType ExtraBits = 0>
+        static void ClearRegBitMaskAndSet(EndpointRegisterType Bit)
         {
-            uint16_t clrMask = Reg::Get() & Mask & ~Bit;
+            EndpointRegisterType clrMask = Reg::Get() & Mask & ~Bit;
             Reg::Set(clrMask | ExtraBits);
         }
     };
@@ -382,7 +382,7 @@ namespace Zhele::Usb
     template<typename _Endpoint, uint32_t _BufferAddress, uint32_t _CountRegAddress>
     class EndpointWriter
     {
-        using BufferCountReg = RegisterWrapper<_CountRegAddress, uint16_t>;
+        using BufferCountReg = PmaHalfWord<_CountRegAddress>;
     public:
         /**
          * @brief Send data
@@ -412,10 +412,7 @@ namespace Zhele::Usb
          */
         static void SendData(const void* data, uint16_t size)
         {
-            const uint16_t* source = reinterpret_cast<const uint16_t*>(data);
-            uint16_t* destination = reinterpret_cast<uint16_t*>(_BufferAddress);
-            for(uint16_t i = 0; i < (size + 1) / 2; ++i)
-                destination[PmaAlignMultiplier * i] = source[i];
+            CopyToUsbPma(reinterpret_cast<void*>(_BufferAddress), data, size);
 
             BufferCountReg::Set(size);
             _Endpoint::SetTxStatus(EndpointStatus::Valid);
@@ -565,7 +562,7 @@ namespace Zhele::Usb
         using Base = Endpoint<_Base, _Reg>;
     public:
         static constexpr uint32_t Buffer = _BufferAddress;
-        using BufferCount = RegisterWrapper<_CountRegAddress, uint16_t>;
+        using BufferCount = PmaHalfWord<_CountRegAddress>;
         /**
          * @brief CTR Handler
          */
@@ -593,7 +590,7 @@ namespace Zhele::Usb
         using TxModule = EndpointWithTxSupport<_Base, _Reg, _BufferAddress, _CountRegAddress>;
     public:
         static constexpr uint32_t Buffer = _BufferAddress;
-        using BufferCount = RegisterWrapper<_CountRegAddress, uint16_t>;
+        using BufferCount = PmaHalfWord<_CountRegAddress>;
 
         /**
          * @brief CTR Handler
@@ -624,9 +621,35 @@ namespace Zhele::Usb
     public:
         using Reg = _Reg;
         static constexpr uint32_t TxBuffer = _TxBufferAddress;
-        using TxBufferCount = RegisterWrapper<_TxCountRegAddress, uint16_t>;
+        using TxBufferCount = PmaHalfWord<_TxCountRegAddress>;
+        using RxBufferCount = PmaHalfWord<_RxCountRegAddress>;
+#if defined (ZHELE_USB_DRD)
+        /// DRD packet memory accepts word accesses only, so the received packet is mirrored
+        /// into RAM and RxBuffer points to that mirror instead of the packet memory itself.
+        alignas(4) static inline uint8_t _rxMirror[_Base::MaxPacketSize];
+        static constexpr uint8_t* RxBuffer = _rxMirror;
+
+        /**
+         * @brief Copies the received packet from the packet memory to RxBuffer
+         *
+         * @par Returns
+         *  Nothing
+         */
+        static void FetchRxBuffer()
+        {
+            CopyFromUsbPma(_rxMirror, reinterpret_cast<const void*>(_RxBufferAddress), RxBufferCount::Get() & 0x3ff);
+        }
+#else
         static constexpr uint32_t RxBuffer = _RxBufferAddress;
-        using RxBufferCount = RegisterWrapper<_RxCountRegAddress, uint16_t>;
+
+        /**
+         * @brief Copies the received packet from the packet memory to RxBuffer (no-op, RxBuffer is the packet memory)
+         *
+         * @par Returns
+         *  Nothing
+         */
+        static void FetchRxBuffer() {}
+#endif
 
         /**
          * @brief CTR handler
@@ -636,6 +659,7 @@ namespace Zhele::Usb
             if(Reg::Get() & USB_EP_CTR_RX)
             {
                 Base::ClearCtrRx();
+                FetchRxBuffer();
                 HandleRx();
             }
             if(Reg::Get() & USB_EP_CTR_TX)
@@ -665,9 +689,9 @@ namespace Zhele::Usb
     // For direct access to Buffers/CountRegs mark next fields as public
         using Reg = _Reg;
         static constexpr uint32_t Buffer0 = _Buffer0Address;
-        using Buffer0Count = RegisterWrapper<_Count0RegAddress, uint16_t>;
+        using Buffer0Count = PmaHalfWord<_Count0RegAddress>;
         static constexpr uint32_t Buffer1 = _Buffer1Address;
-        using Buffer1Count = RegisterWrapper<_Count1RegAddress, uint16_t>;
+        using Buffer1Count = PmaHalfWord<_Count1RegAddress>;
 
     public:
         /**
@@ -738,9 +762,9 @@ namespace Zhele::Usb
     // For direct access to Buffers/CountRegs mark next fields as public
         using Reg = _Reg;
         static constexpr uint32_t Buffer0 = _Buffer0Address;
-        using Buffer0Count = RegisterWrapper<_Count0RegAddress, uint16_t>;
+        using Buffer0Count = PmaHalfWord<_Count0RegAddress>;
         static constexpr uint32_t Buffer1 = _Buffer1Address;
-        using Buffer1Count = RegisterWrapper<_Count1RegAddress, uint16_t>;
+        using Buffer1Count = PmaHalfWord<_Count1RegAddress>;
 
         static const bool SendZlp = !(requires {_Base::DisableZlp;}); 
     public:
@@ -817,12 +841,7 @@ namespace Zhele::Usb
          */
         static void WriteData(const void* data, uint16_t size)
         {
-            uint16_t* destination;
-            destination = reinterpret_cast<uint16_t*>(GetCurrentBuffer() == 0 ? Buffer0 : Buffer1);
-
-            const uint16_t* source = reinterpret_cast<const uint16_t*>(data);
-            for(uint16_t i = 0; i < (size + 1) / 2; ++i)
-                destination[PmaAlignMultiplier * i] = source[i];
+            CopyToUsbPma(reinterpret_cast<void*>(GetCurrentBuffer() == 0 ? Buffer0 : Buffer1), data, size);
 
             
             GetCurrentBuffer() == 0 ? Buffer0Count::Set(size) : Buffer1Count::Set(size);
@@ -879,7 +898,7 @@ namespace Zhele::Usb
         OutBulkDoubleBufferedEndpoint<_Base, _Reg, _Buffer0Address, _Count0RegAddress, _Buffer1Address, _Count1RegAddress>,
         InBulkDoubleBufferedEndpoint<_Base, _Reg, _Buffer0Address, _Count0RegAddress, _Buffer1Address, _Count1RegAddress>
         >;
-#elif defined (USB_OTG_FS)
+#elif defined (ZHELE_USB_OTG)
     /**
      * @brief Implements endpoint
      * 
