@@ -7,6 +7,8 @@
 
 #include "ioreg.h"
 
+#include <zhele/flash.h>
+
 namespace Zhele::Clock
 {
   // PB2PCENR on new V00x, APB2PCENR else
@@ -199,6 +201,7 @@ namespace Zhele::Clock
   {
     uint32_t swBits;
     uint32_t swsValue;
+    ClockFrequenceT resultFrequence;
 
     if constexpr (clockSource == Internal)
     {
@@ -206,6 +209,7 @@ namespace Zhele::Clock
         return ClockSourceFailed;
       swBits = RCC_SW_HSI;
       swsValue = SwsHsi;
+      resultFrequence = HsiClock::ClockFreq();
     }
     else if constexpr (clockSource == External)
     {
@@ -213,6 +217,7 @@ namespace Zhele::Clock
         return ClockSourceFailed;
       swBits = RCC_SW_HSE;
       swsValue = SwsHse;
+      resultFrequence = HseClock::ClockFreq();
     }
     else if constexpr (clockSource == Pll)
     {
@@ -220,11 +225,18 @@ namespace Zhele::Clock
         return ClockSourceFailed;
       swBits = RCC_SW_PLL;
       swsValue = SwsPll;
+      resultFrequence = PllClock::ClockFreq();
     }
     else
     {
       return InvalidClockSource;
     }
+
+    // Flash wait states must cover the higher of the two frequencies for the
+    // whole switch: raise them before speeding up, lower them only afterwards.
+    ClockFrequenceT currentFrequence = ClockFreq();
+    if (resultFrequence > currentFrequence)
+      Flash::ConfigureFrequence(resultFrequence);
 
     RCC->CFGR0 = (RCC->CFGR0 & ~static_cast<uint32_t>(RCC_SW)) | swBits;
 
@@ -232,7 +244,13 @@ namespace Zhele::Clock
     while (((RCC->CFGR0 & RCC_SWS) != swsValue) && --timeout)
       ;
 
-    return timeout != 0 ? Success : ClockSelectFailed;
+    if (timeout == 0)
+      return ClockSelectFailed;
+
+    if (resultFrequence <= currentFrequence)
+      Flash::ConfigureFrequence(resultFrequence);
+
+    return Success;
   }
 
   inline ClockFrequenceT SysClock::ClockFreq()
