@@ -13,4 +13,5 @@ add_subdirectory(Rc522)
 #add_subdirectory(SdCard) TODO:: Use FatFS as submodule
 add_subdirectory(Ssd1306)
 add_subdirectory(St7735)
+add_subdirectory(Ws2812b)
 add_subdirectory(tmc2209)
