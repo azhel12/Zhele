@@ -1,8 +1,10 @@
 /**
  * @file
- * GPIO pin type aliases for NIIET K1921VG015 (Pa0..Pc15 + inverted variants).
+ * GPIO pin type aliases for NIIET devices (Pa0..Pc15 + inverted variants).
  *
- * K1921VG015 has 3 ports (A, B, C) with 16 pins each.
+ * Ports that the selected device does not have resolve to NullPort. K1921VG015 has
+ * three 16-pin ports (A, B, C); K1921VG5T/VG7T have two (A is 16-bit, B is 15-bit —
+ * Pb15 exists as a type but has no pad).
  */
 #ifndef ZHELE_PLATFORM_NIIET_COMMON_IOPINS_H
 #define ZHELE_PLATFORM_NIIET_COMMON_IOPINS_H

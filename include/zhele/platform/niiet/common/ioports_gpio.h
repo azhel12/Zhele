@@ -1,6 +1,10 @@
 /**
  * @file
- * NIIET K1921VG015 GPIO: NativePortBase, NullPort, PortImplementation.
+ * NIIET GPIO: NativePortBase, NullPort, PortImplementation.
+ *
+ * The same IP on every supported device (K1921VG015, K1921VG5T, K1921VG7T):
+ * 16-bit ports, set/clear/toggle registers, 1 bit/pin pull-up enable, 2 bits/pin
+ * output mode and 2 bits/pin alternate-function number.
  *
  * Register layout (GPIO_TypeDef):
  *   DATA        — pin input  (read-only)
@@ -42,7 +46,8 @@ namespace Zhele::IO {
       {
         NoPull = 0,
         PullUp = 1
-        // K1921VG015 has no pull-down in GPIO
+        // PULLMODE selects pull-up only; the pull-downs of table 3.1 are fixed
+        // (JTAG / SERVEN pins) and not software-controllable.
       };
 
       enum DriverType
@@ -52,7 +57,7 @@ namespace Zhele::IO {
         OpenSource = 2
       };
 
-      // No Speed register on K1921VG015 GPIO — Speed type intentionally omitted
+      // No Speed register on the NIIET GPIO — Speed type intentionally omitted
       // so that speed_io_port<> concept is not satisfied and TPin::SetSpeed() is disabled.
 
       static void Write(DataType value);

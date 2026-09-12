@@ -11,8 +11,12 @@
 
 #if defined(ZHELE_NIIET_DEVICE_K1921VG015)
   #include <K1921VG015.h>
+#elif defined(ZHELE_NIIET_DEVICE_K1921VG5T)
+  #include <K1921VG5T.h>
+#elif defined(ZHELE_NIIET_DEVICE_K1921VG7T)
+  #include <K1921VG7T.h>
 #else
-  #error "Zhele: NIIET device not detected. Define K1921VG015 (compiler flag) or include <K1921VG015.h> before Zhele headers."
+  #error "Zhele: NIIET device not detected. Define K1921VG015 / K1921VG5T / K1921VG7T (compiler flag) or include the CMSIS device header before Zhele headers."
 #endif
 
 #include "common/clock.h"

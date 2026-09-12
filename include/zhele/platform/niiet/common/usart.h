@@ -1,6 +1,9 @@
 /**
  * @file
- * UART driver for NIIET K1921VG015.
+ * UART driver for NIIET devices (K1921VG015, K1921VG5T, K1921VG7T).
+ *
+ * The UART is an ARM PrimeCell PL011 on every supported device, so this driver is
+ * shared; the device headers only supply the instances, their pin maps and clocks.
  *
  * @author Alexey Zhelonkin (NIIET port)
  * @license MIT
@@ -164,6 +167,10 @@ namespace Zhele
             {
                 _ClockCtrl::Enable();
                 _Regs()->CR = 0;                                   // disable while reconfiguring
+#if defined(ZHELE_NIIET_SERIES_VGXT)
+                // RX DMA request/interrupt on every received byte (IFLS counts bytes here).
+                _Regs()->IFLS = (_Regs()->IFLS & ~UART_IFLS_RXIFLSEL_Msk) | (1u << UART_IFLS_RXIFLSEL_Pos);
+#endif
                 SetDivisors(baud);
                 _Regs()->LCRH = static_cast<uint32_t>(mode.LCRH);  // also latches the divisors
                 _Regs()->CR = static_cast<uint32_t>(mode.CR) | UART_CR_UARTEN_Msk;

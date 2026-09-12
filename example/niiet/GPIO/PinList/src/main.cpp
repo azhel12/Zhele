@@ -3,7 +3,7 @@
 
 #include <system_k1921vg015.h> // SystemInit()
 
-// Tested on IRIS=UNO-VG015
+// Needs four LEDs on PC10..PC13, which only IRIS UNO-VG015 has.
 // 4-bit virtual port on PC10..PC13 (LEDs show binary counter 0..15)
 using LedPort = Zhele::IO::PinList<
     Zhele::IO::Pc10,
