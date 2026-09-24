@@ -28,6 +28,10 @@
 
 #include "ioreg.h"
 
+extern "C" {
+#include <plic.h>
+}
+
 #include <zhele/clock.h>
 
 #include <cstddef>
@@ -168,6 +172,18 @@ namespace Zhele
         {
             static_assert(_Channel < _Module::Channels);
             static inline DmaChannelData Data{};
+            static inline bool IrqEnabled = false;
+
+            /// Enable the channel's PLIC source once, like NVIC_EnableIRQ on STM32.
+            static void EnableIrq()
+            {
+                if (IrqEnabled)
+                    return;
+                PLIC_SetPriority(_IRQNumber, 1);
+                PLIC_SetMode(_IRQNumber, PLIC_IRQMODE_HILEVEL); // sources reset to OFF
+                PLIC_IntEnable(Plic_Mach_Target, _IRQNumber);
+                IrqEnabled = true;
+            }
 
         public:
             using Module = _Module;
@@ -263,6 +279,8 @@ namespace Zhele
 
                 Data.data = const_cast<void*>(buffer);
                 Data.size = static_cast<uint16_t>(bufferSize);
+                if (Data.transferCallback != nullptr)
+                    EnableIrq();
 
                 ch.CH_ACTIVE = DMA_CH_CH_ACTIVE_CH_ACTIVE_Msk;
                 ch.CH_START = DMA_CH_CH_START_CH_START_Msk;

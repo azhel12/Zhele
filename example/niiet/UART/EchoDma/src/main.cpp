@@ -42,17 +42,6 @@ static void OnBlockReceived(void* data, unsigned size, bool success);
 static void DmaTxIsr() { DmaTx::IrqHandler(); }
 static void DmaRxIsr() { DmaRx::IrqHandler(); }
 
-static void EnableIrq(uint32_t irq, irqfunc* handler)
-{
-    PLIC_SetIrqHandler(Plic_Mach_Target, irq, handler);
-    PLIC_SetPriority(irq, 1);
-#if defined(ZHELE_NIIET_SERIES_VGXT)
-    // VG5T/VG7T PLIC sources come out of reset switched off (SRC_MODE = OFF).
-    PLIC_SetMode(irq, PLIC_IRQMODE_HILEVEL);
-#endif
-    PLIC_IntEnable(Plic_Mach_Target, irq);
-}
-
 int main()
 {
     SystemInit();
@@ -67,8 +56,8 @@ int main()
     const char hello[] = "NIIET UART0 reverser (DMA, 4-char blocks)\r\n";
     Uart::Write(hello, sizeof(hello) - 1);
 
-    EnableIrq(DmaTx::IRQNumber, DmaTxIsr);
-    EnableIrq(DmaRx::IRQNumber, DmaRxIsr);
+    PLIC_SetIrqHandler(Plic_Mach_Target, DmaTx::IRQNumber, DmaTxIsr);
+    PLIC_SetIrqHandler(Plic_Mach_Target, DmaRx::IRQNumber, DmaRxIsr);
     InterruptEnable();
 
     Uart::EnableAsyncRead(rxBlock, sizeof(rxBlock), OnBlockReceived);

@@ -10,6 +10,10 @@
 
 #include "ioreg.h"
 
+extern "C" {
+#include <plic.h>
+}
+
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
@@ -140,6 +144,17 @@ namespace Zhele
     {
         static_assert(_Channel < _Module::Channels);
         static inline DmaChannelData Data{};
+        static inline bool IrqEnabled = false;
+
+        /// Enable the channel's PLIC source once, like NVIC_EnableIRQ on STM32.
+        static void EnableIrq()
+        {
+            if (IrqEnabled)
+                return;
+            PLIC_SetPriority(_IRQNumber, 1);
+            PLIC_IntEnable(Plic_Mach_Target, _IRQNumber);
+            IrqEnabled = true;
+        }
 
     public:
         using Module = _Module;
@@ -195,6 +210,8 @@ namespace Zhele
 
             Data.data = const_cast<void*>(buffer);
             Data.size = static_cast<uint16_t>(bufferSize);
+            if (Data.transferCallback != nullptr)
+                EnableIrq();
 
             const uint32_t mask = 1u << _Channel;
             _Module::Regs::Get()->PRIALTCLR = mask;  // use the primary structure
