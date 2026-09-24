@@ -32,3 +32,74 @@ jobs:
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+  build-riscv:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        family: [ ch32, niiet ]
+
+    env:
+      XPACK_GCC: 15.2.0-1
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        path: Zhele
+
+    - name: Checkout wch_cmake
+      if: matrix.family == 'ch32'
+      uses: actions/checkout@v4
+      with:
+        repository: azhel12/wch_cmake
+        path: wch_cmake
+
+    - name: Checkout niiet_cmake
+      if: matrix.family == 'niiet'
+      uses: actions/checkout@v4
+      with:
+        repository: azhel12/niiet_cmake
+        path: niiet_cmake
+
+    - name: Install ninja
+      uses: seanmiddleditch/gha-setup-ninja@master
+
+    - name: Cache RISC-V toolchain
+      id: cache-gcc
+      uses: actions/cache@v4
+      with:
+        path: ${{ runner.temp }}/xpack-riscv-none-elf-gcc-${{ env.XPACK_GCC }}
+        key: xpack-riscv-none-elf-gcc-${{ env.XPACK_GCC }}
+
+    - name: Download RISC-V toolchain
+      if: steps.cache-gcc.outputs.cache-hit != 'true'
+      run: |
+        curl -sSL https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v${XPACK_GCC}/xpack-riscv-none-elf-gcc-${XPACK_GCC}-linux-x64.tar.gz \
+          | tar -xz -C ${{ runner.temp }}
+
+    - name: Add toolchain to PATH
+      run: echo "${{ runner.temp }}/xpack-riscv-none-elf-gcc-${XPACK_GCC}/bin" >> $GITHUB_PATH
+
+    - name: Build
+      working-directory: Zhele/example/${{ matrix.family }}
+      run: |
+        failed=""
+        for dir in $(grep -l '^project(' */*/CMakeLists.txt | xargs -n1 dirname); do
+          echo "::group::$dir"
+          # CH32 firmware is meant for the WCH GCC fork (riscv32-wch-elf), which supports
+          # "WCH-Interrupt-fast" handlers; CI only has xPack GCC, so the examples fall back
+          # to naked + mret.
+          if cmake -S $dir -B $dir/build -G Ninja -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+                   -DCH32_TARGET_TRIPLET=riscv-none-elf \
+                   -DFETCHCONTENT_BASE_DIR=${{ runner.temp }}/_deps \
+             && cmake --build $dir/build; then
+            echo "::endgroup::"
+          else
+            echo "::endgroup::"
+            echo "::error::$dir failed"
+            failed="$failed $dir"
+          fi
+        done
+        test -z "$failed"
