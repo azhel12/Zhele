@@ -42,3 +42,10 @@ target_link_libraries(pll_configure_h503 CMSIS::STM32::H503CB STM32::NoSys STM32
 target_compile_definitions(pll_configure_h503 PRIVATE F_CPU=32000000)
 target_compile_options(pll_configure_h503 PRIVATE -fno-exceptions $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti> -ffunction-sections -fdata-sections)
 stm32_print_size_of_target(pll_configure_h503)
+
+# G4 build (STM32G474CE, WeAct board: HSE 8 MHz, LED on PC6; PLL to 170 MHz)
+add_executable(pll_configure_g474 main.cpp)
+target_link_libraries(pll_configure_g474 CMSIS::STM32::G474CE STM32::NoSys STM32::Nano)
+target_compile_definitions(pll_configure_g474 PRIVATE HSE_VALUE=8000000 F_CPU=170000000)
+target_compile_options(pll_configure_g474 PRIVATE -fno-exceptions $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti> -ffunction-sections -fdata-sections)
+stm32_print_size_of_target(pll_configure_g474)

@@ -69,6 +69,8 @@ namespace Zhele
 #if defined (EXTI_RPR1_RPIF0)
         EXTI->RPR1 = (1 << _Line);
         EXTI->FPR1 = (1 << _Line);
+#elif defined (EXTI_PR1_PIF0)
+        EXTI->PR1 = (1 << _Line);
 #else
         EXTI->PR |= (1 << _Line);
 #endif

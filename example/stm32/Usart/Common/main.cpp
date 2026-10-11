@@ -20,6 +20,10 @@ using namespace Zhele::IO;
 #elif defined (STM32G0)
     using UsartConnection = Usart1<>;
     using Led = Pa7;
+#elif defined (STM32G4)
+    // WeAct STM32G474CEU6: USART1 on PA9/PA10, LED on PC6
+    using UsartConnection = Usart1<>;
+    using Led = Pc6;
 #else
     using UsartConnection = Usart1;
     using Led = Pa7;
@@ -50,6 +54,8 @@ int main()
     // Select pins
 #if defined (STM32C0) || defined (STM32H5)
     UsartConnection::SelectTxRxPins<Pa2, Pa3>();
+#elif defined (STM32G4)
+    UsartConnection::SelectTxRxPins<Pa9, Pa10>();
 #else
     UsartConnection::SelectTxRxPins<Pb6, Pb7>();
 #endif

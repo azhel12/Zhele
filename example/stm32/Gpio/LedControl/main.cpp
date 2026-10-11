@@ -9,6 +9,9 @@ using namespace Zhele::IO;
 	// must not source current for an LED -- they are meant to sink it
 	// (DS14053 table 10).
 	using Led = Pc13;
+#elif defined (STM32G4)
+	// WeAct STM32G474CEU6: LED on PC6
+	using Led = Pc6;
 #else
 	using Led = Pa4;
 #endif

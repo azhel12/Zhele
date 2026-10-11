@@ -12,6 +12,11 @@
 
 #include <stm32g4xx.h>
 
+// CMSIS for G4 ships no HSI_VALUE (it normally comes from stm32g4xx_hal_conf.h). HSI is HSI16.
+#if !defined (HSI_VALUE)
+    #define HSI_VALUE    ((uint32_t)16000000)
+#endif
+
 #include "../common/clock.h"
 
 namespace Zhele::Clock
@@ -392,6 +397,7 @@ namespace Zhele::Clock
         static void EnableBoostMode()
         {
             PowerClock::Enable();
+            (void)RCC->APB1ENR1; // Peripheral clock enable delay before PWR access
             PWR->CR5 &= ~PWR_CR5_R1MODE;
         }
 
@@ -404,6 +410,7 @@ namespace Zhele::Clock
         static void DisableBoostMode()
         {
             PowerClock::Enable();
+            (void)RCC->APB1ENR1; // Peripheral clock enable delay before PWR access
             PWR->CR5 |= PWR_CR5_R1MODE;
         }
 

@@ -11,6 +11,10 @@ using Interface = I2c1<Dma1Channel1, Dma1Channel2>;
 #include <zhele/dma.h>
 #include <zhele/dmamux.h>
 using Interface = I2c1<Dma1Channel0, Dma1Channel1>;
+#elif defined (STM32G4)
+#include <zhele/dma.h>
+#include <zhele/dmamux.h>
+using Interface = I2c1<Dma1Channel1, Dma1Channel2>;
 #else
 using Interface = I2c1;
 #endif
@@ -19,7 +23,12 @@ using Interface = I2c1;
 int main()
 {
     Interface::Init();
+#if defined (STM32G4)
+    // G4 has no I2C1 on PB6
+    Interface::SelectPins<IO::Pb8, IO::Pb9>();
+#else
     Interface::SelectPins<IO::Pb6, IO::Pb7>();
+#endif
 
     // U8 operationds
     Interface::WriteU8(0xD0 >> 1, 0x06, 21);
@@ -35,7 +44,7 @@ int main()
 
 
     // Or use stream write with DMA
-#if defined (STM32G0)
+#if defined (STM32G0) || defined (STM32G4)
     Dma1::Enable();
     DmaMux1Channel1::SelectRequestInput(DmaMux1::RequestInput::I2c1Tx);
     DmaMux1Channel2::SelectRequestInput(DmaMux1::RequestInput::I2c1Rx);

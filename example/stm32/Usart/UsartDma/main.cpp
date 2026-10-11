@@ -21,6 +21,12 @@ using namespace Zhele::IO;
     #include <zhele/dmamux.h>
     using UsartConnection = Usart1<Dma1Channel1, Dma1Channel2>;
     using Led = Pa7;
+#elif defined (STM32G4)
+    #include <zhele/dma.h>
+    #include <zhele/dmamux.h>
+    // WeAct STM32G474CEU6: USART1 on PA9/PA10, LED on PC6
+    using UsartConnection = Usart1<Dma1Channel1, Dma1Channel2>;
+    using Led = Pc6;
 #else
     using UsartConnection = Usart1;
     using Led = Pa7;
@@ -55,6 +61,8 @@ int main()
     UsartConnection::Init(9600);
 #if defined (STM32C0) || defined (STM32H5)
     UsartConnection::SelectTxRxPins<Pa2, Pa3>();
+#elif defined (STM32G4)
+    UsartConnection::SelectTxRxPins<Pa9, Pa10>();
 #else
     UsartConnection::SelectTxRxPins<Pb6, Pb7>();
 #endif
@@ -68,7 +76,7 @@ int main()
     Dma1::Enable();
     DmaMux1Channel0::SelectRequestInput(DmaMux1::RequestInput::Usart2Tx);
     DmaMux1Channel1::SelectRequestInput(DmaMux1::RequestInput::Usart2Rx);
-#elif defined (STM32G0)
+#elif defined (STM32G0) || defined (STM32G4)
     Dma1::Enable();
     DmaMux1Channel1::SelectRequestInput(DmaMux1::RequestInput::Usart1Tx);
     DmaMux1Channel2::SelectRequestInput(DmaMux1::RequestInput::Usart1Rx);
@@ -105,6 +113,7 @@ extern "C" {
 // F401: Dma2Stream7Channel4, Dma2Stream2Channel4
 // G030 (configurable by DMAMUX): Dma1Channel1, Dma1Channel2
 // C011 (configurable by DMAMUX): Dma1Channel1, Dma1Channel2 (ch1 own line, ch2/3 shared)
+// G474 (configurable by DMAMUX): Dma1Channel1, Dma1Channel2 (own lines)
 // H503 (GPDMA, request selected per channel): Dma1Channel0, Dma1Channel1 (own lines)
 
 #if defined (STM32C0)
@@ -155,6 +164,15 @@ extern "C" {
         UsartConnection::DmaTx::IrqHandler();
     }
     void DMA1_Channel2_3_IRQHandler()
+    {
+        UsartConnection::DmaRx::IrqHandler();
+    }
+#elif defined (STM32G4)
+    void DMA1_Channel1_IRQHandler()
+    {
+        UsartConnection::DmaTx::IrqHandler();
+    }
+    void DMA1_Channel2_IRQHandler()
     {
         UsartConnection::DmaRx::IrqHandler();
     }

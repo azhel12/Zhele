@@ -27,14 +27,44 @@
 
 namespace Zhele
 {
+    namespace Private
+    {
+        /// Category 3/4 devices run dual bank (2 KB pages) when OPTR.DBANK = 1 (factory default),
+        /// single bank (4 KB pages) otherwise. Category 2 devices (G431/G441) are always single bank, 2 KB pages.
+        inline bool FlashIsDualBank()
+        {
+#if defined (FLASH_OPTR_DBANK)
+            return (FLASH->OPTR & FLASH_OPTR_DBANK) != 0;
+#else
+            return false;
+#endif
+        }
+
+        /// Instruction and data caches must be reset after flash contents change (RM0440, flash cache management);
+        /// a cache may be reset only while it is disabled.
+        inline void FlashFlushCaches()
+        {
+            uint32_t acr = FLASH->ACR;
+            FLASH->ACR = acr & ~(FLASH_ACR_ICEN | FLASH_ACR_DCEN);
+            FLASH->ACR |= FLASH_ACR_ICRST | FLASH_ACR_DCRST;
+            FLASH->ACR &= ~(FLASH_ACR_ICRST | FLASH_ACR_DCRST);
+            FLASH->ACR = acr;
+        }
+
+        inline void FlashClearErrors()
+        {
+            FLASH->SR = FLASH_SR_EOP | FLASH_SR_OPERR | FLASH_SR_PROGERR | FLASH_SR_WRPERR
+                | FLASH_SR_PGAERR | FLASH_SR_SIZERR | FLASH_SR_PGSERR | FLASH_SR_MISERR | FLASH_SR_FASTERR;
+        }
+    }
+
     /**
      * @brief Configures flash latency (and range 1 boost mode) for target system frequency
      *
      * @details
      * Wait states are calculated for voltage range 1 (normal mode: 30 MHz per WS, up to 150 MHz).
      * Above 150 MHz boost mode is enabled and 4 WS are used (up to 170 MHz).
-     * Note: RM0440 recommends AHB prescaler = 2 while switching to a frequency above 150 MHz
-     * and restoring it after 1 us. This is not done automatically.
+     * The AHB /2 step RM0440 requires when switching above 80 MHz is done by SysClock::SelectClockSource().
      */
     inline void Flash::ConfigureFrequence(uint32_t frequence)
     {
@@ -42,6 +72,7 @@ namespace Zhele
         if (frequence > 150000000u)
         {
             RCC->APB1ENR1 |= RCC_APB1ENR1_PWREN;
+            (void)RCC->APB1ENR1; // Peripheral clock enable delay before PWR access
             PWR->CR5 &= ~PWR_CR5_R1MODE;
             ws = 4;
         }
@@ -65,11 +96,15 @@ namespace Zhele
      * @details
      * Category 2 devices (G431/G441) have 2 KB pages.
      * Category 3/4 devices (G47x/G48x/G49x) have 2 KB pages in dual bank mode (DBANK = 1, default)
-     * and 4 KB pages in single bank mode. Single bank mode is not supported.
+     * and 4 KB pages in single bank mode.
      */
     inline constexpr uint32_t Flash::PageSize(unsigned)
     {
+#if defined (FLASH_OPTR_DBANK)
+        return Private::FlashIsDualBank() ? 2048 : 4096;
+#else
         return 2048;
+#endif
     }
 
     inline constexpr uint32_t Flash::PageCount()
@@ -93,18 +128,19 @@ namespace Zhele
             Unlock();
 
         WaitWhileBusy();
-
-        FLASH->SR = FLASH_SR_EOP | FLASH_SR_OPERR | FLASH_SR_PROGERR | FLASH_SR_WRPERR
-            | FLASH_SR_PGAERR | FLASH_SR_SIZERR | FLASH_SR_PGSERR | FLASH_SR_MISERR | FLASH_SR_FASTERR;
+        Private::FlashClearErrors();
 
         uint32_t cr = FLASH_CR_PER | FLASH_CR_EOPIE;
 #if defined (FLASH_CR_BKER)
-        // Dual bank devices: pages of the second bank are addressed relative to it
-        constexpr uint32_t pagesPerBank = 128;
-        if (page >= pagesPerBank)
+        // Dual bank mode: pages of the second bank are numbered from 0 again
+        if (Private::FlashIsDualBank())
         {
-            cr |= FLASH_CR_BKER;
-            page -= pagesPerBank;
+            const uint32_t pagesPerBank = PageCount() / 2;
+            if (page >= pagesPerBank)
+            {
+                cr |= FLASH_CR_BKER;
+                page -= pagesPerBank;
+            }
         }
 #endif
         FLASH->CR |= cr | (page << FLASH_CR_PNB_Pos);
@@ -118,13 +154,12 @@ namespace Zhele
 #if defined (FLASH_CR_BKER)
         clearMask |= FLASH_CR_BKER;
 #endif
-
-        if ((FLASH->SR & FLASH_SR_EOP) == 0) {
-            FLASH->CR &= ~clearMask;
-            return false;
-        }
-
         FLASH->CR &= ~clearMask;
+        Private::FlashFlushCaches();
+
+        if ((FLASH->SR & FLASH_SR_EOP) == 0)
+            return false;
+
         FLASH->SR = FLASH_SR_EOP;
 
         return true;
@@ -132,76 +167,51 @@ namespace Zhele
 
     inline bool Flash::WriteFlash(void* dst, const void* src, unsigned size)
     {
+        // Flash is programmed by double words (RM0440 §3.3.7)
+        if ((reinterpret_cast<uint32_t>(dst) & 0x7) != 0)
+            return false;
+
         if (IsLock())
             Unlock();
 
-        const uint32_t* aligned_src = reinterpret_cast<const uint32_t*>(src);
+        const uint8_t* source = reinterpret_cast<const uint8_t*>(src);
         uint32_t* aligned_dst = reinterpret_cast<uint32_t*>(dst);
 
-        FLASH->SR = FLASH_SR_EOP | FLASH_SR_OPERR | FLASH_SR_PROGERR | FLASH_SR_WRPERR
-            | FLASH_SR_PGAERR | FLASH_SR_SIZERR | FLASH_SR_PGSERR | FLASH_SR_MISERR | FLASH_SR_FASTERR;
+        WaitWhileBusy();
+        Private::FlashClearErrors();
 
         FLASH->CR |= FLASH_CR_PG | FLASH_CR_EOPIE;
 
-        if ((reinterpret_cast<uint32_t>(aligned_src) & 0x3) == 0) {
-            while (size >= (2 * sizeof(uint32_t))) {
-                *aligned_dst++ = *aligned_src++;
-                *aligned_dst++ = *aligned_src++;
-                size -= (2 * sizeof(uint32_t));
-                WaitWhileBusy();
-
-                if ((FLASH->SR & FLASH_SR_EOP) == 0)
-                    return false;
-
-                FLASH->SR = FLASH_SR_EOP;
-            }
-        } else {
-            alignas(2 * sizeof(uint32_t)) volatile uint32_t buffer[2];
-            while (size >= (2 * sizeof(uint32_t))) {
-                for(int i = 0; i < 8; ++i) {
-                    reinterpret_cast<volatile uint8_t*>(&buffer[0])[i] = reinterpret_cast<const uint8_t*>(aligned_src)[i];
-                }
-
-                *aligned_dst++ = buffer[0];
-                *aligned_dst++ = buffer[1];
-                aligned_src += 2;
-
-                size -= (2 * sizeof(uint32_t));
-                WaitWhileBusy();
-
-                if ((FLASH->SR & FLASH_SR_EOP) == 0) {
-                    return false;
-                }
-
-                FLASH->SR = FLASH_SR_EOP;
-            }
-        }
-
-        if (size > 0) {
-            alignas(2 * sizeof(uint32_t)) uint32_t buffer[2];
-
-            for(unsigned i = 0; i < size; ++i) {
-                reinterpret_cast<volatile uint8_t*>(&buffer[0])[i] = reinterpret_cast<const uint8_t*>(aligned_src)[i];
-            }
-            for(unsigned i = 0; i < sizeof(buffer) - size; ++i) {
-                reinterpret_cast<volatile uint8_t*>(&buffer[0])[size + i] = reinterpret_cast<const uint8_t*>(aligned_dst)[i];
-            }
+        bool result = true;
+        while (size > 0)
+        {
+            // Bytes past the end of the source keep the current flash contents
+            const unsigned chunk = size < 8 ? size : 8;
+            uint32_t buffer[2];
+            std::memcpy(buffer, aligned_dst, sizeof(buffer));
+            std::memcpy(buffer, source, chunk);
 
             *aligned_dst++ = buffer[0];
             *aligned_dst++ = buffer[1];
+            source += chunk;
+            size -= chunk;
+
             WaitWhileBusy();
 
-            if ((FLASH->SR & FLASH_SR_EOP) == 0) {
-                return false;
+            if ((FLASH->SR & FLASH_SR_EOP) == 0)
+            {
+                result = false;
+                break;
             }
 
             FLASH->SR = FLASH_SR_EOP;
         }
 
         FLASH->CR &= ~(FLASH_CR_PG | FLASH_CR_EOPIE);
+        Private::FlashFlushCaches();
         Lock();
 
-        return ((FLASH->SR & (FLASH_SR_WRPERR | FLASH_SR_PROGERR)) == 0);
+        return result && ((FLASH->SR & (FLASH_SR_WRPERR | FLASH_SR_PROGERR)) == 0);
     }
 }
 

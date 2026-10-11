@@ -36,10 +36,10 @@ namespace Zhele
         SyncExti13 = 13,
         SyncExti14 = 14,
         SyncExti15 = 15,
-        DmamuxEvent0 = 16,
-        DmamuxEvent1 = 17,
-        DmamuxEvent2 = 18,
-        DmamuxEvent3 = 19,
+        Evt0 = 16,
+        Evt1 = 17,
+        Evt2 = 18,
+        Evt3 = 19,
         Lptim1Out = 20,
     };
 
@@ -173,8 +173,14 @@ namespace Zhele
 
     using DmaMux1 = DmaMux<Private::Dmamux1, DmamuxSyncInput, DmamuxRequestInput>;
 
-    // DMAMUX channels 0..7 are wired to DMA1 channels 1..8, channels 8..15 to DMA2 channels 1..8
-    // (on devices with 6 DMA channels per controller mux channels 6, 7, 14, 15 are not used)
+    // DMAMUX channels are wired to DMA1 channels first, then to DMA2: on devices with 8 channels
+    // per controller mux 0..7 serve DMA1 and 8..15 DMA2, on 6-channel devices (G431/G441)
+    // mux 0..5 serve DMA1 and 6..11 DMA2 (RM0440 §13.3.2)
+#if defined (DMA1_Channel8)
+    constexpr unsigned Dma2MuxBase = 8;
+#else
+    constexpr unsigned Dma2MuxBase = 6;
+#endif
     using DmaMux1Channel1 = DmaMux1::Channel<0>;
     using DmaMux1Channel2 = DmaMux1::Channel<1>;
     using DmaMux1Channel3 = DmaMux1::Channel<2>;
@@ -187,17 +193,17 @@ namespace Zhele
 #if defined (DMA1_Channel8)
     using DmaMux1Channel8 = DmaMux1::Channel<7>;
 #endif
-    using DmaMux2Channel1 = DmaMux1::Channel<8>;
-    using DmaMux2Channel2 = DmaMux1::Channel<9>;
-    using DmaMux2Channel3 = DmaMux1::Channel<10>;
-    using DmaMux2Channel4 = DmaMux1::Channel<11>;
-    using DmaMux2Channel5 = DmaMux1::Channel<12>;
-    using DmaMux2Channel6 = DmaMux1::Channel<13>;
+    using DmaMux2Channel1 = DmaMux1::Channel<Dma2MuxBase + 0>;
+    using DmaMux2Channel2 = DmaMux1::Channel<Dma2MuxBase + 1>;
+    using DmaMux2Channel3 = DmaMux1::Channel<Dma2MuxBase + 2>;
+    using DmaMux2Channel4 = DmaMux1::Channel<Dma2MuxBase + 3>;
+    using DmaMux2Channel5 = DmaMux1::Channel<Dma2MuxBase + 4>;
+    using DmaMux2Channel6 = DmaMux1::Channel<Dma2MuxBase + 5>;
 #if defined (DMA2_Channel7)
-    using DmaMux2Channel7 = DmaMux1::Channel<14>;
+    using DmaMux2Channel7 = DmaMux1::Channel<Dma2MuxBase + 6>;
 #endif
 #if defined (DMA2_Channel8)
-    using DmaMux2Channel8 = DmaMux1::Channel<15>;
+    using DmaMux2Channel8 = DmaMux1::Channel<Dma2MuxBase + 7>;
 #endif
 } // namespace Zhele
 

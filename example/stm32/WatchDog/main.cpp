@@ -6,7 +6,12 @@ using namespace Zhele::Clock;
 using namespace Zhele::IO;
 using namespace Zhele::Timers;
 
-using Led = Pc13Inv;
+#if defined (STM32G4)
+    // WeAct STM32G474CEU6 (PC13 is the user button there)
+    using Led = Pc6;
+#else
+    using Led = Pc13Inv;
+#endif
 int main()
 {
     Led::Port::Enable();

@@ -49,7 +49,7 @@ namespace Zhele::Usb
         }
         if constexpr (clockSource == Zhele::Usb::ClockSource::Pll)
         {
-            RCC->CCIPR = (RCC->CCIPR & ~RCC_CCIPR_CLK48SEL) | RCC_CCIPR_CLK48SEL_0; // 01: PLLQ
+            RCC->CCIPR = (RCC->CCIPR & ~RCC_CCIPR_CLK48SEL) | RCC_CCIPR_CLK48SEL_1; // 10: PLLQ
         }
     }
 }

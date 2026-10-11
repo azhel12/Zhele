@@ -83,8 +83,8 @@ namespace Zhele
 
         struct I2c1SclPins
         {
-            using io_pins = IO::PinList<IO::Pa13, IO::Pa15>;
-            static constexpr std::array<uint8_t, 2> alt_functions{4, 4};
+            using io_pins = IO::PinList<IO::Pa13, IO::Pa15, IO::Pb8>;
+            static constexpr std::array<uint8_t, 3> alt_functions{4, 4, 4};
         };
         struct I2c1SdaPins
         {

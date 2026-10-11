@@ -14,6 +14,9 @@ using namespace Zhele::Timers;
 	// switch: 2 MHz output speed limit, and ST states they must not source
 	// current for an LED (DS14053 table 10).
 	using Led = Pc13;
+#elif defined (STM32G4)
+	// WeAct STM32G474CEU6: LED on PC6 (HSI16 after reset: 16 MHz / 4000 / 2000 = 2 Hz toggle)
+	using Led = Pc6;
 #else
 	using Led = Pa4;
 #endif

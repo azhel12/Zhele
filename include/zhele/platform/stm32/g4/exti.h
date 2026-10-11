@@ -16,7 +16,6 @@
 #define RTSR RTSR1
 #define FTSR FTSR1
 #define IMR IMR1
-#define PR PR1
 
 #include "../common/exti.h"
 

@@ -6,7 +6,7 @@ using namespace Zhele;
 /// So Zhele contains channels and streams.
 /// There is no difference between channel and stream for some tasks.
 /// In this case you can use "typedef" or "using" as in this example.
-#if defined (STM32F0) || defined (STM32F1) || defined (STM32G0)// F072RB and F103C8
+#if defined (STM32F0) || defined (STM32F1) || defined (STM32G0) || defined (STM32G4) // F072RB, F103C8, G030F6, G474CE
     using MyDma = Dma1Channel1;
 #elif defined (STM32F4)
     using MyDma = Dma2Stream1; // See RM for f4 series. "Only the DMA2 controller is able to perform memory-to-memory transfers."
@@ -56,7 +56,7 @@ void DmaTransferCallback(void* data, unsigned size, bool success)
 
 extern "C" {
 
-#if defined (STM32F0) || defined (STM32F1) || defined (STM32G0)// F072RB and F103C8
+#if defined (STM32F0) || defined (STM32F1) || defined (STM32G0) || defined (STM32G4) // F072RB, F103C8, G030F6, G474CE
     void DMA1_Channel1_IRQHandler()
 #elif defined (STM32F4)
     void DMA2_Stream1_IRQHandler()

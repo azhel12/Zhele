@@ -7,8 +7,8 @@
  * @licence MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_G0_SPI_H
-#define ZHELE_PLATFORM_STM32_G0_SPI_H
+#ifndef ZHELE_PLATFORM_STM32_G4_SPI_H
+#define ZHELE_PLATFORM_STM32_G4_SPI_H
 
 #include "../common/spi.h"
 
@@ -46,7 +46,7 @@ namespace Zhele
             {
                 MisoPins::Enable();
                 Type maskMiso(1 << misoPinNumber);
-                MisoPins::SetConfiguration(MisoPins::Configuration::In, maskMiso);
+                MisoPins::SetConfiguration(MisoPins::Configuration::AltFunc, maskMiso);
                 MisoPins::AltFuncNumber(_MisoPins::alt_functions[static_cast<size_t>(misoPinNumber)], maskMiso);
             }
 

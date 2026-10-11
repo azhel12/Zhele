@@ -190,11 +190,29 @@ namespace Zhele::Clock
 
         Flash::ConfigureFrequence(resultFrequence);
 
+#if defined (STM32G4)
+        // RM0440 §7.2.7: when switching SYSCLK above 80 MHz, HCLK must go through /2 for at least 1 us
+        const bool ahbStep = resultFrequence > 80000000u && (RccCfgrReg::Get() & RCC_CFGR_HPRE) == 0;
+        if (ahbStep)
+            RccCfgrReg::Set(RccCfgrReg::Get() | RCC_CFGR_HPRE_3); // 1000: /2
+#endif
+
         RccCfgrReg::Set((RccCfgrReg::Get() & ~static_cast<uint32_t>(RCC_CFGR_SW)) | clockSelectMask);
 
         uint32_t timeout = 10000;
         while (((RccCfgrReg::Get() & RCC_CFGR_SWS) != clockStatusValue) && --timeout)
             ;
+
+#if defined (STM32G4)
+        if (ahbStep)
+        {
+            // >= 1 us at HCLK <= 85 MHz
+            for (unsigned i = 0; i < 100; ++i)
+                __NOP();
+            RccCfgrReg::Set(RccCfgrReg::Get() & ~static_cast<uint32_t>(RCC_CFGR_HPRE));
+        }
+#endif
+
         if(timeout == 0)
         {
             return ClockSelectFailed;

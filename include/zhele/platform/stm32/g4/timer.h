@@ -71,8 +71,8 @@ namespace Zhele::Timers
             using Type = typename Pins::DataType;
             Type mask = 1 << pinNumber;
             Pins::Enable();
-            Pins::SetConfiguration(mask, Pins::Configuration::AltFunc);
-            Pins::AltFuncNumber(mask, PinsConfig::alt_functions[static_cast<size_t>(pinNumber)]);
+            Pins::SetConfiguration(Pins::Configuration::AltFunc, mask);
+            Pins::AltFuncNumber(PinsConfig::alt_functions[static_cast<size_t>(pinNumber)], mask);
         }
 
         template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>
@@ -184,7 +184,11 @@ namespace Zhele::Timers
     using Timer5 = Private::GPTimer<Private::Tim5Regs, Clock::Tim5Clock, TIM5_IRQn, Private::Tim5ChPins>;
 #endif
     using Timer6 = Private::BaseTimer<Private::Tim6Regs, Clock::Tim6Clock, TIM6_DAC_IRQn>;
+#if defined (STM32G491xx) || defined (STM32G4A1xx)
+    using Timer7 = Private::BaseTimer<Private::Tim7Regs, Clock::Tim7Clock, TIM7_IRQn>;
+#else
     using Timer7 = Private::BaseTimer<Private::Tim7Regs, Clock::Tim7Clock, TIM7_DAC_IRQn>;
+#endif
     using Timer8 = Private::AdvancedTimer<Private::Tim8Regs, Clock::Tim8Clock, TIM8_UP_IRQn, Private::Tim8ChPins>;
     using Timer15 = Private::GPTimer<Private::Tim15Regs, Clock::Tim15Clock, TIM1_BRK_TIM15_IRQn, Private::Tim15ChPins>;
     using Timer16 = Private::GPTimer<Private::Tim16Regs, Clock::Tim16Clock, TIM1_UP_TIM16_IRQn, Private::Tim16ChPins>;

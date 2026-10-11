@@ -12,6 +12,10 @@ using SpiInterface = Spi1<Dma1Channel1, Dma1Channel2>;
 #include <zhele/dma.h>
 #include <zhele/dmamux.h>
 using SpiInterface = Spi1<Dma1Channel0, Dma1Channel1>;
+#elif defined (STM32G4)
+#include <zhele/dma.h>
+#include <zhele/dmamux.h>
+using SpiInterface = Spi1<Dma1Channel1, Dma1Channel2>;
 #else
 using SpiInterface = Spi1;
 #endif
@@ -38,7 +42,7 @@ int main()
 
     
     // Or use stream write with DMA
-#if defined (STM32G0)
+#if defined (STM32G0) || defined (STM32G4)
     Dma1::Enable();
     DmaMux1Channel1::SelectRequestInput(DmaMux1::RequestInput::Spi1Tx);
     DmaMux1Channel2::SelectRequestInput(DmaMux1::RequestInput::Spi1Rx);

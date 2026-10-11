@@ -88,6 +88,20 @@ void ConfigureClock()
     // Try select PLL as sysclock source
     SysClock::SelectClockSource<SysClock::Pll>();
 }
+#elif defined (STM32G4) // G474CE, HSE 8 MHz
+void ConfigureClock()
+{
+    // HSE (8 MHz) / PLLM = 2 -> 4 MHz reference
+    PllClock::SelectClockSource<PllClock::External>();
+    PllClock::SetDivider<2>();
+    // 4 MHz * 85 = 340 MHz VCO
+    PllClock::SetMultiplier<85>();
+    // PLLR: 340 / 2 = 170 MHz. Boost mode, flash latency and the AHB /2 step
+    // RM0440 requires above 80 MHz are handled by SysClock::SelectClockSource()
+    PllClock::SetSystemOutputDivider<2>();
+    // Try select PLL as sysclock source
+    SysClock::SelectClockSource<SysClock::Pll>();
+}
 #else
     #error "No example"
 #endif
