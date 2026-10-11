@@ -4,7 +4,8 @@ int main()
 {
     Zhele::Crc::Enable();
 #if defined (CRC_POL_POL)
-    Zhele::Crc::SetPolynom(0x12345678);
+    // The CRC unit supports odd polynomials only (CRC-32C here)
+    Zhele::Crc::SetPolynom(0x1EDC6F41);
 #endif
 
     uint32_t polynom = Zhele::Crc::GetPolynom();

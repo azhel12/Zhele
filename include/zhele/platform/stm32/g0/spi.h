@@ -46,7 +46,7 @@ namespace Zhele
             {
                 MisoPins::Enable();
                 Type maskMiso(1 << misoPinNumber);
-                MisoPins::SetConfiguration(MisoPins::Configuration::In, maskMiso);
+                MisoPins::SetConfiguration(MisoPins::Configuration::AltFunc, maskMiso);
                 MisoPins::AltFuncNumber(_MisoPins::alt_functions[static_cast<size_t>(misoPinNumber)], maskMiso);
             }
 
@@ -98,7 +98,7 @@ namespace Zhele
             if constexpr(ssPinNumber != -1)
             {
                 SsPin::template SetConfiguration<SsPin::Port::Configuration::AltFunc>();
-                SsPin::template SetDriverType<SsPin::DriverType::PushPull>;
+                SsPin::template SetDriverType<SsPin::DriverType::PushPull>();
                 SsPin::template AltFuncNumber<_SsPins::alt_functions[ssPinNumber]>();
             }
         }

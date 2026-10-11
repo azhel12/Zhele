@@ -71,8 +71,8 @@ namespace Zhele::Timers
             using Type = typename Pins::DataType;
             Type mask = 1 << pinNumber;
             Pins::Enable();
-            Pins::SetConfiguration(mask, Pins::Configuration::AltFunc);
-            Pins::AltFuncNumber(mask, PinsConfig::alt_functions[static_cast<size_t>(pinNumber)]);
+            Pins::SetConfiguration(Pins::Configuration::AltFunc, mask);
+            Pins::AltFuncNumber(PinsConfig::alt_functions[static_cast<size_t>(pinNumber)], mask);
         }
 
         template <typename _Regs, typename _ClockEnReg, IRQn_Type _IRQNumber, template<unsigned> typename _ChPins>

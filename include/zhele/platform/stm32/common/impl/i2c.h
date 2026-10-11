@@ -48,21 +48,27 @@ namespace Zhele
         uint32_t tsudat = (stdMode ? 250 : fstMode ? 100 : 50) * 4;	// 4*nsec
         uint32_t tLow = t2Scl - (stdMode ? fallTime : 0) - 3 * tClk;
         uint32_t tHi = t2Scl - (stdMode ? 0 : fallTime) - riseTime - 3 * tClk;
-        uint32_t sclh = tLow / tClk;
-        uint32_t scll = tHi / tClk;
+        uint32_t scll = tLow / tClk;
+        uint32_t sclh = tHi / tClk;
         uint32_t scldel = tsudat / tClk;
 
         sclh -= sclh > 0 ? 1 : 0;
         scll -= scll > 0 ? 1 : 0;
         scldel -= scldel > 0 ? 1 : 0;
 
-        uint32_t presc = scll / 256;
+        // SCLL/SCLH are 8-bit, SCLDEL and PRESC 4-bit fields
+        uint32_t presc = (scll > sclh ? scll : sclh) / 256;
+        if (presc > 15)
+            presc = 15;
         if (presc > 0)
         {
             sclh /= (presc + 1);
             scll /= (presc + 1);
             scldel /= (presc + 1);
         }
+        if (scll > 255) scll = 255;
+        if (sclh > 255) sclh = 255;
+        if (scldel > 15) scldel = 15;
 
         return (scll << I2C_TIMINGR_SCLL_Pos) | (sclh << I2C_TIMINGR_SCLH_Pos) | (scldel << I2C_TIMINGR_SCLDEL_Pos) | (presc << I2C_TIMINGR_PRESC_Pos);
     }

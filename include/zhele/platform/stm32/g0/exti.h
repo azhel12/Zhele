@@ -25,13 +25,13 @@ namespace Zhele
     template <typename port>
     void Exti<_Line, _IRQn>::SelectPort()
     {
-        SYSCFG->EXTICR[_Line / 4] = (SYSCFG->EXTICR[_Line / 4] & (0xF << _Line % 4 * 4)) | ((port::Id - 'A') << (_Line % 4 * 4));
+        SYSCFG->EXTICR[_Line / 4] = (SYSCFG->EXTICR[_Line / 4] & ~(0xF << (_Line % 4 * 4))) | ((port::Id - 'A') << (_Line % 4 * 4));
     }
 
     template<uint8_t _Line, IRQn_Type _IRQn>
     void Exti<_Line, _IRQn>::SelectPort(uint8_t portID)
     {
-        SYSCFG->EXTICR[_Line / 4] = (SYSCFG->EXTICR[_Line / 4] & (0xF << _Line % 4 * 4)) | ((portID - 'A') << (_Line % 4 * 4));
+        SYSCFG->EXTICR[_Line / 4] = (SYSCFG->EXTICR[_Line / 4] & ~(0xF << (_Line % 4 * 4))) | ((portID - 'A') << (_Line % 4 * 4));
     }
 
     template<uint8_t _Line, IRQn_Type _IRQn>

@@ -66,13 +66,17 @@ namespace Zhele
     template<uint8_t _Line, IRQn_Type _IRQn>
     void Exti<_Line, _IRQn>::ClearInterruptFlag()
     {
+        // Read back: the write must reach EXTI before the ISR returns, otherwise the IRQ re-enters
 #if defined (EXTI_RPR1_RPIF0)
         EXTI->RPR1 = (1 << _Line);
         EXTI->FPR1 = (1 << _Line);
+        (void)EXTI->FPR1;
 #elif defined (EXTI_PR1_PIF0)
         EXTI->PR1 = (1 << _Line);
+        (void)EXTI->PR1;
 #else
-        EXTI->PR |= (1 << _Line);
+        EXTI->PR = (1 << _Line);
+        (void)EXTI->PR;
 #endif
     }
 }
