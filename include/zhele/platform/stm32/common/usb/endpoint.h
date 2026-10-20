@@ -991,6 +991,14 @@ namespace Zhele::Usb
         static uint8_t Buffer[_Base::MaxPacketSize];
 
         /**
+         * @brief Received bytes count (same interface as PMA endpoint`s RxBufferCount)
+         */
+        struct RxBufferCount
+        {
+            static uint16_t Get() { return BufferSize; }
+        };
+
+        /**
          * @brief Reset endpoint
          */
         static void Reset()
