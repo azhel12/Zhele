@@ -1,6 +1,6 @@
 /**
  * TIM2 update-interrupt blink (~1 Hz).
- *   LED: PC4 (V003/V006) or PB2 (V203)
+ *   LED: PC4 (V003/V006), PB2 (V203) or PB12 (X035)
  */
 #include <zhele/iopins.h>
 #include <zhele/timer.h>
@@ -10,8 +10,14 @@ using namespace Zhele::Timers;
 
 #if defined(CH32V203)
 using Led = Pb2;
+#elif defined(CH32X035)
+using Led = Pb12;
 #else
 using Led = Pc4;
+#endif
+
+#if defined(CH32X035)
+#  define TIM2_IRQHandler TIM2_UP_IRQHandler
 #endif
 
 #if defined(ZHELE_WCH_TOOLCHAIN)

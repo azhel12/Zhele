@@ -94,6 +94,7 @@ namespace Zhele::Clock
     }
   };
 
+#if defined(RCC_HSEON)
   /**
    * @brief External high-speed oscillator (HSE).
    */
@@ -108,6 +109,7 @@ namespace Zhele::Clock
     static bool Enable()  { return ClockBase::EnableClockSource(RCC_HSEON, RCC_HSERDY); }
     static bool Disable() { return ClockBase::DisableClockSource(RCC_HSEON, RCC_HSERDY); }
   };
+#endif
 
   /**
    * @brief Internal high-speed oscillator (HSI).
@@ -124,6 +126,7 @@ namespace Zhele::Clock
     static bool Disable() { return ClockBase::DisableClockSource(RCC_HSION, RCC_HSIRDY); }
   };
 
+#if defined(RCC_PLLON)
   /**
    * @brief PLL clock source (method bodies live in the family header).
    */
@@ -263,6 +266,7 @@ namespace Zhele::Clock
       default:     return HsiClock::ClockFreq();
     }
   }
+#endif
 
   /**
    * @brief Base class for a bus clock (AHB / APB).

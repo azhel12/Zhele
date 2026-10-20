@@ -11,6 +11,8 @@
 #  include "v0/clock.h"
 #elif defined(ZHELE_CH32_FAMILY_V2)
 #  include "v2/clock.h"
+#elif defined(ZHELE_CH32_FAMILY_X0)
+#  include "x0/clock.h"
 #elif defined(ZHELE_CH32_FAMILY_V1) || defined(ZHELE_CH32_FAMILY_V3)
 #  error "Zhele: CH32 V1/V3 clock not yet implemented. Contributions welcome."
 #else

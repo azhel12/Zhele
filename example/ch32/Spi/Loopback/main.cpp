@@ -6,16 +6,23 @@
  *
  *   V003/V006: SCK=PC5 MISO=PC7 MOSI=PC6  (jumper PC6<->PC7), LED=PC4
  *   V203:      SCK=PA5 MISO=PA6 MOSI=PA7  (jumper PA7<->PA6), LED=PB2
+ *   X035:      SCK=PA5 MISO=PA6 MOSI=PA7  (jumper PA7<->PA6), LED=PB12
  */
 #include <zhele/spi.h>
 #include <zhele/iopins.h>
 #include <zhele/delay.h>
+#include <zhele/clock.h>
 
 using namespace Zhele;
 using namespace Zhele::IO;
 
 #if defined(CH32V203)
 using Led  = Pb2;
+using Sck  = Pa5;
+using Miso = Pa6;
+using Mosi = Pa7;
+#elif defined(CH32X035)
+using Led  = Pb12;
 using Sck  = Pa5;
 using Miso = Pa6;
 using Mosi = Pa7;
@@ -28,6 +35,9 @@ using Mosi = Pc6;
 
 int main()
 {
+#if defined(CH32X035)
+    Clock::AhbClock::SetPrescaler<Clock::AhbClock::Div1>();
+#endif
     Led::Port::Enable();
     Led::SetConfiguration<Led::Configuration::Out>();
     Led::SetDriverType<Led::DriverType::PushPull>();

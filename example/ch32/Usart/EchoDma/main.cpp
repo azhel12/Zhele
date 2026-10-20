@@ -1,7 +1,8 @@
 /**
- * UART 4-char block reverser over DMA, USART1, 115200 8N1 (TX=DMA1 ch4, RX=DMA1 ch5).
+ * UART 4-char block reverser over DMA, 115200 8N1, no remap.
  * Receives 4 characters per DMA transfer and sends the block back reversed.
- *   V003/V006: TX=PD5 RX=PD6 | V203: TX=PA9 RX=PA10  (no remap)
+ *   V003/V006: USART1 TX=PD5 RX=PD6 | V203: USART1 TX=PA9 RX=PA10  (TX=DMA1 ch4, RX=DMA1 ch5)
+ *   X035:      USART2 TX=PA2 RX=PA3                               (TX=DMA1 ch7, RX=DMA1 ch6)
  */
 #include <zhele/usart.h>
 #include <zhele/iopins.h>
@@ -10,7 +11,15 @@
 using namespace Zhele;
 using namespace Zhele::IO;
 
+#if defined(CH32X035)
+using Uart = Usart2;
+#  define DMA_TX_IRQHandler DMA1_Channel7_IRQHandler
+#  define DMA_RX_IRQHandler DMA1_Channel6_IRQHandler
+#else
 using Uart = Usart1;
+#  define DMA_TX_IRQHandler DMA1_Channel4_IRQHandler
+#  define DMA_RX_IRQHandler DMA1_Channel5_IRQHandler
+#endif
 
 static uint8_t rxBlock[4];
 static uint8_t txBlock[4];
@@ -24,6 +33,8 @@ int main()
     Uart::Init(115200);
 #if defined(CH32V203)
     Uart::SelectTxRxPins<Pa9, Pa10>();
+#elif defined(CH32X035)
+    Uart::SelectTxRxPins<Pa2, Pa3>();
 #else
     Uart::SelectTxRxPins<Pd5, Pd6>();
 #endif
@@ -53,21 +64,21 @@ void OnBlockReceived(void* data, unsigned size, bool success)
 }
 
 #if defined(ZHELE_WCH_TOOLCHAIN)
-extern "C" __attribute__((interrupt("WCH-Interrupt-fast"))) void DMA1_Channel4_IRQHandler()
+extern "C" __attribute__((interrupt("WCH-Interrupt-fast"))) void DMA_TX_IRQHandler()
 {
     Uart::DmaTx::IrqHandler();
 }
-extern "C" __attribute__((interrupt("WCH-Interrupt-fast"))) void DMA1_Channel5_IRQHandler()
+extern "C" __attribute__((interrupt("WCH-Interrupt-fast"))) void DMA_RX_IRQHandler()
 {
     Uart::DmaRx::IrqHandler();
 }
 #else
-extern "C" __attribute__((naked)) void DMA1_Channel4_IRQHandler()
+extern "C" __attribute__((naked)) void DMA_TX_IRQHandler()
 {
     Uart::DmaTx::IrqHandler();
     __asm volatile ("mret");
 }
-extern "C" __attribute__((naked)) void DMA1_Channel5_IRQHandler()
+extern "C" __attribute__((naked)) void DMA_RX_IRQHandler()
 {
     Uart::DmaRx::IrqHandler();
     __asm volatile ("mret");

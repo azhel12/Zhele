@@ -1,9 +1,10 @@
 /**
- * SSD1306 128x64 OLED over I2C with DMA (V003 / V006 / V203).
+ * SSD1306 128x64 OLED over I2C with DMA (V003 / V006 / V203 / X035).
  *
  * Wiring (default I2C1 mapping, no remap):
  *   CH32V003 / CH32V006 -> SCL=PC2  SDA=PC1
  *   CH32V203            -> SCL=PB6  SDA=PB7
+ *   CH32X035            -> SCL=PA10 SDA=PA11
  */
 
 #include <zhele/i2c.h>
@@ -36,6 +37,8 @@ int main()
     I2c1::Init(400000); // 400 kHz fast mode
 #if defined(CH32V203)
     I2c1::SelectPins<IO::Pb6, IO::Pb7>();
+#elif defined(CH32X035)
+    I2c1::SelectPins<IO::Pa10, IO::Pa11>();
 #else
     I2c1::SelectPins<IO::Pc2, IO::Pc1>();
 #endif

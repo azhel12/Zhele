@@ -4,8 +4,8 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../wch_cmake/cm
 
 project(blink CXX C ASM)
 
-ch32_fetch_cmsis(V0 V2)
-find_package(CMSIS COMPONENTS CH32V0 CH32V2 REQUIRED)
+ch32_fetch_cmsis(V0 V2 X0)
+find_package(CMSIS COMPONENTS CH32V0 CH32V2 CH32X0 REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../../../include)
 
@@ -27,3 +27,9 @@ target_compile_definitions(blink_v203 PRIVATE CH32V203)
 target_link_libraries(blink_v203 CMSIS::CH32::V203C8 CH32::Nano CH32::NoSys)
 ch32_print_size_of_target(blink_v203)
 ch32_generate_hex_file(blink_v203)
+
+add_executable(blink_x035 main.cpp)
+target_compile_features(blink_x035 PRIVATE cxx_std_23)
+target_link_libraries(blink_x035 CMSIS::CH32::X035C8 CH32::Nano CH32::NoSys)
+ch32_print_size_of_target(blink_x035)
+ch32_generate_hex_file(blink_x035)

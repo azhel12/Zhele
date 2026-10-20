@@ -11,8 +11,8 @@ if(CMAKE_C_COMPILER MATCHES "riscv32-wch-elf")
     add_compile_definitions(ZHELE_WCH_TOOLCHAIN)
 endif()
 
-ch32_fetch_cmsis(V0 V2)
-find_package(CMSIS COMPONENTS CH32V0 CH32V2 REQUIRED)
+ch32_fetch_cmsis(V0 V2 X0)
+find_package(CMSIS COMPONENTS CH32V0 CH32V2 CH32X0 REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../../../include)
 
@@ -36,3 +36,9 @@ target_compile_definitions(uart_echo_dma_v203 PRIVATE CH32V203)
 target_link_libraries(uart_echo_dma_v203 CMSIS::CH32::V203C8 CH32::Nano CH32::NoSys)
 ch32_print_size_of_target(uart_echo_dma_v203)
 ch32_generate_hex_file(uart_echo_dma_v203)
+
+add_executable(uart_echo_dma_x035 main.cpp)
+target_compile_features(uart_echo_dma_x035 PRIVATE cxx_std_23)
+target_link_libraries(uart_echo_dma_x035 CMSIS::CH32::X035C8 CH32::Nano CH32::NoSys)
+ch32_print_size_of_target(uart_echo_dma_x035)
+ch32_generate_hex_file(uart_echo_dma_x035)

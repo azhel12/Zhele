@@ -18,14 +18,18 @@ namespace Zhele
     class NativePortBase
     {
     public:
+#if defined(ZHELE_CH32_FAMILY_X0)
+      using DataType = uint32_t;
+#else
       using DataType = uint16_t;
+#endif
 
       // The new V00x GPIO (V002/004/005/006/007) narrows MODE to a single bit
       enum Configuration
       {
         Analog  = 0,
         In      = 0x04,
-#if defined(CH32V00X) // new V00x (V002/4/5/6/7, not V003) — 1-bit MODE field
+#if defined(CH32V00X) || defined(ZHELE_CH32_FAMILY_X0)
         Out     = 0x01,
         AltFunc = 0x09
 #else
@@ -41,6 +45,20 @@ namespace Zhele
         PullDown = 0x18
       };
 
+#if defined(ZHELE_CH32_FAMILY_X0)
+      enum DriverType
+      {
+        PushPull  = 0,
+        OpenDrain = 0
+      };
+
+      enum Speed
+      {
+        Slow   = 1,
+        Medium = 1,
+        Fast   = 1
+      };
+#else
       enum DriverType
       {
         PushPull  = 0,
@@ -53,6 +71,7 @@ namespace Zhele
         Medium = 1,
         Fast   = 3
       };
+#endif
 
       static void Write(DataType value);
       template <DataType value>
@@ -176,13 +195,16 @@ namespace Zhele
         // matching STM32 BSRR semantics.
         static void ClearAndSet(DataType clearMask, DataType setMask)
         {
-          _Regs()->BCR  = clearMask;
-          _Regs()->BSHR = setMask;
+          Clear(clearMask);
+          Set(setMask);
         }
 
         static void Set(DataType value)
         {
-          _Regs()->BSHR = value;
+          _Regs()->BSHR = value & 0xffffu;
+#if defined(ZHELE_CH32_FAMILY_X0)
+          _Regs()->BSXR = value >> 16;
+#endif
         }
 
         static void Clear(DataType value)
@@ -203,8 +225,8 @@ namespace Zhele
         template <DataType clearMask, DataType setMask>
         static void ClearAndSet()
         {
-          _Regs()->BCR  = clearMask;
-          _Regs()->BSHR = setMask;
+          Clear<clearMask>();
+          Set<setMask>();
         }
 
         template <DataType value>
@@ -216,7 +238,12 @@ namespace Zhele
         template <DataType value>
         static void Set()
         {
-          _Regs()->BSHR = value;
+          if constexpr ((value & 0xffffu) != 0)
+            _Regs()->BSHR = value & 0xffffu;
+#if defined(ZHELE_CH32_FAMILY_X0)
+          if constexpr ((value >> 16) != 0)
+            _Regs()->BSXR = value >> 16;
+#endif
         }
 
         template <DataType value>
@@ -227,54 +254,29 @@ namespace Zhele
 
         static void SetConfiguration(Configuration configuration, DataType mask = std::numeric_limits<DataType>::max())
         {
-          _Regs()->CFGLR = UnpackConfig(mask,        _Regs()->CFGLR, configuration, 0x0f);
-#if !defined(ZHELE_CH32_FAMILY_V0)
-          _Regs()->CFGHR = UnpackConfig(mask >> 8,   _Regs()->CFGHR, configuration, 0x0f);
-#endif
+          ModifyConfiguration(mask, 0x0f, configuration);
         }
 
         template <Configuration configuration, DataType mask = std::numeric_limits<DataType>::max()>
         static void SetConfiguration()
         {
-          constexpr unsigned lowMaskPart  = ConfigurationMask(mask);
-#if !defined(ZHELE_CH32_FAMILY_V0)
-          constexpr unsigned highMaskPart = ConfigurationMask(mask >> 8);
-#endif
-
-          _Regs()->CFGLR = (_Regs()->CFGLR & ~(lowMaskPart  * 0x0fu)) | lowMaskPart  * configuration;
-#if !defined(ZHELE_CH32_FAMILY_V0)
-          _Regs()->CFGHR = (_Regs()->CFGHR & ~(highMaskPart * 0x0fu)) | highMaskPart * configuration;
-#endif
+          ModifyConfiguration<mask, 0x0f>(configuration);
         }
 
         static void SetSpeed(Speed speed, DataType mask = std::numeric_limits<DataType>::max())
         {
-          _Regs()->CFGLR = UnpackConfig(mask,        _Regs()->CFGLR, speed, 0x03);
-#if !defined(ZHELE_CH32_FAMILY_V0)
-          _Regs()->CFGHR = UnpackConfig(mask >> 8,   _Regs()->CFGHR, speed, 0x03);
-#endif
+          ModifyConfiguration(mask, SpeedMask, speed);
         }
 
         template <Speed speed, DataType mask = std::numeric_limits<DataType>::max()>
         static void SetSpeed()
         {
-          constexpr unsigned lowMaskPart  = ConfigurationMask(mask);
-#if !defined(ZHELE_CH32_FAMILY_V0)
-          constexpr unsigned highMaskPart = ConfigurationMask(mask >> 8);
-#endif
-
-          _Regs()->CFGLR = (_Regs()->CFGLR & ~(lowMaskPart  * 0x03u)) | lowMaskPart  * speed;
-#if !defined(ZHELE_CH32_FAMILY_V0)
-          _Regs()->CFGHR = (_Regs()->CFGHR & ~(highMaskPart * 0x03u)) | highMaskPart * speed;
-#endif
+          ModifyConfiguration<mask, SpeedMask>(speed);
         }
 
         static void SetPullMode(PullMode mode, DataType mask = std::numeric_limits<DataType>::max())
         {
-          _Regs()->CFGLR = UnpackConfig(mask,        _Regs()->CFGLR, mode & 0x08u, 0x0f);
-#if !defined(ZHELE_CH32_FAMILY_V0)
-          _Regs()->CFGHR = UnpackConfig(mask >> 8,   _Regs()->CFGHR, mode & 0x08u, 0x0f);
-#endif
+          ModifyConfiguration(mask, 0x0f, mode & 0x08u);
 
           if (mode & 0x10u)
             Clear(mask);
@@ -285,15 +287,7 @@ namespace Zhele
         template <PullMode mode, DataType mask = std::numeric_limits<DataType>::max()>
         static void SetPullMode()
         {
-          constexpr unsigned lowMaskPart  = ConfigurationMask(mask);
-#if !defined(ZHELE_CH32_FAMILY_V0)
-          constexpr unsigned highMaskPart = ConfigurationMask(mask >> 8);
-#endif
-
-          _Regs()->CFGLR = (_Regs()->CFGLR & ~(lowMaskPart  * 0x0fu)) | lowMaskPart  * (mode & 0x08u);
-#if !defined(ZHELE_CH32_FAMILY_V0)
-          _Regs()->CFGHR = (_Regs()->CFGHR & ~(highMaskPart * 0x0fu)) | highMaskPart * (mode & 0x08u);
-#endif
+          ModifyConfiguration<mask, 0x0f>(mode & 0x08u);
 
           if constexpr (mode & 0x10u)
             Clear<mask>();
@@ -303,24 +297,13 @@ namespace Zhele
 
         static void SetDriverType(DriverType driver, DataType mask = std::numeric_limits<DataType>::max())
         {
-          _Regs()->CFGLR = UnpackConfig(mask,        _Regs()->CFGLR, driver, 0x04);
-#if !defined(ZHELE_CH32_FAMILY_V0)
-          _Regs()->CFGHR = UnpackConfig(mask >> 8,   _Regs()->CFGHR, driver, 0x04);
-#endif
+          ModifyConfiguration(mask, 0x04, driver);
         }
 
         template <DriverType driver, DataType mask = std::numeric_limits<DataType>::max()>
         static void SetDriverType()
         {
-          constexpr unsigned lowMaskPart  = ConfigurationMask(mask);
-#if !defined(ZHELE_CH32_FAMILY_V0)
-          constexpr unsigned highMaskPart = ConfigurationMask(mask >> 8);
-#endif
-
-          _Regs()->CFGLR = (_Regs()->CFGLR & ~(lowMaskPart  * 0x04u)) | lowMaskPart  * driver;
-#if !defined(ZHELE_CH32_FAMILY_V0)
-          _Regs()->CFGHR = (_Regs()->CFGHR & ~(highMaskPart * 0x04u)) | highMaskPart * driver;
-#endif
+          ModifyConfiguration<mask, 0x04>(driver);
         }
 
         // CH32V0 remaps peripherals globally via AFIO->PCFR, not per-pin.
@@ -334,9 +317,45 @@ namespace Zhele
         enum { Id = ID };
 
       private:
+#if defined(ZHELE_CH32_FAMILY_X0)
+        static constexpr unsigned SpeedMask = 0x01;
+#else
+        static constexpr unsigned SpeedMask = 0x03;
+#endif
+
+        static void ModifyConfiguration(DataType mask, unsigned configMask, unsigned value)
+        {
+          _Regs()->CFGLR = UnpackConfig(mask, _Regs()->CFGLR, value, configMask);
+#if !defined(ZHELE_CH32_FAMILY_V0)
+          _Regs()->CFGHR = UnpackConfig(mask >> 8, _Regs()->CFGHR, value, configMask);
+#endif
+#if defined(ZHELE_CH32_FAMILY_X0)
+          _Regs()->CFGXR = UnpackConfig(mask >> 16, _Regs()->CFGXR, value, configMask);
+#endif
+        }
+
+        template <DataType mask, unsigned configMask>
+        static void ModifyConfiguration(unsigned value)
+        {
+          constexpr unsigned lowMaskPart = ConfigurationMask(mask);
+          if constexpr (lowMaskPart != 0)
+            _Regs()->CFGLR = (_Regs()->CFGLR & ~(lowMaskPart * configMask)) | lowMaskPart * value;
+#if !defined(ZHELE_CH32_FAMILY_V0)
+          constexpr unsigned highMaskPart = ConfigurationMask(mask >> 8);
+          if constexpr (highMaskPart != 0)
+            _Regs()->CFGHR = (_Regs()->CFGHR & ~(highMaskPart * configMask)) | highMaskPart * value;
+#endif
+#if defined(ZHELE_CH32_FAMILY_X0)
+          constexpr unsigned extMaskPart = ConfigurationMask(mask >> 16);
+          if constexpr (extMaskPart != 0)
+            _Regs()->CFGXR = (_Regs()->CFGXR & ~(extMaskPart * configMask)) | extMaskPart * value;
+#endif
+        }
+
         // Expand an 8-bit pin mask to a 32-bit mask with one bit per 4-bit config field.
         static constexpr unsigned ConfigurationMask(unsigned mask)
         {
+          mask &= 0xffu;
           const unsigned mask1 = (mask & 0xf0u) << 12 | (mask & 0x0fu);
           const unsigned mask2 = (mask1 & 0x000C000Cu) << 6 | (mask1 & 0x00030003u);
           return (mask2 & 0x02020202u) << 3 | (mask2 & 0x01010101u);

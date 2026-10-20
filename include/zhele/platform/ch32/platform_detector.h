@@ -8,6 +8,7 @@
  *   ZHELE_CH32_FAMILY_V1      — CH32V103 / CH32V10x
  *   ZHELE_CH32_FAMILY_V2      — CH32V203 / CH32V20x
  *   ZHELE_CH32_FAMILY_V3      — CH32V303 / CH32V30x
+ *   ZHELE_CH32_FAMILY_X0      — CH32X035
  */
 #ifndef ZHELE_PLATFORM_CH32_PLATFORM_DETECTOR_H
 #define ZHELE_PLATFORM_CH32_PLATFORM_DETECTOR_H
@@ -30,6 +31,9 @@
 #elif defined(CH32V3) || defined(CH32V30x) || defined(CH32V303)
 #  define ZHELE_PLATFORM_CH32    1
 #  define ZHELE_CH32_FAMILY_V3   1
+#elif defined(CH32X0) || defined(CH32X035)
+#  define ZHELE_PLATFORM_CH32    1
+#  define ZHELE_CH32_FAMILY_X0   1
 #elif defined(ZHELE_PLATFORM_CH32)
   // Family set explicitly without a WCH SDK macro — allowed for testing/mocking.
 #endif
