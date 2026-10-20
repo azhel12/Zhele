@@ -7,8 +7,8 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_USB_MSC_H
-#define ZHELE_PLATFORM_STM32_COMMON_USB_MSC_H
+#ifndef ZHELE_COMMON_USB_MSC_H
+#define ZHELE_COMMON_USB_MSC_H
 
 #include "interface.h"
 
@@ -58,7 +58,7 @@ namespace Zhele::Usb
         uint8_t Lun; ///< Lun number
         uint8_t CommandBlockLength; ///< Length of next field (Command block)
         uint8_t CommandBlock[16]; ///< Command block to be executed
-    } __packed;
+    } __attribute__((packed));
 
     /// Command Status Wrapper structure
     struct BulkOnlyCSW
@@ -74,7 +74,7 @@ namespace Zhele::Usb
             Failed = 0x01, ///< Command failed
             PhaseError = 0x02 ///< Phase error
         } Status; ///< Command status
-    } __packed;
+    } __attribute__((packed));
 
     /// SCSI commands
     enum class ScsiCommand : uint8_t
@@ -105,7 +105,7 @@ namespace Zhele::Usb
         uint8_t CdbInfo2;
         uint16_t Length;
         uint8_t Control;
-    } __packed;
+    } __attribute__((packed));
     
 
     static const uint8_t  inquiry_page00_data[] = {					
@@ -397,7 +397,7 @@ namespace Zhele::Usb
          */
         static bool RxHandler(void* data, uint16_t size)
         {
-            CopyFromUsbPma(&_buffer[_rxAddress], data, size);
+            CopyFromPacketMemory(&_buffer[_rxAddress], data, size);
 
             _rxAddress += size;
             _rxBytesRemain -= size;
@@ -494,7 +494,7 @@ namespace Zhele::Usb
             static bool needReceive = false;
 
             if(cbwBytesReceived < sizeof(BulkOnlyCBW)) {
-                CopyFromUsbPma(reinterpret_cast<uint8_t*>(&request) + cbwBytesReceived, data, size);
+                CopyFromPacketMemory(reinterpret_cast<uint8_t*>(&request) + cbwBytesReceived, data, size);
 
                 cbwBytesReceived += size;
 
@@ -517,4 +517,4 @@ namespace Zhele::Usb
     };
 }
 
-#endif // ZHELE_PLATFORM_STM32_COMMON_USB_MSC_H
+#endif // ZHELE_COMMON_USB_MSC_H

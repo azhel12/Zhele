@@ -7,8 +7,8 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_USB_HID_H
-#define ZHELE_PLATFORM_STM32_COMMON_USB_HID_H
+#ifndef ZHELE_COMMON_USB_HID_H
+#define ZHELE_COMMON_USB_HID_H
 
 #include "interface.h"
 
@@ -193,4 +193,4 @@ namespace Zhele::Usb
         }
     };
 }
-#endif // ZHELE_PLATFORM_STM32_COMMON_USB_HID_H
+#endif // ZHELE_COMMON_USB_HID_H

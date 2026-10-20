@@ -7,8 +7,8 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_USB_CDC_H
-#define ZHELE_PLATFORM_STM32_COMMON_USB_CDC_H
+#ifndef ZHELE_COMMON_USB_CDC_H
+#define ZHELE_COMMON_USB_CDC_H
 
 #include "interface.h"
 
@@ -263,4 +263,4 @@ namespace Zhele::Usb
     template<uint8_t _Number, typename _Ep0, typename _Endpoint>
     using DefaultCdcCommInterface = CdcCommInterface<_Number, 0, 0x02, 0x01, _Ep0, _Endpoint, HeaderFunctional, CallManagementFunctional, AcmFunctional, UnionFunctional>;
 }
-#endif // ZHELE_PLATFORM_STM32_COMMON_USB_CDC_H
+#endif // ZHELE_COMMON_USB_CDC_H

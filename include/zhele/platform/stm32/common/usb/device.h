@@ -1,7 +1,7 @@
 /**
  * @file
- * Implement USB device
- * 
+ * Bind USB device stack to STM32 USB controller
+ *
  * @author Aleksei Zhelonkin
  * @date 2021
  * @license MIT
@@ -10,78 +10,52 @@
 #ifndef ZHELE_PLATFORM_STM32_COMMON_USB_DEVICE_H
 #define ZHELE_PLATFORM_STM32_COMMON_USB_DEVICE_H
 
-#include "configuration.h"
-#include "cdc.h"
-#include "endpoints_manager.h"
-#include "hid.h"
-#include "interface.h"
-#include "msc.h"
+#include "hw.h"
 
 #include "../ioreg.h"
-#include <zhele/common/template_utils/fixed_string.h>
 
-#include <type_traits>
+#include <zhele/common/usb/device.h>
+
+#if defined (ZHELE_USB_PMA)
+    #include "pma/controller.h"
+#elif defined (ZHELE_USB_OTG)
+    #include "otg/controller.h"
+#endif
 
 namespace Zhele::Usb
 {
-    /**
-     * @brief Device descriptor
-     */
-#pragma pack(push, 1)
-    struct DeviceDescriptor
-    {
-        uint8_t Length = 18; ///< Length (always 18)
-        DescriptorType Type = DescriptorType::Device; ///< Desciptor type (always 0x01)
-        uint16_t UsbVersion; ///< Usb version
-        DeviceAndInterfaceClass Class; ///< Device class
-        uint8_t SubClass; ///< Device subclass
-        uint8_t Protocol; ///< Device protocol
-        uint8_t MaxPacketSize; ///< Ep0 maximum packet size
-        uint16_t VendorId; ///< Vendor ID (VID)
-        uint16_t ProductId; ///< Product ID (PID)
-        uint16_t DeviceReleaseNumber; ///< Device release number
-        uint8_t ManufacturerStringIndex = 0; ///< Manufacturer string ID
-        uint8_t ProductStringIndex = 0; ///< Product string ID
-        uint8_t SerialNumberStringIndex = 0; ///< Serial number string ID
-        uint8_t ConfigurationsCount; ///< Configurations count
-    };
-#pragma pack(pop)
-    
-        /**
-     * @brief String descriptor
-     */
-#pragma pack(push, 1)    
-    struct LangIdDescriptor
-    {
-        uint8_t Length = sizeof(LangIdDescriptor);
-        uint8_t DescriptorType = static_cast<uint8_t>(DescriptorType::String);
-        uint16_t USLang = 0x0409;
-    };
-#pragma pack(pop)
-
-    /**
-     * @brief Implements USB device
-     * 
-     * @tparam _Regs USB regs wrapper
-     * @tparam _IRQNumber Irq number
-     * @tparam _ClockCtrl Clock control
-     * @tparam _UsbVersion Usb version
-     * @tparam _Class Class
-     * @tparam _SubClass Subclass
-     * @tparam _Protocol Protocol
-     * @tparam _VendorId Vendor ID
-     * @tparam _ProductId Product ID
-     * @tparam _DeviceReleaseNumber Device release number
-     * @tparam _Ep0 Endpoint 0 base
-     * @tparam _Configurations Device`s configurations
-     */
-    template<
-        typename _Regs,
-#if defined (ZHELE_USB_OTG)
-        typename _DeviceRegs,
+#if defined (ZHELE_USB_DRD)
+    IO_STRUCT_WRAPPER(USB_DRD_FS, UsbRegs, USB_DRD_TypeDef);
+#elif defined (ZHELE_USB_PMA)
+    IO_STRUCT_WRAPPER(USB, UsbRegs, USB_TypeDef);
+#elif defined (ZHELE_USB_OTG)
+    IO_STRUCT_WRAPPER(USB_OTG_FS, UsbRegs, USB_OTG_GlobalTypeDef);
+    IO_STRUCT_WRAPPER(USB_OTG_FS_PERIPH_BASE + USB_OTG_DEVICE_BASE, UsbDeviceRegs, USB_OTG_DeviceTypeDef);
 #endif
-        IRQn_Type _IRQNumber,
-        typename _ClockCtrl, 
+
+// On some families (e.g. STM32F1) USB_LP_IRQn/USB_HP_IRQn are preprocessor macros and
+// `defined(USB_LP_IRQn)` correctly detects them. On others (e.g. STM32G4) they are
+// IRQn_Type enumerators, invisible to `#if defined()` - such a family header must
+// `#define USB_IRQ` itself before including this file, which the guard below respects.
+#if !defined (USB_IRQ)
+#if defined (ZHELE_USB_DRD)
+    #define USB_IRQ USB_DRD_FS_IRQn
+#elif defined (USB_LP_IRQn)
+    #define USB_IRQ USB_LP_IRQn
+#elif defined (ZHELE_USB_PMA)
+    #define USB_IRQ USB_IRQn
+#elif defined (ZHELE_USB_OTG)
+    #define USB_IRQ OTG_FS_IRQn
+#endif
+#endif
+
+#if defined (ZHELE_USB_PMA)
+    using UsbController = PmaController<UsbRegs, USB_IRQ, Zhele::Clock::UsbClock>;
+#elif defined (ZHELE_USB_OTG)
+    using UsbController = OtgController<UsbRegs, UsbDeviceRegs, USB_IRQ, Zhele::Clock::OtgFsClock>;
+#endif
+
+    template<
         uint16_t _UsbVersion,
         DeviceAndInterfaceClass _Class,
         uint8_t _SubClass,
@@ -94,155 +68,19 @@ namespace Zhele::Usb
         auto _Serial,
         typename _Ep0,
         typename... _Configurations>
-    class DeviceBase : public _Ep0
-    {
-        /**
-         * @brief Build device descriptor
-         * 
-         * @returns Device descriptor
-         */
-        static consteval DeviceDescriptor BuildDeviceDescriptor();
+    using DeviceWithStrings = DeviceBase<UsbController, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
 
-        /**
-         * @brief Calculates configuration descriptor size
-         * 
-         * @returns Configuration descriptor size in bytes
-        */
-        static consteval unsigned ConfigurationDescriptorSize();
-
-        /**
-         * @brief Build configuration descriptor
-         * 
-         * @returns Bytes with configuration descriptor
-        */
-        static consteval auto BuildConfigurationDescriptor();
-
-        /**
-         * @brief Build string descriptor
-         * 
-         * @returns Bytes with string descriptor
-        */
-        static consteval auto BuildStringDescriptor(auto str);
-
-#if defined (ZHELE_USB_PMA)
-        using This = DeviceBase<_Regs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
-#elif defined (ZHELE_USB_OTG)
-        using This = DeviceBase<_Regs, _DeviceRegs, _IRQNumber, _ClockCtrl, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, _Manufacturer, _Product, _Serial, _Ep0, _Configurations...>;
-#endif
-        static constexpr auto _configurations = template_utils::type_list<_Configurations...>{};
-        static constexpr auto _interfaces = (template_utils::type_list<>{} + ... + _Configurations::Interfaces); 
-        static constexpr auto _endpoints = (template_utils::type_list<>{} + ... + _Configurations::Endpoints);
-        static constexpr auto _epBufferManager = EndpointsManager{_endpoints.template push_back<_Ep0>()};
-        static constexpr auto _epHandlers = EndpointHandlers{_endpoints.template push_back<This>()}; // Replace Ep0 with this for correct handler register.
-        static constexpr auto _ifHandlers = InterfaceHandlers{(template_utils::type_list<>{} + ... + _Configurations::Interfaces)};
-#if defined (ZHELE_USB_OTG)
-        static constexpr auto _outEndpoints = _endpoints.filter([](auto endpoint){
-            return endpoint.Direction == EndpointDirection::Out || endpoint.Direction == EndpointDirection::Bidirectional;
-        }).template push_back<This>();
-        static constexpr auto _epFifoNotEmptyHandlers = EndpointFifoNotEmptyHandlers{_outEndpoints};
-#endif
-
-        static uint8_t _tempAddressStorage;
-        static volatile bool _isDeviceConfigured;
-    public:
-        /**
-         * @brief Select clock source
-         * 
-         * @tparam T Clock source type
-         * 
-         * @param [in] clockSource Clock source
-         * 
-         * @par Returns
-         *  Nothing
-         */
-        template<auto clockSource>
-        static void SelectClockSource();
-
-        /**
-         * @brief Enables device
-         * 
-         * @par Returns
-         *  Nothing
-         */
-        static void Enable();
-
-        /**
-         * @brief Reset device
-         * 
-         * @par Returns
-         *  Nothing
-         */
-        static void Reset();
-
-        /**
-         * @brief Allows check that device configure complete
-         * 
-         * @retval true Device is configured
-         * @retval false Device is not configured yet
-         */
-        static bool IsDeviceConfigured();
-
-        /**
-         * @brief Common USB handler
-         *
-         * @par Returns
-         *  Nothing
-         */
-        static void CommonHandler();
-
-        /**
-         * @brief Ep0 (device) CTR handler
-         * 
-         * @par Returns
-         *  Nothing
-         */
-        static void Handler();
-
-    private:
-        /**
-         * @brief Handle SETUP request
-         * 
-         * @param setupPacket 
-         * 
-         * @par Returns
-         *  Nohting
-         */
-        static void HandleSetupRequest(SetupPacket* setupPacket);
-
-        /**
-         * @brief Set device address
-         * 
-         * @param address Address
-         * 
-         * @par Returns
-         *  Nothing
-         */
-        static void SetAddress(uint16_t address);
-
-        /**
-         * @brief Calculate DAINTMSK value for OTG
-         * 
-         * @param [in] endpoints Endpoints
-         * 
-         * @returns DAINT mask
-         */
-        static consteval auto CalculateDaintMask(auto endpoints) {
-            uint32_t result = 0;
-
-            endpoints.foreach([&result](auto endpoint) {
-                result |=  template_utils::type_unbox<endpoint>::Direction == EndpointDirection::In
-                    ? (1 << template_utils::type_unbox<endpoint>::Number)
-                    : (template_utils::type_unbox<endpoint>::Direction == EndpointDirection::Out
-                        ? ((1 << template_utils::type_unbox<endpoint>::Number) << 16)
-                        : ((1 << template_utils::type_unbox<endpoint>::Number) | ((1 << template_utils::type_unbox<endpoint>::Number) << 16))
-                    );
-            });
-
-            return result;
-        }
-    };
+    template<
+        uint16_t _UsbVersion,
+        DeviceAndInterfaceClass _Class,
+        uint8_t _SubClass,
+        uint8_t _Protocol,
+        uint16_t _VendorId,
+        uint16_t _ProductId,
+        uint16_t _DeviceReleaseNumber,
+        typename _Ep0,
+        typename... _Configurations>
+    using Device = DeviceBase<UsbController, _UsbVersion, _Class, _SubClass, _Protocol, _VendorId, _ProductId, _DeviceReleaseNumber, template_utils::EmptyFixedString16, template_utils::EmptyFixedString16, template_utils::EmptyFixedString16, _Ep0, _Configurations...>;
 }
 
-#include "impl/device.h"
-
-#endif // ZHELE_PLATFORM_STM32_COMMON_USB_DEVICE_H
+#endif //! ZHELE_PLATFORM_STM32_COMMON_USB_DEVICE_H

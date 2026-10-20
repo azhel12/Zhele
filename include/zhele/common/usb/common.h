@@ -7,13 +7,10 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_USB_COMMON_H
-#define ZHELE_PLATFORM_STM32_COMMON_USB_COMMON_H
-
-#include "hw.h"
+#ifndef ZHELE_COMMON_USB_COMMON_H
+#define ZHELE_COMMON_USB_COMMON_H
 
 #include <stdint.h>
-#include <cstring>
 
 namespace Zhele::Usb
 {
@@ -112,19 +109,6 @@ namespace Zhele::Usb
      * @brief Setup packet
      */
 #pragma pack(push, 1)
-#if PMA_ALIGN_MULTIPLIER == 2
-    struct SetupPacket
-    {
-        SetupRequestType RequestType; ///< Request type
-        StandartRequestCode Request; ///< Request
-        uint16_t Dummy1; ///< Alignmentn
-        uint16_t Value; ///< Value
-        uint16_t Dummy2; ///< Alignmentn
-        uint16_t Index; ///< Index
-        uint16_t Dummy3; ///< Alignmentn
-        uint16_t Length; ///< Length
-    };
-#else
     struct SetupPacket
     {
         SetupRequestType RequestType; ///< Request type
@@ -133,7 +117,21 @@ namespace Zhele::Usb
         uint16_t Index; ///< Index
         uint16_t Length; ///< Length
     };
-#endif
 #pragma pack(pop)
+
+    /**
+     * @brief Copies received data out of an endpoint buffer
+     *
+     * @details Endpoint buffers may live in a dedicated packet memory with its own access rules,
+     * so every platform provides this function.
+     *
+     * @param [out] destination Destination (RAM)
+     * @param [in] source Endpoint buffer
+     * @param [in] size Bytes count
+     *
+     * @par Returns
+     *  Nothing
+     */
+    inline void CopyFromPacketMemory(void* destination, const void* source, unsigned size);
 }
-#endif // ZHELE_PLATFORM_STM32_COMMON_USB_COMMON_H
+#endif // ZHELE_COMMON_USB_COMMON_H

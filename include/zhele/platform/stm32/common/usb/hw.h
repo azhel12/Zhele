@@ -60,6 +60,11 @@ namespace Zhele::Usb
     const unsigned PmaAlignMultiplier = 1;
 #endif
 
+#if defined (ZHELE_USB_DRD) || PMA_ALIGN_MULTIPLIER == 2
+    /// Packet memory can't be read as plain RAM, bidirectional endpoints mirror RX packet into RAM
+    #define ZHELE_USB_PMA_RX_MIRROR
+#endif
+
 #if defined (ZHELE_USB_DRD)
     /// DRD accepts word accesses to the packet memory only, so every endpoint buffer
     /// must start at a word boundary (see USB_DRD_SET_CHEP_TX_ADDRESS in ST`s HAL).
@@ -197,6 +202,11 @@ namespace Zhele::Usb
             halfWords[PmaAlignMultiplier * (size / 2)] = origin[size - 1];
         }
 #endif
+    }
+
+    inline void CopyFromPacketMemory(void* destination, const void* source, unsigned size)
+    {
+        CopyFromUsbPma(destination, source, size);
     }
 }
 

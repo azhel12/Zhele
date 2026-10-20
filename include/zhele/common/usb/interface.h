@@ -7,8 +7,8 @@
  * @license MIT
  */
 
-#ifndef ZHELE_PLATFORM_STM32_COMMON_USB_INTERFACE_H
-#define ZHELE_PLATFORM_STM32_COMMON_USB_INTERFACE_H
+#ifndef ZHELE_COMMON_USB_INTERFACE_H
+#define ZHELE_COMMON_USB_INTERFACE_H
 
 #include "common.h"
 #include "endpoint.h"
@@ -187,4 +187,4 @@ namespace Zhele::Usb
     template<typename... Interfaces>
     InterfaceHandlers(Zhele::template_utils::type_list<Interfaces...> interfaces) -> InterfaceHandlers<Interfaces...>;
 }
-#endif // ZHELE_PLATFORM_STM32_COMMON_USB_INTERFACE_H
+#endif // ZHELE_COMMON_USB_INTERFACE_H
