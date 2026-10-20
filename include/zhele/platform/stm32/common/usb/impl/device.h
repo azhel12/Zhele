@@ -196,6 +196,8 @@ namespace Zhele::Usb
         for (auto i = 0; i < 3; ++i)
             _Regs()->DIEPTXF[i] = 0;
 
+        _DeviceRegs()->DCFG &= ~USB_OTG_DCFG_DAD;
+
         _epBufferManager.Init();
 
         _Ep0::Reset();
@@ -288,7 +290,7 @@ namespace Zhele::Usb
     USB_DEVICE_TEMPLATE_ARGS
     void USB_DEVICE_TEMPLATE_QUALIFIER::SetAddress(uint16_t address)
     {        
-        _DeviceRegs()->DCFG |= static_cast<uint32_t>(address) << USB_OTG_DCFG_DAD_Pos;
+        _DeviceRegs()->DCFG = (_DeviceRegs()->DCFG & ~USB_OTG_DCFG_DAD) | (static_cast<uint32_t>(address) << USB_OTG_DCFG_DAD_Pos);
         _Ep0::SendZLP();
     }
 

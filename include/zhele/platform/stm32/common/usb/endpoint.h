@@ -1104,7 +1104,7 @@ namespace Zhele::Usb
         {
             for(int i = 0; i < (size + 3) / 4; ++i)
             {
-                reinterpret_cast<uint32_t*>(Buffer + BufferSize)[i] = *reinterpret_cast<uint32_t*>(_FifoAddress);
+                reinterpret_cast<uint32_t*>(Buffer + BufferSize)[i] = *reinterpret_cast<volatile uint32_t*>(_FifoAddress);
             }
             BufferSize += size;
         }
@@ -1360,7 +1360,7 @@ namespace Zhele::Usb
                 + sizeof(uint32_t) - 1) / sizeof(uint32_t);
 
             for(int i = 0; i < doubleWordsToWrite; ++i) {
-                *reinterpret_cast<uint32_t*>(_FifoAddress) = *(_dataToTransmit++);
+                *reinterpret_cast<volatile uint32_t*>(_FifoAddress) = *(_dataToTransmit++);
             }
         }
 
